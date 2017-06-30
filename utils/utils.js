@@ -29,8 +29,15 @@ function readArrayEnvironmentVariable(name, defaultValue, opts) {
   return value === defaultValue ? value : value.split('|');
 }
 
+function sequence(funcs) {
+  return funcs.reduce((promise, func) => {
+    return promise.then((all) => func().then(result => _.concat(all, result)));
+  }, Promise.resolve([]));
+}
+
 module.exports = {
   decorateConnectionWithDebug,
   readEnvironmentVariable,
-  readArrayEnvironmentVariable
+  readArrayEnvironmentVariable,
+  sequence
 };
