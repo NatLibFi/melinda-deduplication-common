@@ -35,9 +35,18 @@ function sequence(funcs) {
   }, Promise.resolve([]));
 }
 
+function hrtimeToMs(hrtime) {
+  const NS_PER_SEC = 1e9;
+  const ns = hrtime[0] * NS_PER_SEC + hrtime[1];
+
+  return Math.round(ns/1000000);
+
+}
+
 module.exports = {
   decorateConnectionWithDebug,
   readEnvironmentVariable,
   readArrayEnvironmentVariable,
-  sequence
+  sequence,
+  hrtimeToMs
 };

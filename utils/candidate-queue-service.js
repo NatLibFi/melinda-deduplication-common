@@ -8,15 +8,16 @@ const CANDIDATE_QUEUE_NAME = 'CANDIDATES';
 function createCandidateQueueService(channel: Channel): CandidateQueueService {
 
   async function pushCandidates(duplicateCandidates) {
-    await channel.assertQueue(CANDIDATE_QUEUE_NAME);
+    await channel.assertQueue(CANDIDATE_QUEUE_NAME, {durable: true});
     for (let candidate of duplicateCandidates) {
       const payload = JSON.stringify(candidate);
-      await channel.sendToQueue(CANDIDATE_QUEUE_NAME, Buffer.from(payload));
+      await channel.sendToQueue(CANDIDATE_QUEUE_NAME, Buffer.from(payload), {persistent: true});
     }
   }
 
   async function listenForCandidates(onCandidate: OnCandidate) {
-    await channel.assertQueue(CANDIDATE_QUEUE_NAME);
+    await channel.assertQueue(CANDIDATE_QUEUE_NAME, {durable: true});
+    channel.prefetch(1);
     
     channel.consume(CANDIDATE_QUEUE_NAME, (msg: Message) => {
 
@@ -31,12 +32,13 @@ function createCandidateQueueService(channel: Channel): CandidateQueueService {
         onCandidate(candidate, doneCallback);
       }
 
-    });
+    }, {noAck: false});
 
   }
 
   function parseMessage(msg: Message): DuplicateCandidate {
-    return {};
+    const content: DuplicateCandidate = JSON.parse(msg.content.toString('utf8'));
+    return content;
   }
 
   return {
