@@ -1,7 +1,10 @@
+// @flow
+import type { MelindaRecordService, Credentials } from 'types/melinda-record-service.flow';
+
 const AlephRecordService = require('./aleph-record-service');
 const MelindaClient = require('melinda-api-client');
 
-function createMelindaRecordService(melindaEndpoint, XServer, credentials) {
+function createMelindaRecordService(melindaEndpoint: String, XServer: String, credentials: Credentials): MelindaRecordService {
 
   const client = new MelindaClient({
     endpoint: melindaEndpoint,
