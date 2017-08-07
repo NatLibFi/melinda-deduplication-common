@@ -3,13 +3,14 @@ import type { MelindaRecordService, Credentials } from 'types/melinda-record-ser
 
 const AlephRecordService = require('./aleph-record-service');
 const MelindaClient = require('melinda-api-client');
+const _ = require('lodash');
 
-function createMelindaRecordService(melindaEndpoint: String, XServer: String, credentials: Credentials): MelindaRecordService {
+function createMelindaRecordService(melindaEndpoint: String, XServer: String, credentials?: Credentials): MelindaRecordService {
 
   const client = new MelindaClient({
     endpoint: melindaEndpoint,
-    user: credentials.username,
-    password: credentials.password
+    user: _.get(credentials, 'username'),
+    password: _.get(credentials, 'password')
   });
   
   const alephRecordServiceX = AlephRecordService.createAlephRecordService(XServer, credentials);
