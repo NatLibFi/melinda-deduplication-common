@@ -40,7 +40,6 @@ function hrtimeToMs(hrtime) {
   const ns = hrtime[0] * NS_PER_SEC + hrtime[1];
 
   return Math.round(ns/1000000);
-
 }
 
 module.exports = {
