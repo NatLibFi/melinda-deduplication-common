@@ -15,6 +15,12 @@ function createRecordMergeService(melindaConnector: MelindaRecordService): Recor
     // return mergeResult
     // rollback on failure
     // dont follow deleted redirects when rollbacking
+    return {
+      record: {
+        base: 'TODO',
+        id: '0'
+      }
+    };
   }
 
   return {

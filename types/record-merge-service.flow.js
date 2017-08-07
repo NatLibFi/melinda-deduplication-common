@@ -3,8 +3,8 @@
 import type { MarcRecord } from './marc-record.flow';
 
 export type RecordIdentifier = {
-  id: String,
-  base: String
+  id: string,
+  base: string
 };
 
 export type MergeResult = {
@@ -12,6 +12,6 @@ export type MergeResult = {
 };
 
 export type RecordMergeService = {
-  checkMergeability: (firstRecord: MarcRecord, secondRecord: MarcRecord) => Promise<Boolean>,
+  checkMergeability: (firstRecord: MarcRecord, secondRecord: MarcRecord) => Promise<boolean>,
   mergeRecords: (firstRecord: MarcRecord, secondRecord: MarcRecord) => Promise<MergeResult>
 };
