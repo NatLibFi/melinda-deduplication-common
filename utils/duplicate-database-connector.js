@@ -13,8 +13,11 @@ function createDuplicateDatabaseConnector(duplicateDBConfig: DuplicateDatabaseCo
     const reckey2 = encodeURIComponent(second.id);
 
     const url = `${duplicateDBConfig.endpoint}?a=getDouble&reckey1=${reckey1}&reckey2=${reckey2}&msg=${msg}&priority=${priority}`;
-    // do some fetching
+    
     const result = await fetch(url);
+    if (result.status !== 200) {
+      throw new Error('Failed to add duplicate to duplicate database');
+    }
     return result;
   }
   
