@@ -22,13 +22,8 @@ function createCandidateQueueService(channel: Channel): CandidateQueueService {
     channel.consume(CANDIDATE_QUEUE_NAME, (msg: Message) => {
 
       if (msg != null) {
-        // parse message
-
         const candidate: DuplicateCandidate = parseMessage(msg);
-
-        // the callback has done callback that will do the ack.
         const doneCallback = () => channel.ack(msg);
-
         onCandidate(candidate, doneCallback);
       }
 
