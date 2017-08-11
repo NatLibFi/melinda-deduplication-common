@@ -27,9 +27,44 @@ function createDataStoreService(datastoreAPI: string): DataStoreService {
     const url = `${datastoreAPI}/record/${base}/${recordId}`;
     logger.log('info', `Loading record from url: ${url}`);
     const result = await fetch(url);
-    const json = await result.json();
-    const record = new MarcRecord(json);
-    return record;
+    if (result.status === 200) {
+      const json = await result.json();
+      const record = new MarcRecord(json);
+      return record;    
+    } else {
+      const error = new Error(result.statusText);
+      error.name = 'NOT_FOUND';
+      throw error;
+    }
+  }
+
+  async function loadRecordByTimestamp(base, recordId, timestamp) { 
+    const url = `${datastoreAPI}/record/${base}/${recordId}/version/${timestamp}`;
+    logger.log('info', `Loading record from url: ${url}`);
+    const result = await fetch(url);
+    if (result.status === 200) {
+      const json = await result.json();
+      const record = new MarcRecord(json);
+      return record;
+    } else {
+      const error = new Error(result.statusText);
+      error.name = 'NOT_FOUND';
+      throw error;
+    }
+  }
+
+  async function loadRecordHistory(base, recordId) { 
+    const url = `${datastoreAPI}/record/${base}/${recordId}/history`;
+    logger.log('info', `Loading record from url: ${url}`);
+    const result = await fetch(url);
+    if (result.status === 200) {
+      const history = await result.json();
+      return history;   
+    } else {
+      const error = new Error(result.statusText);
+      error.name = 'NOT_FOUND';
+      throw error;
+    }
   }
 
   async function getDuplicateCandidates(base, recordId) {
@@ -43,7 +78,9 @@ function createDataStoreService(datastoreAPI: string): DataStoreService {
   return {
     saveRecord,
     loadRecord,
-    getDuplicateCandidates
+    loadRecordByTimestamp,
+    getDuplicateCandidates,
+    loadRecordHistory
   };
 }
 
