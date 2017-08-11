@@ -16,6 +16,10 @@ function createDataStoreConnector(datastoreAPI: string): DataStoreConnector {
       body: JSON.stringify(record),
       headers: { 'Content-Type': 'application/json' }
     });
+    if (result.status === 400) {
+      const reason = await result.text();
+      throw InvalidRecordError(reason);
+    }
     if (result.status !== 200) {
       throw new Error(result.statusText);
     }
@@ -81,6 +85,13 @@ function createDataStoreConnector(datastoreAPI: string): DataStoreConnector {
     loadRecordHistory
   };
 }
+
+function InvalidRecordError(reason) {
+  const error = new Error(reason);
+  error.name = 'INVALID_RECORD';
+  throw error;
+}
+
 
 module.exports = {
   createDataStoreConnector
