@@ -1,11 +1,11 @@
 // @flow
-import type { CandidateQueueService, OnCandidate } from 'types/candidate-queue-service.flow';
+import type { CandidateQueueConnector, OnCandidate } from 'types/candidate-queue-connector.flow';
 import type { DuplicateCandidate } from 'types/duplicate-candidate.flow';
 import type { Channel, Message } from 'types/amqplib.flow';
 
 const CANDIDATE_QUEUE_NAME = 'CANDIDATES';
 
-function createCandidateQueueService(channel: Channel): CandidateQueueService {
+function createCandidateQueueConnector(channel: Channel): CandidateQueueConnector {
 
   async function pushCandidates(duplicateCandidates) {
     await channel.assertQueue(CANDIDATE_QUEUE_NAME, {durable: true});
@@ -43,5 +43,5 @@ function createCandidateQueueService(channel: Channel): CandidateQueueService {
 }
 
 module.exports = {
-  createCandidateQueueService
+  createCandidateQueueConnector
 };

@@ -1,12 +1,10 @@
 // @flow
-import type { DataStoreService } from 'types/data-store-service.flow';
+import type { DataStoreConnector } from 'types/datastore-connector.flow';
 const fetch = require('node-fetch');
 const MarcRecord = require('marc-record-js');
-
 const logger = require('./logger');
-logger.log('info', 'Starting melinda-deduplication-listener');
 
-function createDataStoreService(datastoreAPI: string): DataStoreService {
+function createDataStoreConnector(datastoreAPI: string): DataStoreConnector {
 
   async function saveRecord(base, recordId, record) {
     
@@ -85,5 +83,5 @@ function createDataStoreService(datastoreAPI: string): DataStoreService {
 }
 
 module.exports = {
-  createDataStoreService
+  createDataStoreConnector
 };
