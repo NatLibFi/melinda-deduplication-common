@@ -42,7 +42,7 @@ function hrtimeToMs(hrtime) {
   return Math.round(ns/1000000);
 }
 
-function waitAndRetry(fn, onRetry, onFailure, wait=1000) {
+function waitAndRetry(fn, onRetry, wait=1000) {
   let retryCount = 0;
   const retryFn = async function retry() {
     try {
@@ -50,10 +50,9 @@ function waitAndRetry(fn, onRetry, onFailure, wait=1000) {
     } catch(error) {
       retryCount++;
       if (retryCount === 3) {
-        onFailure(error);
         throw error;
       } else {
-        onRetry(error);
+        onRetry && onRetry(error);
         await new Promise(resolve => setTimeout(resolve, wait));
         return retryFn();
       }

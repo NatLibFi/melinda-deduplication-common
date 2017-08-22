@@ -30,15 +30,13 @@ describe('utils', () => {
       fakeFn.onCall(2).rejects(new Error('Rejecting third call'));
       
       const onRetrySpy = sinon.spy();
-      const onFailureSpy = sinon.spy();
 
       try {
-        await utils.waitAndRetry(fakeFn, onRetrySpy, onFailureSpy, 10);
+        await utils.waitAndRetry(fakeFn, onRetrySpy, 10);
       } catch(error) {
         expect(error.message).to.equal('Rejecting third call');
         expect(fakeFn.callCount).to.equal(3);
         expect(onRetrySpy.callCount).to.equal(2);
-        expect(onFailureSpy.callCount).to.equal(1);
       }
       
     });
@@ -50,13 +48,11 @@ describe('utils', () => {
       fakeFn.onCall(2).resolves('result');
       
       const onRetrySpy = sinon.spy();
-      const onFailureSpy = sinon.spy();
 
-      const result = await utils.waitAndRetry(fakeFn, onRetrySpy, onFailureSpy, 10);
+      const result = await utils.waitAndRetry(fakeFn, onRetrySpy, 10);
       expect(result).to.equal('result');
       expect(fakeFn.callCount).to.equal(3);
       expect(onRetrySpy.callCount).to.equal(2);
-      expect(onFailureSpy.callCount).to.equal(0);
       
     });
 
