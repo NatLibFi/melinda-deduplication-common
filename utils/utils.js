@@ -42,7 +42,7 @@ function hrtimeToMs(hrtime) {
   return Math.round(ns/1000000);
 }
 
-function waitAndRetry(fn, onRetry, wait=1000) {
+function waitAndRetry(fn, onRetry, wait=3000) {
   let retryCount = 0;
   const retryFn = async function retry() {
     try {
