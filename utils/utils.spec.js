@@ -1,4 +1,5 @@
 const expect = require('chai').expect;
+const sinon = require('sinon');
 
 const utils = require('./utils');
 
@@ -16,6 +17,47 @@ describe('utils', () => {
 
     it('should convert seconds and nanoseconds to milliseconds', () => {
       expect(utils.hrtimeToMs([13, 1000000])).to.equal(13001);
+    });
+
+  });
+
+  describe('waitAndRetry', () => {
+
+    it('should retry thrice', async () => {
+      const fakeFn = sinon.stub();
+      fakeFn.onCall(0).rejects(new Error('Rejecting first call'));
+      fakeFn.onCall(1).rejects(new Error('Rejecting second call'));
+      fakeFn.onCall(2).rejects(new Error('Rejecting third call'));
+      
+      const onRetrySpy = sinon.spy();
+      const onFailureSpy = sinon.spy();
+
+      try {
+        await utils.waitAndRetry(fakeFn, onRetrySpy, onFailureSpy, 10);
+      } catch(error) {
+        expect(error.message).to.equal('Rejecting third call');
+        expect(fakeFn.callCount).to.equal(3);
+        expect(onRetrySpy.callCount).to.equal(2);
+        expect(onFailureSpy.callCount).to.equal(1);
+      }
+      
+    });
+
+    it('should return result if call succeeds', async () => {
+      const fakeFn = sinon.stub();
+      fakeFn.onCall(0).rejects(new Error('Rejecting first call'));
+      fakeFn.onCall(1).rejects(new Error('Rejecting second call'));
+      fakeFn.onCall(2).resolves('result');
+      
+      const onRetrySpy = sinon.spy();
+      const onFailureSpy = sinon.spy();
+
+      const result = await utils.waitAndRetry(fakeFn, onRetrySpy, onFailureSpy, 10);
+      expect(result).to.equal('result');
+      expect(fakeFn.callCount).to.equal(3);
+      expect(onRetrySpy.callCount).to.equal(2);
+      expect(onFailureSpy.callCount).to.equal(0);
+      
     });
 
   });
