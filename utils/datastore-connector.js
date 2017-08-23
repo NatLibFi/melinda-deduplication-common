@@ -3,6 +3,7 @@ import type { DataStoreConnector } from 'types/datastore-connector.flow';
 const fetch = require('node-fetch');
 const MarcRecord = require('marc-record-js');
 const logger = require('./logger');
+const debug = require('debug')('datastore-connector');
 
 function createDataStoreConnector(datastoreAPI: string): DataStoreConnector {
 
@@ -10,7 +11,7 @@ function createDataStoreConnector(datastoreAPI: string): DataStoreConnector {
     
     const url = `${datastoreAPI}/record/${base}/${recordId}`;
     logger.log('info', `Saving record to url: ${url}`);
-    logger.log('info', `Record:\n${record.toString()}`);
+    debug(`Record:\n${record.toString()}`);
     const result = await fetch(url, { 
       method: 'PUT', 
       body: JSON.stringify(record),
