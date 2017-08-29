@@ -1,14 +1,7 @@
 const MarcRecord = require('marc-record-js');
 
-const RecordSimilarity = require('../marc-record-similarity');
-
-const strategy = require('../src/similarity-strategy');
-
-const options = {
-  strategy: strategy
-};
-
-const similarity = new RecordSimilarity(options);
+const RecordSimilarity = require('./similarity');
+const DEFAULT_STRATEGY = require('./similarity-strategy');
 
 function pairToInputVector(pair) {
  
@@ -21,20 +14,20 @@ function featureVectorToInputVector(featureVector) {
 
   const input = Object.keys(featureVector).map(key => {
     if (featureVector[key]) {
-      return featureVector[key] * 2 -1;
+      return featureVector[key] * 2 - 1;
     } else {
       return 0;
     }
   });
+  
   return input;
-
 }
 
-function pairToFeatureVector(pair) {
+function pairToFeatureVector(pair, strategy = DEFAULT_STRATEGY) {
   const record1 = MarcRecord.clone(pair.record1);
   const record2 = MarcRecord.clone(pair.record2);
   
-  const featureVector = similarity.generateFeatureVector(record1, record2);
+  const featureVector = RecordSimilarity.extractFeatures(strategy, record1, record2);
 
   return featureVector;
 }
@@ -47,9 +40,18 @@ const Types = {
 };
 
 
+const DuplicateClass = {
+  IS_DUPLICATE: 'IS_DUPLICATE',
+  NOT_DUPLICATE: 'NOT_DUPLICATE',
+  MAYBE_DUPLICATE: 'MAYBE_DUPLICATE'
+};
+
+
 module.exports = {
   pairToInputVector,
   featureVectorToInputVector,
   pairToFeatureVector,
-  Types
+  Types,
+  DuplicateClass,
+  DefaultStrategy: DEFAULT_STRATEGY
 };

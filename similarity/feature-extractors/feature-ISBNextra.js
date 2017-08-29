@@ -13,15 +13,9 @@ const {
 /**
   * 515 vertaus 020 kenttään. Ei vertaa 515 kenttiä keskenään!
   * 
-  * @param {[type]} record1 [description]
-  * @param {[type]} record2 [description]
-  *
-  * 
-  * test case: ../diff.sh ../data/005570116.xml ../data/005570117.xml
-  * 
   */
 
-function ISBNExtra(record1, record2) {
+function ISBNextra(record1, record2) {
 
   var fields1 = select(['515','020'], record1);
   var fields2 = select(['515','020'], record2);
@@ -67,4 +61,4 @@ function ISBNExtra(record1, record2) {
 }
 
 
-module.exports = ISBNExtra;
+module.exports = ISBNextra;

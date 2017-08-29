@@ -84,7 +84,7 @@ function getSubfield(field, code) {
 
 function getSubfields(field, code) {
   var subfields = field.subfield.filter(function(subfield) { return subfield.$.code == code; });
-  return _.pluck(subfields,'_');
+  return _.map(subfields,'_');
 }
 
 
@@ -111,46 +111,6 @@ function stringToField(fieldStr) {
   }));
 
   return { tag, ind1, ind2, subfields };
-}
-
-function toxmljsFormat(marcRecord) {
-
-  var xmljsFormat = {
-    controlfield: marcRecord.getControlfields().map(controlfieldFormatter),
-    datafield: marcRecord.getDatafields().map(datafieldFormatter)
-  };
-
-  return xmljsFormat;
-
-  function controlfieldFormatter(field) {
-    
-    return {
-      $: {
-        tag: field.tag
-      },
-      _: field.value
-    };
-  }
-  function datafieldFormatter(field) {
-  
-    return {
-      $: {
-        tag: field.tag,
-        ind1: field.ind1,
-        ind2: field.ind2
-      },
-      subfield: field.subfields.map(subfieldFormatter)
-    };
-  }
-
-  function subfieldFormatter(subfield) {
-    return {
-      $: {
-        code: subfield.code,
-      },
-      _: subfield.value
-    };
-  }
 }
 
 function generateField(tag, subcode, content) {
@@ -252,15 +212,15 @@ function dateOfPublication(record) {
   var set1 = normalized1;
 
   set1 = set1.map(function(field) {
-    return _.pluck(field.subfield, '_');
+    return _.map(field.subfield, '_');
   });
-  set1 = _( _(set1).flatten() ).uniq();
+  set1 = _.chain(set1).flattenDeep().uniq().value();
 
   if (set1.length === 0) {
     return 9999;
   }
 
-  return _(set1).max();
+  return _.max(set1);
 
 }
 
@@ -362,6 +322,47 @@ function parseISBN(fields) {
 
   return fields;
 }
+
+function toxmljsFormat(marcRecord) {
+
+  var xmljsFormat = {
+    controlfield: marcRecord.getControlfields().map(controlfieldFormatter),
+    datafield: marcRecord.getDatafields().map(datafieldFormatter)
+  };
+
+  return xmljsFormat;
+
+  function controlfieldFormatter(field) {
+    
+    return {
+      $: {
+        tag: field.tag
+      },
+      _: field.value
+    };
+  }
+  function datafieldFormatter(field) {
+  
+    return {
+      $: {
+        tag: field.tag,
+        ind1: field.ind1,
+        ind2: field.ind2
+      },
+      subfield: field.subfields.map(subfieldFormatter)
+    };
+  }
+
+  function subfieldFormatter(subfield) {
+    return {
+      $: {
+        code: subfield.code,
+      },
+      _: subfield.value
+    };
+  }
+}
+
 module.exports = {
   normalize,
   singleNormalize,

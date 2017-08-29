@@ -1,8 +1,4 @@
-/*jshint node:true*/
-//core.filter.js
-
 var _ = require('lodash');
-
 
 function clone(a) {
   return JSON.parse(JSON.stringify(a));
