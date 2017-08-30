@@ -12,7 +12,7 @@ function createDuplicateDatabaseConnector(duplicateDBConfig: DuplicateDatabaseCo
     const reckey1 = encodeURIComponent(first.id);
     const reckey2 = encodeURIComponent(second.id);
 
-    const url = `${duplicateDBConfig.endpoint}?a=getDouble&reckey1=${reckey1}&reckey2=${reckey2}&msg=${msg}&priority=${priority}`;
+    const url = `${duplicateDBConfig.endpoint}?a=addDouble&reckey1=${reckey1}&reckey2=${reckey2}&msg=${msg}&priority=${priority}`;
     
     const result = await fetch(url);
     if (result.status !== 200) {

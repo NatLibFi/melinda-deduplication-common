@@ -20,6 +20,8 @@ type DataField = {
 type Field = ControlField | DataField;
 
 export type MarcRecord = {
+  leader: string,
   fields: Array<Field>,
-  toString: () => string
+  toString: () => string,
+  appendField: (Array<string>) => void
 };

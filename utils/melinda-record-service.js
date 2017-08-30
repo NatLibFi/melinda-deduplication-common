@@ -15,20 +15,24 @@ function createMelindaRecordService(melindaEndpoint: String, XServer: String, cr
   
   const alephRecordServiceX = AlephRecordService.createAlephRecordService(XServer, credentials);
 
-  function loadRecord(base, recordId) {
+  function loadRecord(base, recordId, options) {
+    if (base.toLowerCase() === 'fin01') {
+      return new Promise((resolve, reject) => client.loadRecord(recordId, options).then(resolve).catch(reject).done());
+    }
+
     return alephRecordServiceX.loadRecord(base, recordId);
   }
 
-  function createRecord(base, record) {
+  function createRecord(base, record, options) {
     if (base.toLowerCase() === 'fin01') {
-      return new Promise((resolve, reject) => client.createRecord(record).then(resolve).catch(reject).done());
+      return new Promise((resolve, reject) => client.createRecord(record, options).then(resolve).catch(reject).done());
     }
     return saveRecord(base, '000000000', record);
   }
 
-  function saveRecord(base, recordId, record) {
+  function saveRecord(base, recordId, record, options) {
     if (base.toLowerCase() === 'fin01') {
-      return new Promise((resolve, reject) => client.updateRecord(record).then(resolve).catch(reject).done());
+      return new Promise((resolve, reject) => client.updateRecord(record, options).then(resolve).catch(reject).done());
     }
     return alephRecordServiceX.saveRecord(base, recordId, record);
   }
