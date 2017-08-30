@@ -12,6 +12,7 @@
     "@natlibfi/marc-record-merge": "3.1.0",
     "es6-promisify": "^5.0.0",
     "lodash": "^4.17.4",
+    "marc-record-js": "^0.3.2",
     "marc-record-serializers": "^1.2.1",
     "melinda-api-client": "1.1.0",
     "moment": "^2.18.1",
