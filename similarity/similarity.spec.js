@@ -2,8 +2,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const MarcRecord = require('marc-record-js');
 
-const Utils = require('./utils');
-const { Labels } = require('./constants');
+const Utils = require('./feature-extractors/utils');
 const Similarity = require('./similarity');
 
 describe('similarity', () => {
@@ -30,8 +29,7 @@ describe('similarity', () => {
     record2.appendField(Utils.stringToField('100    ‡aTekijä'));
     record2.appendField(Utils.stringToField('245    ‡aAsia'));
     
-    const similarity = new Similarity(strategy);
-    const features = similarity.extractFeatures(record1, record2);
+    const features = Similarity.extractFeatures(strategy, record1, record2);
 
     expect(features).to.eql({ 
       title: 1,
