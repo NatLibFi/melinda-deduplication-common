@@ -101,6 +101,10 @@ function fieldToString(field) {
 
 function stringToField(fieldStr) {
   const tag = fieldStr.substr(0,3);
+  if (parseInt(tag) < 10) {
+    const value = fieldStr.substr(7);
+    return { tag, value };
+  }
   const ind1 = fieldStr.substr(4,1);
   const ind2 = fieldStr.substr(5,1);
   const subfieldsStr = fieldStr.substr(6);
@@ -333,7 +337,7 @@ function toxmljsFormat(marcRecord) {
   return xmljsFormat;
 
   function controlfieldFormatter(field) {
-    
+
     return {
       $: {
         tag: field.tag
