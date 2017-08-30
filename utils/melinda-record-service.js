@@ -17,7 +17,7 @@ function createMelindaRecordService(melindaEndpoint: String, XServer: String, cr
 
   function loadRecord(base, recordId, options) {
     if (base.toLowerCase() === 'fin01') {
-      return new Promise((resolve, reject) => client.loadRecord(recordId, options).then(resolve).catch(reject).done());
+      return new Promise((resolve, reject) => client.loadRecord(recordId, options).then(resolve).catch(err => reject(wrapInAlephRecordError(err))).done());
     }
 
     return alephRecordServiceX.loadRecord(base, recordId);
@@ -25,14 +25,14 @@ function createMelindaRecordService(melindaEndpoint: String, XServer: String, cr
 
   function createRecord(base, record, options) {
     if (base.toLowerCase() === 'fin01') {
-      return new Promise((resolve, reject) => client.createRecord(record, options).then(resolve).catch(reject).done());
+      return new Promise((resolve, reject) => client.createRecord(record, options).then(resolve).catch(err => reject(wrapInAlephRecordError(err))).done());
     }
     return saveRecord(base, '000000000', record);
   }
 
   function saveRecord(base, recordId, record, options) {
     if (base.toLowerCase() === 'fin01') {
-      return new Promise((resolve, reject) => client.updateRecord(record, options).then(resolve).catch(reject).done());
+      return new Promise((resolve, reject) => client.updateRecord(record, options).then(resolve).catch(err => reject(wrapInAlephRecordError(err))).done());
     }
     return alephRecordServiceX.saveRecord(base, recordId, record);
   }
@@ -42,6 +42,10 @@ function createMelindaRecordService(melindaEndpoint: String, XServer: String, cr
     saveRecord,
     createRecord
   };
+}
+
+function wrapInAlephRecordError(error) {
+  return new AlephRecordService.AlephRecordError(error.message);
 }
 
 module.exports = { 
