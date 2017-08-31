@@ -9,25 +9,50 @@ const createRecordMerger = require('@natlibfi/marc-record-merge');
 const MergeValidation = require('melinda-deduplication-common/marc-record-merge-utils/marc-record-merge-validate-service');
 const PostMerge = require('melinda-deduplication-common/marc-record-merge-utils/marc-record-merge-postmerge-service');
 
+const MergeabilityClass = {
+  NOT_MERGEABLE: 'NOT_MERGEABLE',
+  MANUALLY_MERGEABLE: 'MANUALLY_MERGEABLE',
+  AUTOMATICALLY_MERGEABLE: 'AUTOMATICALLY_MERGEABLE'
+};
+
 function createRecordMergeService(mergeConfiguration: any, melindaConnector: MelindaRecordService, logger: Logger): RecordMergeService {
-  
+
+  function handleValidationError(error) {
+    if (error.name === 'MergeValidationError') {
+      debug(error.message);
+      debug(error.failureMessages);
+      return false;
+    }
+    throw error;
+  }
+
+  async function validatePair(validationSet, preferredRecord, otherRecord) {
+    try {
+      const result = await MergeValidation.validateMergeCandidates(MergeValidation.preset.melinda_host, preferredRecord, otherRecord);
+      return result.valid === true;
+    } catch(error) {
+      return handleValidationError(error);
+    }
+  }
+
+  const isMergeable = _.curry(validatePair)(MergeValidation.preset.melinda_host);
+  const isMergeableAutomatically = _.curry(validatePair)(MergeValidation.preset.melinda_host);
+ 
   async function checkMergeability(firstRecord, secondRecord) {
 
     const { preferredRecord, otherRecord } = selectPreferredRecord(firstRecord, secondRecord);
-    const validationRules = MergeValidation.preset.melinda_host;
 
-    try {
-      await MergeValidation.validateMergeCandidates(validationRules, preferredRecord, otherRecord);
-    } catch(error) {
-      if (error.name === 'MergeValidationError') {
-        debug(error.message);
-        debug(error.failureMessages);
-        return false;
+    if (isMergeable(preferredRecord, otherRecord)) {
+
+      if (isMergeableAutomatically(preferredRecord, otherRecord)) {
+        return MergeabilityClass.AUTOMATICALLY_MERGEABLE;
+      } else {
+        return MergeabilityClass.MANUALLY_MERGEABLE;
       }
-      throw error;
+      
     }
+    return MergeabilityClass.NOT_MERGEABLE;
 
-    return true;
   }
   
   async function mergeRecords(firstRecord, secondRecord) {
@@ -153,5 +178,6 @@ function selectPreferredRecord(record1, record2) {
 }
 
 module.exports = {
-  createRecordMergeService
+  createRecordMergeService,
+  MergeabilityClass
 };
