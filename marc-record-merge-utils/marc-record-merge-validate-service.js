@@ -14,8 +14,63 @@ H fail: record is a component record: <RECORD-ID>
 B warn: Record contains long field which has been split to multiple fields. Check that it looks ok. <TAG>
 B warn: Other record has LOW: FENNI, but preferred does not.
 
+######################
+TODO:
+Tuplat, mutta jotka pitää tulla mergeabilityCheckistä NOT_AUTOMERGEABLEna:
 
- */
+Ei automaattisesti yhdistettävät:
+003195091 - 004805297
+003983463 - 004588790
+001881977 - 004970030
+002260488 - 003299497
+002859542 - 004592070
+002412284 - 006046623
+000074596 - 002774820
+000422252 - 003777968 (100c on eri)
+004598950 - 009162291 (110 kenttä case)
+001956374 - 004965492 (eri 100-kentät)
+000241315 - 002065000 (eri kustantaja ja isbn erilailla jaoteltu)
+
+## authorsNotAlike
+-> check authorized format of field 100,110,111 and if they don't match then automerge is impossible because changing the author must be reported to libraries since it might change the location of the item in the shelves.
+
+## recordTypesNotAlike
+
+005651255 - 005706621 (toinen on nuotti, toinen kirja, liideristä, vaikka nää on siis tuplia)
+
+## largePageNumberDiscrepancy
+002628239 - 005476178 (iso sivumääräero, eri sarjat -> käsin)
+
+
+??
+002576858 - 004167676
+Tässä eka painos on minitietue ja megatietueessa tiedot muista painoksista. minitietue on "parempi" pohjatietue yhdistämisen näkökulmasta
+
+??
+003726449 - 005930466
+ehkä sidottu ja nidottu, eri vuodet ja eri sivumäärät.
+
+Tämä automergecheckki pitää lisätä jo siihen trainingSetin validaatiovaiheeseen. 
+Osa false-positiveistä menee tällä pois. Myös moni true positive tippuu pois.
+
+??
+Mahdollisesti ei tupla:
+003257472 - 004083611
+Puuttuu kansalliskokoelmasta -kenttä.
+015a on eri
+
+??
+005920142 - 006082079
+245 kenttä, 015 kenttä
+
+??
+006907564 - 006952340
+245, toisessa 1 & 5 ja toisessa 1-7
+kuitenkin 028 on sama?
+
+-> Mitä näille tehdään? NOT-AUTOMERGEABLE?
+
+*/
 
 const defaultPreset = [recordsHaveDifferentIds, preferredRecordIsNotDeleted, otherRecordIsNotDeleted, preferredRecordIsNotSuppressed, otherRecordIsNotSuppressed, recordsHaveSameType];
 
@@ -23,7 +78,8 @@ export const preset = {
   defaults: defaultPreset,
   melinda_host: _.concat(defaultPreset, [recordsHaveDifferentLOWTags, preferredRecordIsNotComponentRecord, otherRecordIsNotComponentRecord]),
   melinda_component: _.concat(defaultPreset, [recordsHaveDifferentLOWTags]),
-  melinda_warnings: [preferredRecordFromFENNI, preferredRecordHasAlephSplitFields, otherRecordHasAlephSplitFields]
+  melinda_warnings: [preferredRecordFromFENNI, preferredRecordHasAlephSplitFields, otherRecordHasAlephSplitFields],
+  melinda_host_automerge: _.concat(defaultPreset, [recordsHaveDifferentLOWTags, preferredRecordIsNotComponentRecord, otherRecordIsNotComponentRecord]),
 };
 
 export function validateMergeCandidates(validationFunctions, preferredRecord, otherRecord) {
