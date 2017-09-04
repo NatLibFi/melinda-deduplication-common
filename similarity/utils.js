@@ -39,13 +39,11 @@ const Types = {
   FALSE_NEGATIVE: 'FALSE_NEGATIVE'
 };
 
-
 const DuplicateClass = {
   IS_DUPLICATE: 'IS_DUPLICATE',
   NOT_DUPLICATE: 'NOT_DUPLICATE',
   MAYBE_DUPLICATE: 'MAYBE_DUPLICATE'
 };
-
 
 module.exports = {
   pairToInputVector,

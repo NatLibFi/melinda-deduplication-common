@@ -1,5 +1,3 @@
-const _ = require('lodash');
-
 const compareFuncs = require('./core.compare');
 const normalizeFuncs = require('./core.normalize');
 const { Labels } = require('./constants');

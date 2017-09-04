@@ -3,16 +3,6 @@ var sprintf = require('sprintf').sprintf;
 var unorm = require('unorm');
 var toArabic = require('roman-numerals').toArabic;
 
-function toString(fields) {
-  
-  var subfields = [];
-  fields.forEach(function(field) {
-    var data = _.map(field.subfield, '_');
-    subfields = subfields.concat(data);
-  });
-  return subfields;
-}
-
 function join(arrayOfStrings) {
   return arrayOfStrings.join('');
 }
@@ -86,6 +76,7 @@ function collapse(fields, options) {
   
   return fields;
 }
+
 function onlyNumbers(fields, options) {
 
   applyToFieldValues(fields, function(fieldContent) {
@@ -93,8 +84,8 @@ function onlyNumbers(fields, options) {
   }, options);
 
   return fields;
-
 }
+
 function onlyYearNumbers(fields, options) {
   applyToFieldValues(fields, function(fieldContent) {
     return onlyYears(fieldContent);
@@ -107,18 +98,17 @@ function onlyYearNumbers(fields, options) {
     str = str.split(/\D/).filter(function(str) { return isYear(str); }).join(' ');
     return str;
   }
-  function isYear(str) {
 
+  function isYear(str) {
     if (str.length != 4) return false;
     if (isNaN(str)) return false;
     var number = parseInt(str, 10);
 
     return number < 2100 && number > 1000;
   }
-
 }
 
-function removeEmpty(fields, options) {
+function removeEmpty(fields) {
   fields.forEach(function(field) {
     field.subfield = field.subfield.filter(function(subfield) {
       if (subfield._ === undefined || subfield._ === null) return false;
@@ -133,7 +123,7 @@ function removeEmpty(fields, options) {
 }
 
 function applyToFieldValues(fields, func, options) {
-
+  options = options || {};
   fields.forEach(function(field) {
     if (field.subfield !== undefined) {
       field.subfield.forEach(function(subfield) {
@@ -293,86 +283,10 @@ for (var i=0; i < defaultDiacriticsRemovalap.length; i++){
 }
 
 
-function parsePageInfo(str) {
-
-  var remove = '[]'.split('');
-  var tospace = ','.split('');
-
-  remove.forEach(function(char) {
-    str = str.replace(new RegExp(RegExp.escape(char)), '');
-  });
-  tospace.forEach(function(char) {
-    str = str.replace(new RegExp(RegExp.escape(char)), ' ');
-  });
-
-  str = str.replace(/\([^\)]\)/g, ' ');
-
-  var unparseable = str.split(' ').some(function(word) {
-    return isNotAllowed(word.toLowerCase());
-  });
-
-  if (unparseable) {
-    return null;
-  }
-
-  var rangeMatch = /(\d+)-(\d+)/.exec(str);
-  
-  if (rangeMatch != null) {
-    
-    var start = parseInt(rangeMatch[1], 10);
-    var end = parseInt(rangeMatch[2], 10);
-
-    return {
-      start: start,
-      end: end,
-      str: str,
-      total: end-start
-    };
-  }
-
-  // no?
-  var numbers = str.replace(/\D/g,' ').replace(/\s+/g,' ').split(' ');
-  numbers = numbers.map(function(n) { return parseInt(n, 10); });
-  
-  var max_num = _.max(numbers);
-  
-  var preambleSize = 0;
-  str.split(' ').some(function(word) {
-
-    try {
-      preambleSize = toArabic(word);
-      return true;
-    } catch(e) {
-      return false;
-    }
-
-    
-  });
-
-  var start = 0;
-  var end = max_num;
-  return {
-    start: start,
-    end: end,
-    str: str,
-    total: end-start+preambleSize
-  };
-
-  function isNotAllowed(word) {
-    var removedChars = ":.()[],-".split('');
-    removedChars.forEach(function(char) {
-      word = word.replace(new RegExp(RegExp.escape(char)), '');
-    });
-
-    var allowedPattern = /^[x|v|i|s|p|\d]*$/;
-
-    return !allowedPattern.test(word);
-  }
-}
 
 function removeDiacritics(str) {
-  var letters = str.split("");
-  var newStr = "";
+  var letters = str.split('');
+  var newStr = '';
   for (var i = 0, len = letters.length; i < len; i++) {
     var letter = letters[i];
     newStr += letter in diacriticsMap ? diacriticsMap[letter] : letter;
@@ -384,8 +298,8 @@ function utf8normString(str) {
   return unorm.nfc(str);
 }
 
-function fieldsToString( fields ) {
-  var recordString = _.map(fields, fieldToString).join('');
+function fieldsToString(fields) {
+  const recordString = fields.map(field => fieldToString(field)).join('');
   return recordString;
 }
 
@@ -397,21 +311,21 @@ function fieldToString(field) {
   ind1 = ind1 || ' ';
   ind2 = ind2 || ' ';
 
-  var str = sprintf("%s %s%s ", field.$.tag, ind1, ind2);
+  var str = sprintf('%s %s%s ', field.$.tag, ind1, ind2);
 
   if (field.subfield !== undefined) {
     field.subfield.forEach(function(subfield, i) {
       
-      var pad = (i === 0) ? "" : "       "; 
-      str += sprintf("%s%s%s\n", pad, subfield.$.code, subfield._);
+      var pad = (i === 0) ? '' : '       '; 
+      str += sprintf('%s%s%s\n', pad, subfield.$.code, subfield._);
 
     });
     if (field.subfield.length == 0) {
-      str += "\n";
+      str += '\n';
     }
   } else {
     var pad = '';
-    str += sprintf("%s%s\n", pad, field._);
+    str += sprintf('%s%s\n', pad, field._);
   }
 
   return str;
@@ -422,7 +336,6 @@ RegExp.escape= function(s) {
 };
 
 module.exports = {
-  toString: toString,
   lowercase: lowercase,
   join: join,
   delChars: delChars,
@@ -441,6 +354,5 @@ module.exports = {
   onlyYearNumbers: onlyYearNumbers,
   removeEmpty: removeEmpty,
   fieldsToString: fieldsToString,
-  parsePageInfo: parsePageInfo,
   romanToArabicConversion
 };

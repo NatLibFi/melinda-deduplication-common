@@ -1,5 +1,5 @@
-var wuzzy = require('wuzzy');
-var _ = require('lodash');
+const wuzzy = require('wuzzy');
+const _ = require('lodash');
 
 function stringEquals(string1, string2) {
   
@@ -21,16 +21,17 @@ function isIdentical(set1, set2, equalFunc) {
 }
 
 function isSubset(set1, set2, equalFunc) {
+
   if (equalFunc !== undefined) {
     var equalFuncOptions = equalFunc.options || {nosubcode: true};
     if (equalFuncOptions.noNormalization) {
       return setDifference(set1, set2, equalFunc).length === 0;
     } else {
-
-      return setDifference(toString(set1, equalFuncOptions), toString(set2, equalFuncOptions), equalFunc).length === 0;
+      return setDifference(fieldSetToString(set1, equalFuncOptions), fieldSetToString(set2, equalFuncOptions), equalFunc).length === 0;
     }
   }
-  return setDifference(toString(set1), toString(set2)).length === 0;
+    
+  return setDifference(fieldSetToString(set1), fieldSetToString(set2)).length === 0;
 }
 
 /**
@@ -43,15 +44,15 @@ function isSubset(set1, set2, equalFunc) {
 function hasIntersection(set1, set2, equalFunc) {
   if (equalFunc !== undefined) {
     var equalFuncOptions = equalFunc.options || {nosubcode: true};
-    return setDifference(toString(set1, equalFuncOptions), toString(set2, equalFuncOptions), equalFunc).length != toString(set1).length;
+    return setDifference(fieldSetToString(set1, equalFuncOptions), fieldSetToString(set2, equalFuncOptions), equalFunc).length != fieldSetToString(set1).length;
   }
-  return setDifference(toString(set1), toString(set2), equalFunc).length != toString(set1).length;
+  return setDifference(fieldSetToString(set1), fieldSetToString(set2), equalFunc).length != fieldSetToString(set1).length;
   
 }
 
 function intersection(set1, set2) {
   
-  return _.intersection( toString(set1), toString(set2) );
+  return _.intersection( fieldSetToString(set1), fieldSetToString(set2) );
 }
 
 // checks for each item in array1 if it exists in array2, returning items that do not exist in array2
@@ -71,7 +72,8 @@ function setContains(array, item, equalFunc) {
   return false;
 }
 
-function toString(fields, opts) {
+function fieldSetToString(fields, opts) {
+  
   opts = opts || {};
   if (!_.isArray(fields)) {
     fields = [fields];
@@ -191,6 +193,7 @@ function stringPartofComparator(str1, str2) {
   
   var smaller = (str1.length < str2.length) ? str1 : str2;
   var larger = (smaller == str1) ? str2 : str1;
+  
   
   if (smaller.length / larger.length <= 0.2) {
     return false;
