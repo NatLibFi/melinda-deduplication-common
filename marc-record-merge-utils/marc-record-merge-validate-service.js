@@ -1,5 +1,7 @@
 import _ from 'lodash';
+const wuzzy = require('wuzzy');
 
+const RecordUtils = require('../utils/record-utils');
 /*
 
 B fail: Both records have same record id
@@ -31,24 +33,19 @@ Ei automaattisesti yhdistettävät:
 001956374 - 004965492 (eri 100-kentät)
 000241315 - 002065000 (eri kustantaja ja isbn erilailla jaoteltu)
 
-## authorsNotAlike
+## recordsHaveSimilarAuthors (tags must match, author names must ~match)
 -> check authorized format of field 100,110,111 and if they don't match then automerge is impossible because changing the author must be reported to libraries since it might change the location of the item in the shelves.
 
-## recordTypesNotAlike
-
+## recordsHaveSameRecordTypes
 005651255 - 005706621 (toinen on nuotti, toinen kirja, liideristä, vaikka nää on siis tuplia)
 
-## largePageNumberDiscrepancy
+## recordsHaveSimilarNumberOfPages
 002628239 - 005476178 (iso sivumääräero, eri sarjat -> käsin)
 
-
-??
-002576858 - 004167676
-Tässä eka painos on minitietue ja megatietueessa tiedot muista painoksista. minitietue on "parempi" pohjatietue yhdistämisen näkökulmasta
-
-??
+## recordsHaveSimilarSizeAndYears
 003726449 - 005930466
 ehkä sidottu ja nidottu, eri vuodet ja eri sivumäärät.
+
 
 Tämä automergecheckki pitää lisätä jo siihen trainingSetin validaatiovaiheeseen. 
 Osa false-positiveistä menee tällä pois. Myös moni true positive tippuu pois.
@@ -64,22 +61,33 @@ Puuttuu kansalliskokoelmasta -kenttä.
 245 kenttä, 015 kenttä
 
 ??
+## recordsHaveSimilarNumbersInField
 006907564 - 006952340
 245, toisessa 1 & 5 ja toisessa 1-7
 kuitenkin 028 on sama?
+numbers-in-field-that-differ-and-are-not-year tms.
 
 -> Mitä näille tehdään? NOT-AUTOMERGEABLE?
 
 */
 
-const defaultPreset = [recordsHaveDifferentIds, preferredRecordIsNotDeleted, otherRecordIsNotDeleted, preferredRecordIsNotSuppressed, otherRecordIsNotSuppressed, recordsHaveSameType];
+const defaultPreset = [recordsHaveDifferentIds, preferredRecordIsNotDeleted, otherRecordIsNotDeleted, preferredRecordIsNotSuppressed, otherRecordIsNotSuppressed, recordsHaveSameType, recordsHaveDifferentLOWTags];
+
+// Checks that need to pass in order for the records to be automatically merged
+// by the deduplication system
+const autoMergeExtraChecks = [
+  recordsHaveSimilarAuthors,
+  recordsHaveSimilarNumberOfPages,
+  recordsHaveSimilarNumbersInTitle
+];
+
 
 export const preset = {
   defaults: defaultPreset,
-  melinda_host: _.concat(defaultPreset, [recordsHaveDifferentLOWTags, preferredRecordIsNotComponentRecord, otherRecordIsNotComponentRecord]),
-  melinda_component: _.concat(defaultPreset, [recordsHaveDifferentLOWTags]),
+  melinda_host: _.concat(defaultPreset, [preferredRecordIsNotComponentRecord, otherRecordIsNotComponentRecord]),
+  melinda_component: _.concat(defaultPreset),
   melinda_warnings: [preferredRecordFromFENNI, preferredRecordHasAlephSplitFields, otherRecordHasAlephSplitFields],
-  melinda_host_automerge: _.concat(defaultPreset, [recordsHaveDifferentLOWTags, preferredRecordIsNotComponentRecord, otherRecordIsNotComponentRecord]),
+  melinda_host_automerge: _.concat(defaultPreset, autoMergeExtraChecks, [preferredRecordIsNotComponentRecord, otherRecordIsNotComponentRecord]),
 };
 
 export function validateMergeCandidates(validationFunctions, preferredRecord, otherRecord) {
@@ -214,6 +222,138 @@ export function otherRecordHasAlephSplitFields(preferredRecord, otherRecord) {
 }
 
 
+/*
+## recordsHaveSimilarNumberOfPages
+002628239 - 005476178 (iso sivumääräero,
+*/
+
+// eri sarjat -> käsin ?
+/*
+## recordsHaveSimilarYears
+003726449 - 005930466
+ehkä sidottu ja nidottu, eri vuodet ja eri sivumäärät.
+*/
+
+
+/* 
+  Tags must match, author names must ~match
+  Check authorized format of field 100,110,111 and if they don't match then automerge is impossible 
+  because changing the author must be reported to libraries since it might change the  location of 
+  the item in the shelves.
+*/
+export function recordsHaveSimilarAuthors(preferredRecord, otherRecord) {
+  const get100A = _.partial(getFieldValue, '100', 'a');
+  const get110A = _.partial(getFieldValue, '110', 'a');
+  const get111A = _.partial(getFieldValue, '111', 'a');
+  
+  const get700A = _.partial(getFieldValue, '700', 'a');
+  const get710A = _.partial(getFieldValue, '710', 'a');
+  const get711A = _.partial(getFieldValue, '711', 'a');
+  
+  const testAuthors = (a,b) => wuzzy.levenshtein(a,b) >= 0.8;
+
+  const fieldValuePairs = [get100A, get110A, get111A, get700A, get710A, get711A]
+    .map(extractFn => ([extractFn(preferredRecord), extractFn(otherRecord)]))
+    .filter(pair => (pair[0] && pair[1]));
+  
+  const authorsMatch = fieldValuePairs.length > 0 && fieldValuePairs.every(pair => testAuthors(pair[0], pair[1]));
+
+  return {
+    valid: authorsMatch,
+    validationFailureMessage: 'Records have different authors'
+  };
+}
+
+// Number of pages almost same
+export function recordsHaveSimilarNumberOfPages(preferredRecord, otherRecord) {
+  const get300A = _.partial(getFieldValue, '300', 'a');
+  const lessThan10PercentDifference = (a, b) => Math.abs(1-(a/b)) < 0.10;
+  const lessThan5Difference = (a, b) => Math.abs(a - b) <= 5;
+  
+  const recordA300a = get300A(preferredRecord);
+  const recordB300a = get300A(otherRecord);
+  
+  const pagesInA = RecordUtils.parsePageInfo(recordA300a);
+  const pagesInB = RecordUtils.parsePageInfo(recordB300a);
+
+  if (pagesInA === null || pagesInB === null) {
+    return { valid: true };
+  }
+
+  const valid = lessThan10PercentDifference(pagesInA.total, pagesInB.total) && lessThan5Difference((pagesInA.total), pagesInB.total);
+
+  return {
+    valid,
+    validationFailureMessage: `Records have different numbers of pages: ${pagesInA.total} vs ${pagesInB.total}`
+  };
+}
+
+// Same years
+export function recordsHaveSimilarYears(preferredRecord, otherRecord) {
+  const get260C = _.partial(getFieldValue, '260', 'c');
+  
+  const recordA260c = get260C(preferredRecord);
+  const recordB260c = get260C(otherRecord);
+
+  const extractYearFrom008 = (str) => str ? str.substr(7,4) : '';
+  const recordA008year = extractYearFrom008(getFieldValue('008', preferredRecord));
+  const recordB008year = extractYearFrom008(getFieldValue('008', otherRecord));
+
+  const yearsInA = _.chain(RecordUtils.parseYears(recordA260c)).concat(RecordUtils.parseYears(recordA008year)).sort().uniq().value();
+  const yearsInB = _.chain(RecordUtils.parseYears(recordB260c)).concat(RecordUtils.parseYears(recordB008year)).sort().uniq().value();
+  
+  return {
+    valid: _.isEqual(yearsInA, yearsInB),
+    validationFailureMessage: `Records have differing years: ${yearsInA} vs ${yearsInB}`
+  };
+}
+
+// esim. 245, toisessa voi olla teokset 1 & 5 ja toisessa 1-7
+export function recordsHaveSimilarNumbersInTitle(preferredRecord, otherRecord) {
+  
+  const get245A = _.partial(getFieldValue, '245', 'a');
+  
+  const recordA245a = get245A(preferredRecord);
+  const recordB245a = get245A(otherRecord);
+  
+  const numbersInA = extractNumbers(recordA245a);
+  const numbersInB = extractNumbers(recordB245a);
+  
+  return {
+    valid: _.isEqual(numbersInA, numbersInB),
+    validationFailureMessage: `Records have different numbers in title: ${numbersInA} vs ${numbersInB}`
+  };
+}
+
+function extractNumbers(str) {
+  return str.replace(/\D/g, ' ').split(' ').filter(i => i.length > 0).sort();
+}
+
+function getFieldValue(tag, ...rest) {
+  
+  if (rest.length == 2) {
+    const [code, record] = rest;
+    return getDataFieldValue(tag, code, record);
+  } else {
+    const [record] = rest;
+    return getControlFieldValue(tag, record);
+  }
+  
+  function getControlFieldValue(tag, record) {
+    const field = record.fields.find(field => field.tag === tag);
+    return _.get(field, 'value', null);
+  }
+
+  function getDataFieldValue(tag, code, record) {
+    const field = record.fields.find(field => field.tag === tag);
+    if (!field) {
+      return null;
+    }
+    const subfield = field.subfields.find(subfield => subfield.code === code);
+    return _.get(subfield, 'value', null);
+  }
+}
+
 function isSplitField(field) {
   if (field.subfields !== undefined && field.subfields.length > 0) {
     return field.subfields[0].value.substr(0,2) === '^^';
@@ -266,9 +406,7 @@ function isDeleted(record) {
       .some(subfield => subfield.value.toLowerCase() === 'deleted')
       .value();
   }
-
 }
-
 
 function getRecordId(record) {
   var field001ValuesList = record.fields.filter(field => field.tag === '001').map(field => field.value);

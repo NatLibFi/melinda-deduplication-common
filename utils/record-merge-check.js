@@ -20,7 +20,7 @@ function handleValidationError(error) {
 
 async function validatePair(validationSet, preferredRecord, otherRecord) {
   try {
-    const result = await MergeValidation.validateMergeCandidates(MergeValidation.preset.melinda_host, preferredRecord, otherRecord);
+    const result = await MergeValidation.validateMergeCandidates(validationSet, preferredRecord, otherRecord);
     return result.valid === true;
   } catch(error) {
     return handleValidationError(error);
@@ -32,17 +32,15 @@ const isMergeableAutomatically = _.curry(validatePair)(MergeValidation.preset.me
 
 async function checkMergeability(preferredRecord, otherRecord) {
 
-  if (isMergeable(preferredRecord, otherRecord)) {
-
-    if (isMergeableAutomatically(preferredRecord, otherRecord)) {
+  if (await isMergeable(preferredRecord, otherRecord)) {
+    if (await isMergeableAutomatically(preferredRecord, otherRecord)) {
       return MergeabilityClass.AUTOMATICALLY_MERGEABLE;
     } else {
       return MergeabilityClass.MANUALLY_MERGEABLE;
     }
-    
   }
-  return MergeabilityClass.NOT_MERGEABLE;
 
+  return MergeabilityClass.NOT_MERGEABLE;
 }
 
 module.exports = {

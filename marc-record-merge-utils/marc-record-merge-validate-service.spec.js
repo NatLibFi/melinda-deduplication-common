@@ -20,10 +20,12 @@ describe('marc-record-merge-validate-service', () => {
 
       testSuite.testCases.forEach(testCase => {
 
-        it(testCase.testName, () => {
+        const itFn = testCase.testName.startsWith('!') ? it.only : it;
+
+        itFn(testCase.testName, () => {
             
           const {valid, validationFailureMessage} = testSuite.functionUnderTest.call(null, testCase.preferredRecord, testCase.otherRecord);
-
+          
           expect(valid, `Expected test case validation to be ${testCase.isValid}`).to.equal(testCase.isValid);
           if (testCase.isValid === false) {
             expect(validationFailureMessage).to.equal(testCase.failureMessage);
@@ -48,7 +50,9 @@ describe('marc-record-merge-validate-service', () => {
           .catch(_error => error = _error);
       });
 
-      it(testCase.testName, () => {
+      const itFn = testCase.testName.startsWith('!') ? it.only : it;
+
+      itFn(testCase.testName, () => {
 
         if (testCase.isValid) {
           expect(result.valid, `Expected test case validation to be ${testCase.isValid}`).to.equal(testCase.isValid);
@@ -69,7 +73,7 @@ describe('marc-record-merge-validate-service', () => {
 function loadStoriesFromFile(filename) {
   
   const storyText = fs.readFileSync(path.resolve(storiesPath, filename), 'utf8');
-
+  
   const fnName = filename.slice(0, -6);
   const functionUnderTest = MarcRecordMergeValidateService[fnName];
   const suiteName = fnName;
