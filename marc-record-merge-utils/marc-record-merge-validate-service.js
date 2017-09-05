@@ -326,6 +326,7 @@ export function recordsHaveSimilarNumbersInTitle(preferredRecord, otherRecord) {
 }
 
 function extractNumbers(str) {
+  if (!str) { return []; }
   return str.replace(/\D/g, ' ').split(' ').filter(i => i.length > 0).sort();
 }
 

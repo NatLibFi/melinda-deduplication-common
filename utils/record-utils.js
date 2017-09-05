@@ -94,7 +94,40 @@ function parseYears(str) {
   }
 }
 
+
+
+function fieldToString(field) {
+  if (field && field.subfields) {
+    const ind1 = field.ind1 || ' ';
+    const ind2 = field.ind2 || ' ';
+    const subfields = field.subfields.map(subfield => `‡${subfield.code}${subfield.value}`).join('');
+    return `${field.tag} ${ind1}${ind2} ${subfields}`;
+  } else {
+    return `${field.tag}    ${field.value}`;
+  }
+}
+
+function stringToField(fieldStr) {
+  const tag = fieldStr.substr(0,3);
+  if (parseInt(tag) < 10) {
+    const value = fieldStr.substr(7);
+    return { tag, value };
+  }
+  const ind1 = fieldStr.substr(4,1);
+  const ind2 = fieldStr.substr(5,1);
+  const subfieldsStr = fieldStr.substr(6);
+  
+  const subfields = _.tail(subfieldsStr.split('‡')).map(subfieldStr => ({
+    code: subfieldStr.substr(0,1),
+    value: subfieldStr.substr(1)
+  }));
+
+  return { tag, ind1, ind2, subfields };
+}
+
 module.exports = { 
   parsePageInfo,
-  parseYears
+  parseYears,
+  fieldToString,
+  stringToField
 };
