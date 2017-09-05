@@ -10,16 +10,14 @@ const PostMerge = require('melinda-deduplication-common/marc-record-merge-utils/
 
 function createRecordMergeService(mergeConfiguration: any, melindaConnector: MelindaRecordService, logger: Logger): RecordMergeService {
   
-  async function mergeRecords(firstRecord, secondRecord) {
+  async function mergeRecords({ preferredRecord, otherRecord }) {
 
     const merge = createRecordMerger(mergeConfiguration);
     
     const postMergeFixes = PostMerge.preset.defaults;
 
     try {
-      // TODO: select better preferred record 
-      const { preferredRecord, otherRecord } = selectPreferredRecord(firstRecord, secondRecord);
-      // create merged
+   
       const mergedRecord = await merge(preferredRecord, otherRecord);
       const result = await PostMerge.applyPostMergeModifications(postMergeFixes, preferredRecord, otherRecord, mergedRecord);
       
@@ -84,7 +82,6 @@ function createRecordMergeService(mergeConfiguration: any, melindaConnector: Mel
       
     } catch(error) {
       //TODO: error handling
-      console.log(error);
       throw error;
     }
   }
@@ -121,14 +118,6 @@ function selectRecordId(record) {
 
 function updateRecordLeader(record, index, characters) {
   record.leader = record.leader.substr(0,index) + characters + record.leader.substr(index+characters.length);
-}
-
-function selectPreferredRecord(record1, record2) {
-  console.log('ERROR: selecting firstRecord as preferredRecord.');
-  const preferredRecord = record1;
-  const otherRecord = record2;
-  return { preferredRecord, otherRecord };
-    
 }
 
 module.exports = {

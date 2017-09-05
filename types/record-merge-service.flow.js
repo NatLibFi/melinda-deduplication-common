@@ -1,6 +1,6 @@
 // @flow
 
-import type { MarcRecord } from './marc-record.flow';
+import type { RankedPair } from './preferred-record-service.flow';
 
 export type RecordIdentifier = {
   id: string,
@@ -14,6 +14,5 @@ export type MergeResult = {
 export type MergeabilityClass = 'NOT_MERGEABLE' | 'MANUALLY_MERGEABLE' | 'AUTOMATICALLY_MERGEABLE';
 
 export type RecordMergeService = {
-  checkMergeability: (firstRecord: MarcRecord, secondRecord: MarcRecord) => Promise<MergeabilityClass>,
-  mergeRecords: (firstRecord: MarcRecord, secondRecord: MarcRecord) => Promise<MergeResult>
+  mergeRecords: (recordPair: RankedPair) => Promise<MergeResult>
 };
