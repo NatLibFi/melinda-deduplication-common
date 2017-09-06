@@ -60,11 +60,27 @@ function waitAndRetry(fn, onRetry, wait=3000) {
   };
   return retryFn();
 }
+
+// [A] -> Int -> [[A]]
+function chunkWithWindow(list, windowSize) {
+  const memory = [];
+  return list.reduce((listOfLists, item) => {
+    memory.push(item);
+    if (memory.length == windowSize) {
+      listOfLists.push(_.clone(memory));
+      memory.shift();
+    }
+    
+    return listOfLists;
+  }, []);
+}
+
 module.exports = {
   decorateConnectionWithDebug,
   readEnvironmentVariable,
   readArrayEnvironmentVariable,
   sequence,
   hrtimeToMs,
-  waitAndRetry
+  waitAndRetry,
+  chunkWithWindow
 };
