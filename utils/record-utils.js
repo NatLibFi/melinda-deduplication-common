@@ -145,9 +145,19 @@ function stringToField(fieldStr) {
   return { tag, ind1, ind2, subfields };
 }
 
+function selectRecordId(record) {
+  return _.get(record.fields.find(field => field.tag === '001'), 'value');
+}
+
+function isDeleted(record) {
+  return record.leader.substr(5,1) === 'd';
+}
+
 module.exports = { 
   parsePageInfo,
   parseYears,
   fieldToString,
-  stringToField
+  stringToField,
+  selectRecordId,
+  isDeleted
 };
