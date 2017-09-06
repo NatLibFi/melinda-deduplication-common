@@ -237,9 +237,9 @@ function latestChange(humanUsernameCheckFunction) {
       var sub_h = _.head(field.subfields.filter(codeFilter('h')));
 
       return {
-        user: (sub_a !== undefined) ? sub_a.value : undefined,
-        date: (sub_c !== undefined) ? sub_c.value : '0000',
-        time: (sub_h !== undefined) ? sub_h.value : '0000'
+        user: _.get(sub_a, 'value'),
+        date: _.get(sub_c, 'value', '0000'),
+        time: _.get(sub_h, 'value', '0000'),
       };
 
     });
@@ -255,26 +255,28 @@ function latestChange(humanUsernameCheckFunction) {
     // sort in descending order by date
     humanChangeLog.sort(function(b,a) {
 
-      var dateDiff = parseIntegerProperty(a,'date') - parseIntegerProperty(b,'date');
+      var dateDiff = parseIntegerProperty(a, 'date') - parseIntegerProperty(b, 'date');
       if (dateDiff !== 0) {
         return dateDiff;
       }
       
-      return parseIntegerProperty(a,'time') - parseIntegerProperty(b,'time');
+      return parseIntegerProperty(a, 'time') - parseIntegerProperty(b, 'time');
 
-      function parseIntegerProperty(obj, propName) {
-        return (obj[propName] !== undefined) ? parseInt(obj[propName],10) : 0;
-      }
     });
 
     if (humanChangeLog.length > 0) {
       return humanChangeLog[0].date + humanChangeLog[0].time;
     } else {
       //default to field 005
-      var f005 = _.head(record.fields.filter(tagFilter('005')));
-      return f005.value.substr(0,12);
+      const f005 = _.head(record.fields.filter(tagFilter('005')));
+      const value = _.get(f005, 'value', '0');
+      return value.substr(0,12);
     }
   };
+}
+
+function parseIntegerProperty(obj, propName) {
+  return (obj[propName] !== undefined) ? parseInt(obj[propName],10) : 0;
 }
 
 function field008nonEmptyCount(record) {
