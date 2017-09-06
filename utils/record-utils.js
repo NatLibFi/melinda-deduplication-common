@@ -1,80 +1,100 @@
 const _ = require('lodash');
 const toArabic = require('roman-numerals').toArabic;
 
-function parsePageInfo(str) {
-  if (!str) return null;
+function parsePageInfo(inputString) {
+  if (!inputString) return null;
 
-  var remove = '[]'.split('');
-  var tospace = ','.split('');
+  const charactersToRemove = '[]';
+  const charactersToSpaces = ',';
+  // char -> char -> char -> boolean
+  const characterBetween = (startChar, endChar) => {
+    let insideParenthesis = false;
+    return (char) => {
+      if (char == startChar) {
+        insideParenthesis = true;
+        return false;
+      } else if (char == endChar) {
+        insideParenthesis = false;
+        return false;
+      } else {
+        return !insideParenthesis;
+      }
+    };
+  };
 
-  remove.forEach(function(char) {
-    str = str.replace(new RegExp(RegExp.escape(char)), '');
-  });
+  const normalizedString = inputString.split('')
+    .filter(char => !_.includes(charactersToRemove, char))
+    .map(char => _.includes(charactersToSpaces, char) ? ' ' : char)
+    .filter(characterBetween('(',')'))
+    .join('');
 
-  tospace.forEach(function(char) {
-    str = str.replace(new RegExp(RegExp.escape(char)), ' ');
-  });
+  const unableToParse = normalizedString.split(' ').some(word => isNotAllowed(word.toLowerCase()));
 
-  str = str.replace(/\([^\)]\)/g, ' ');
-
-  var unparseable = str.split(' ').some(function(word) {
-    return isNotAllowed(word.toLowerCase());
-  });
-
-  if (unparseable) {
+  if (unableToParse) {
     return null;
   }
 
-  var rangeMatch = /(\d+)-(\d+)/.exec(str);
+  // Match range ex. 123-534
+  const rangeMatch = /(\d+)-(\d+)/.exec(normalizedString);
   
   if (rangeMatch != null) {
     
-    var start = parseInt(rangeMatch[1], 10);
-    var end = parseInt(rangeMatch[2], 10);
+    const start = parseInt(rangeMatch[1], 10);
+    const end = parseInt(rangeMatch[2], 10);
 
     return {
       start: start,
       end: end,
-      str: str,
+      str: inputString,
       total: end-start
     };
   }
 
-  // no?
-  var numbers = str.replace(/\D/g,' ').replace(/\s+/g,' ').split(' ');
-  numbers = numbers.map(function(n) { return parseInt(n, 10); });
+  const numbers = normalizedString
+    .replace(/\D/g,' ')
+    .replace(/\s+/g,' ')
+    .split(' ')
+    .map(n => parseInt(n, 10));
   
-  var max_num = _.max(numbers);
+  const max_num = _.max(numbers);
   
-  var preambleSize = 0;
+  let preambleSize = parsePreambleSize(normalizedString);
   
-  str.split(' ').some(function(word) {
-    try {
-      preambleSize = toArabic(word);
-      return true;
-    } catch(e) {
-      return false;
-    }
-  });
-
-  start = 0;
-  end = max_num;
+  const start = 0;
+  const end = max_num;
   return {
     start: start,
     end: end,
-    str: str,
-    total: end-start+preambleSize
+    str: inputString,
+    total: end - start + preambleSize
   };
 
-  function isNotAllowed(word) {
-    var removedChars = ':.()[],-'.split('');
-    removedChars.forEach(function(char) {
-      word = word.replace(new RegExp(RegExp.escape(char)), '');
+  // string -> number
+  function parsePreambleSize(str) {
+    let preambleSize = 0;
+    str.split(' ').some(function(word) {
+      try {
+        preambleSize = toArabic(word);
+        return true;
+      } catch(e) {
+        return false;
+      }
     });
+    return preambleSize;
+  }
 
-    var allowedPattern = /^[x|v|i|s|p|\d]*$/;
+  // string -> bool
+  function isNotAllowed(word) {
 
-    return !allowedPattern.test(word);
+    const charsToRemove = ':.()[],-'.split('');
+
+    const normalizedWord = word.split('')
+      .filter(char => !_.includes(charsToRemove, char))
+      .join('');
+
+    const allowedPattern = /^[x|v|i|s|p|\d]*$/;
+
+    return !allowedPattern.test(normalizedWord);
   }
 }
 

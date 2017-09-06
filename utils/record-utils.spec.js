@@ -76,7 +76,7 @@ describe('parsePageInfo', function() {
     expect( pageInfo.total ).to.equal(448);
   });
 
-  it('should return null for data that contains something else than characters s, p or roman numerals or numbers', function() {
+  it('should return null for data that contains something else than characters \'s\', \'p\', roman numerals or numbers', function() {
     const pageInfo = parsePageInfo('a1 kirja (63 s.), 1 CD-äänilevy ;');
     expect( pageInfo ).to.be.null;
   });
