@@ -43,13 +43,13 @@ SID    ‡bviola
 
     it('should generate proper feature vector', function() {
       var featureArray = [
-        { encodingLevel: extractors.encodingLevel }, 
-        { catalogingSourceFrom008: extractors.catalogingSourceFrom008 },
-        { recordAge: extractors.recordAge },
-        { localOwnerCount: extractors.localOwnerCount },
-        { latestChange: extractors.latestChange() },
-        { FENNI: extractors.specificLocalOwner('FENNI') },
-        { VIOLA: extractors.specificLocalOwner('VIOLA') }
+        { encodingLevel: [extractors.encodingLevel] }, 
+        { catalogingSourceFrom008: [extractors.catalogingSourceFrom008] },
+        { recordAge: [extractors.recordAge] },
+        { localOwnerCount: [extractors.localOwnerCount] },
+        { latestChange: [extractors.latestChange()] },
+        { FENNI: [extractors.specificLocalOwner('FENNI')] },
+        { VIOLA: [extractors.specificLocalOwner('VIOLA')] }
       ];
     
       var vector = selectBetter.generateFeatureVector(selectBetter.generateFeatures(testRecord, featureArray));
@@ -60,9 +60,9 @@ SID    ‡bviola
 
     it('should generate proper normalized vectors', function() {
       var featureArray = [
-        { encodingLevel: extractors.encodingLevel }, 
-        { recordAge: extractors.recordAge },
-        { latestChange: extractors.latestChange() }
+        { encodingLevel: [extractors.encodingLevel, normalizers.notNull] }, 
+        { recordAge: [extractors.recordAge, normalizers.lexical] },
+        { latestChange: [extractors.latestChange(), normalizers.lexical] }
       ];
     
       var vector1 = selectBetter.generateFeatureVector(selectBetter.generateFeatures(testRecord, featureArray));
@@ -74,13 +74,7 @@ SID    ‡bviola
       expect(vector2).to.have.length(3);
       expect(vector2).to.eql([0, '870506', '201312191149']);
 
-      var normalizerArray = [
-        normalizers.notNull,
-        normalizers.lexical,
-        normalizers.lexical
-      ];
-        
-      selectBetter.normalizeFeatureVectors(vector1, vector2, normalizerArray);
+      selectBetter.normalizeFeatureVectors(vector1, vector2, featureArray);
 
       expect(vector1).to.have.length(3);
       expect(vector1).to.eql([0, 0, 1]);
@@ -94,7 +88,7 @@ SID    ‡bviola
       
       var vector1 = [0];
       var vector2 = [1];
-      selectBetter.normalizeFeatureVectors(vector1, vector2, [normalizers.invert]);
+      selectBetter.normalizeFeatureVectors(vector1, vector2, [{fakeFeature: [null,normalizers.invert]}]);
       expect(vector1).to.eql([1]);
       expect(vector2).to.eql([0]);
 
@@ -108,6 +102,8 @@ SID    ‡bviola
       let reprintVector1;
       let reprintVector2;
       
+      let fakeExtractorSet;
+
       beforeEach(() => {
 
         record1 = new MarcRecord(defaultTestRecord);
@@ -120,15 +116,17 @@ SID    ‡bviola
         
         reprintVector1 = [ extractors.reprintInfo(record1) ];
         reprintVector2 = [ extractors.reprintInfo(record2) ];
+
+        fakeExtractorSet = [{fakeFeature: [null,normalizers.reprint]}];
       });
 
       it('should give points to earlier record with reprint info that contains the year of the latter record.', function() {
-        selectBetter.normalizeFeatureVectors(reprintVector1, reprintVector2, [normalizers.reprint]);
+        selectBetter.normalizeFeatureVectors(reprintVector1, reprintVector2, fakeExtractorSet);
         expect(reprintVector1[0]).to.equal(1);
       });
 
       it('should not give points to latter record if earlier record has reprint info that contains the year of the latter record.', function() {
-        selectBetter.normalizeFeatureVectors(reprintVector1, reprintVector2, [normalizers.reprint]);
+        selectBetter.normalizeFeatureVectors(reprintVector1, reprintVector2, fakeExtractorSet);
         expect(reprintVector2[0]).to.equal(0);
       });
     });

@@ -2,6 +2,7 @@ const _ = require('lodash');
 const normalizeFuncs = require('./core.normalize');
 const compareFuncs = require('./core.compare');
 const filterFuncs = require('./core.filter');
+const MarcRecord = require('marc-record-js');
 
 function normalize(param, normalizerArray, options) {
   options = options || {};
@@ -367,6 +368,21 @@ function toxmljsFormat(marcRecord) {
   }
 }
 
+function fromXMLjsFormat(xmljsRecord) {
+  
+  const controlFields = xmljsRecord.controlfield.map(f => ({tag: f.$.tag, value: f._}));
+  const dataFields = xmljsRecord.datafield.map(f => {
+    const tag = f.$.tag;
+    const ind1 = f.$.ind1;
+    const ind2 = f.$.ind2;
+    const subfields = f.subfield.map(subfield => ({code: subfield.$.code, value: subfield._}));
+    return {tag, ind1, ind2, subfields};
+  });
+
+  const data = { fields: _.concat(controlFields, dataFields) };
+  return MarcRecord.clone(data);
+}
+
 module.exports = {
   normalize,
   singleNormalize,
@@ -388,5 +404,6 @@ module.exports = {
   actOnPublicationDate,
   getFields,
   getField,
-  parseISBN
+  parseISBN,
+  fromXMLjsFormat
 };

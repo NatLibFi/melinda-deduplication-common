@@ -46,5 +46,6 @@ module.exports = [
   { 'name': 'F010' },
   { 'name': 'F027' },
   { 'name': 'F015' },
-  { 'name': 'ISBNextra' }
+  { 'name': 'ISBNextra' },
+  { 'name': 'F007' }
 ];
