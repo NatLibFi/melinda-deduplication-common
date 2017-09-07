@@ -13,10 +13,27 @@ const {
   subCode
 } = require('./utils');
 
+function convertSubCode(from, to, field) {
+  field.subfield.forEach(sub => {
+    if (sub.$.code === from) {
+      sub.$.code = to;
+    }
+  });
+}
+
+function convertISBNField(field) {
+  field.subfield.forEach(sub => {
+    sub._ = convertToISBN13(sub._);
+  });
+}
+
 function ISBN(record1, record2) {
   
-  var fields1 = select(['020..a'], record1);
-  var fields2 = select(['020..a'], record2);
+  var fields1 = select(['020..az'], record1);
+  var fields2 = select(['020..az'], record2);
+  
+  fields1.forEach(field => convertSubCode('z', 'a', field));
+  fields2.forEach(field => convertSubCode('z', 'a', field));
 
   var normalized1 = normalize( clone(fields1) , ['delChars(":-")', 'trimEnd', 'upper', removeSidNid()]);
   var normalized2 = normalize( clone(fields2) , ['delChars(":-")', 'trimEnd', 'upper', removeSidNid()]);
@@ -28,13 +45,11 @@ function ISBN(record1, record2) {
   removeISBNFromOldRecord(record1, fields1, normalized1);
   removeISBNFromOldRecord(record2, fields2, normalized2);
 
-  normalized1.forEach(convertToISBN13);
-  normalized2.forEach(convertToISBN13);
-
+  normalized1.forEach(convertISBNField);
+  normalized2.forEach(convertISBNField);
 
   var set1 = normalized1;
   var set2 = normalized2;
-
 
   function getData() {
     return {
@@ -65,14 +80,14 @@ function ISBN(record1, record2) {
       return Labels.SURE;
     }
 
-    //if other set is subset of the other, then we are sure by isbn
+    //if other set is subset of the other, then we are ALMOST_SURE by isbn
     if (compareFuncs.isSubset(set1, set2) || compareFuncs.isSubset(set2, set1)) {
       return Labels.ALMOST_SURE;
     }
 
     //if the sets have a single identical entry, (but some non-identical entries too) we are almost sure by isbn
     if (compareFuncs.intersection(set1, set2).length > 0) {
-      return 0.6;
+      return Labels.MAYBE;
     }
 
     //erottelevana isbnnä vois olla 7##,530 kentässä "tämä teos on kuvattu erilaisessa ilmisasussa jonka isbn on tämä" eli näitä ei yhteen!
