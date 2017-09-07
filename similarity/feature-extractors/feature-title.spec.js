@@ -29,10 +29,22 @@ describe('title', () => {
     expect(featureValue).to.equal(Labels.SURE);
   });
 
-  it('should return SURELY_NOT for titles with different numbers in them', () => {
+  it('should return SURELY_NOT for titles with different numbers in a-subfield', () => {
 
     record1.appendField(Utils.stringToField('245 10 ‡aSotkamon Hyvösiä II /‡cAssar Hyvönen ; [valokuvat: Assar Hyvönen].'));
     record2.appendField(Utils.stringToField('245 10 ‡aSotkamon Hyvösiä /‡cAssar Hyvönen.'));
+
+    const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
+    expect(extractor).not.to.be.null;
+
+    const featureValue = extractor.check();
+    
+    expect(featureValue).to.equal(Labels.SURELY_NOT);
+  });
+
+  it('should return SURELY_NOT for titles with different numbers in b-subfield', () => {
+    record1.appendField(Utils.stringToField('245 10 ‡aSotkamon Hyvösiä ‡bTää on joku juttu [2]/‡cAssar Hyvönen ; [valokuvat: Assar Hyvönen].'));
+    record2.appendField(Utils.stringToField('245 10 ‡aSotkamon Hyvösiä ‡bTää on joku juttu /‡cAssar Hyvönen.'));
 
     const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
     expect(extractor).not.to.be.null;

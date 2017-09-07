@@ -17,8 +17,8 @@ function title(record1, record2) {
   var fields1 = select(['245..ab'], clone(record1));
   var fields2 = select(['245..ab'], clone(record2));
 
-  const field1A = select(['245..a'], clone(record1));
-  const field2A = select(['245..a'], clone(record2));
+  const field1AB = select(['245..ab'], clone(record1));
+  const field2AB = select(['245..ab'], clone(record2));
 
   var f246a1 = select(['246..a'], record1);
   var f246a2 = select(['246..a'], record2);
@@ -115,12 +115,18 @@ function title(record1, record2) {
     }
 
     const pickNumbers = (str) => str.replace(/\D/g, ' ').replace(/\s+/g, ' ').trim().split(' ');
-    const set1NumbersInSubfieldA = pickNumbers(normalizeFuncs.romanToArabicConversion(get(field1A, '245', 'a').join()));
-    const set2NumbersInSubfieldA = pickNumbers(normalizeFuncs.romanToArabicConversion(get(field2A, '245', 'a').join()));
+    const set1NumbersInSubfieldA = pickNumbers(normalizeFuncs.romanToArabicConversion(get(field1AB, '245', 'a').join()));
+    const set2NumbersInSubfieldA = pickNumbers(normalizeFuncs.romanToArabicConversion(get(field2AB, '245', 'a').join()));
+    const set1NumbersInSubfieldB = pickNumbers(normalizeFuncs.romanToArabicConversion(get(field1AB, '245', 'b').join()));
+    const set2NumbersInSubfieldB = pickNumbers(normalizeFuncs.romanToArabicConversion(get(field2AB, '245', 'b').join()));
    
     const identical = (a,b) => compareFuncs.setDifference(a, b).length === 0;
 
     if (!identical(set1NumbersInSubfieldA, set2NumbersInSubfieldA)) {
+      return Labels.SURELY_NOT;
+    }
+    
+    if (!identical(set1NumbersInSubfieldB, set2NumbersInSubfieldB)) {
       return Labels.SURELY_NOT;
     }
 
