@@ -90,7 +90,7 @@ function title(record1, record2) {
       return null;
     }
 
-    if (hasSubfield(set1, 'n') && hasSubfield(set2, 'n')) {
+    if (hasSubfield(set1, 'n') || hasSubfield(set2, 'n')) {
       var rec1n = get(set1, '245', 'n').join();
       var rec2n = get(set2, '245', 'n').join();
 
@@ -125,7 +125,7 @@ function title(record1, record2) {
     if (!identical(set1NumbersInSubfieldA, set2NumbersInSubfieldA)) {
       return Labels.SURELY_NOT;
     }
-    
+
     if (!identical(set1NumbersInSubfieldB, set2NumbersInSubfieldB)) {
       return Labels.SURELY_NOT;
     }

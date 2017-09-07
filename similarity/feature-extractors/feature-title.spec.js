@@ -53,6 +53,30 @@ describe('title', () => {
     
     expect(featureValue).to.equal(Labels.SURELY_NOT);
   });
+
+  it('should return ABSOLUTELY_NOT_DOUBLE for titles with different numbers in n-subfield', () => {
+    record1.appendField(Utils.stringToField('245 00 ‡aSystems of innovation :‡bgrowth, competitiveness and employment.‡nVol. 2 /‡cedited by Charles Edquist and Maureen McKelvey.'));
+    record2.appendField(Utils.stringToField('245 00 ‡aSystems of innovation :‡bgrowth, competitiveness and employment /‡cedited by Charles Edquist and Maureen McKelvey.'));
+    
+    const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
+    expect(extractor).not.to.be.null;
+
+    const featureValue = extractor.check();
+    
+    expect(featureValue).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
+  });
+
+  it('should return ABSOLUTELY_NOT_DOUBLE for titles with different numbers in n-subfield', () => {
+    record1.appendField(Utils.stringToField('245 00 ‡aEmployment.‡nVol. 2'));
+    record2.appendField(Utils.stringToField('245 00 ‡aEmployment.‡nVol. 3'));
+    
+    const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
+    expect(extractor).not.to.be.null;
+
+    const featureValue = extractor.check();
+    
+    expect(featureValue).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
+  });
 });
 
 
