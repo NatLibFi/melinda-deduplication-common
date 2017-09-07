@@ -4,47 +4,29 @@ const normalizers = require('./normalizers');
 
 const ExtractorPreset = {
   Default: [
-    { encodingLevel: extractors.encodingLevel },
-    { publicationYear: extractors.publicationYear },
-    { catalogingSourceFrom008: extractors.catalogingSourceFrom008 }, 
-    { nonFinnishHELKA: extractors.nonFinnishHELKA }, 
-    { FENNI: extractors.specificLocalOwner('FENNI') },
-    { VIOLA: extractors.specificLocalOwner('VIOLA') },
-    { TAISTO_ONLY: extractors.specificSingleLocalOwner('TAISTO') },
-    { VAARI_ONLY: extractors.specificSingleLocalOwner('VAARI') },
-    { recordAge: extractors.recordAge },
-    { reprintInfo: extractors.reprintInfo },
-    { localOwnerCount: extractors.localOwnerCount },
-    { FINL: extractors.specificFieldValue('040', ['a', 'd'], ['FI-NL']) },
-    { f245c: extractors.specificField('245', ['c']) },
-    { latestChange: extractors.latestChange((name) => !['LOAD', 'CARE', 'CONV', 'LINK'].some(robotName => name.includes(robotName))) },
-    { field008nonEmptyCount: extractors.field008nonEmptyCount },
-    { f100d: extractors.specificField('100', ['d']) },
+    { encodingLevel:    [ extractors.encodingLevel,     normalizers.lexical ] },
+    { publicationYear:  [ extractors.publicationYear,   normalizers.lexical ] },
+    { catalogingSourceFrom008: [ extractors.catalogingSourceFrom008, normalizers.lexical ] }, 
+    { nonFinnishHELKA:  [ extractors.nonFinnishHELKA,   normalizers.identity ] }, 
+    { FENNI:            [ extractors.specificLocalOwner('FENNI'), normalizers.identity ] },
+    { VIOLA:            [ extractors.specificLocalOwner('VIOLA'), normalizers.identity ] },
+    { TAISTO_ONLY:      [ extractors.specificSingleLocalOwner('TAISTO'), normalizers.identity ] },
+    { VAARI_ONLY:       [ extractors.specificSingleLocalOwner('VAARI'), normalizers.identity ] },
+    { recordAge:        [ extractors.recordAge,         normalizers.lexical ] },
+    { reprintInfo:      [ extractors.reprintInfo,       normalizers.reprint ] },
+    { localOwnerCount:  [ extractors.localOwnerCount,   normalizers.lexical ] },
+    { FINL:             [ extractors.specificFieldValue('040', ['a', 'd'], ['FI-NL']), normalizers.identity ] },
+    { f245c:            [ extractors.specificField('245', ['c']), normalizers.identity ] },
+    { latestChange:     [ extractors.latestChange((name) => !['LOAD', 'CARE', 'CONV', 'LINK'].some(robotName => name.includes(robotName))), normalizers.lexical ] },
+    { field008nonEmptyCount: [ extractors.field008nonEmptyCount,  normalizers.lexical ] },
+    { f100d:            [ extractors.specificField('100', ['d']), normalizers.identity ] },
+    { f130a:            [ extractors.specificField('130', ['a']), normalizers.identity ] }
   ]
 };
 
-const NormalizerPreset = {
-  Default: [
-    normalizers.lexical,
-    normalizers.lexical,
-    normalizers.lexical,
-    normalizers.identity,
-    normalizers.identity,
-    normalizers.identity,
-    normalizers.identity,
-    normalizers.identity,
-    normalizers.lexical,
-    normalizers.reprint,
-    normalizers.lexical,
-    normalizers.identity,
-    normalizers.identity,
-    normalizers.lexical,
-    normalizers.lexical,
-    normalizers.lexical
-  ]
-};
+function normalizeFeatureVectors(vector1, vector2, extractorSet) {
 
-function normalizeFeatureVectors(vector1, vector2, normalizers) {
+  const normalizers = extractorSet.map(extractor => _.head(_.values(extractor))).map(val => val[1]);
 
   const vector1copy = vector1.slice();
   const vector2copy = vector2.slice();
@@ -61,12 +43,13 @@ function normalizeFeatureVectors(vector1, vector2, normalizers) {
   });
 }
 
-function generateFeatures(record, extractors) {
-  return _.flatMap(extractors, (extractor) => {
+function generateFeatures(record, extractorSet) {
+
+  return _.flatMap(extractorSet, (extractor) => {
     return Object.keys(extractor).map(key => {
       return {
         name: key,
-        value: extractor[key](record)
+        value: extractor[key][0](record)
       };
     });
     
@@ -81,6 +64,5 @@ module.exports = {
   normalizeFeatureVectors,
   generateFeatures,
   generateFeatureVector,
-  ExtractorPreset,
-  NormalizerPreset
+  ExtractorPreset
 };
