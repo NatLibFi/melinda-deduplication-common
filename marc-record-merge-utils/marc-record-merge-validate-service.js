@@ -246,17 +246,13 @@ export function recordsHaveSimilarAuthors(preferredRecord, otherRecord) {
   const get110A = _.partial(getFieldValue, '110', 'a');
   const get111A = _.partial(getFieldValue, '111', 'a');
   
-  const get700A = _.partial(getFieldValue, '700', 'a');
-  const get710A = _.partial(getFieldValue, '710', 'a');
-  const get711A = _.partial(getFieldValue, '711', 'a');
-  
   const testAuthors = (a,b) => wuzzy.levenshtein(a,b) >= 0.8;
 
-  const fieldValuePairs = [get100A, get110A, get111A, get700A, get710A, get711A]
+  const fieldValuePairs = [get100A, get110A, get111A]
     .map(extractFn => ([extractFn(preferredRecord), extractFn(otherRecord)]))
-    .filter(pair => (pair[0] && pair[1]));
+    .filter(pair => (pair[0] || pair[1]));
   
-  const authorsMatch = fieldValuePairs.length > 0 && fieldValuePairs.every(pair => testAuthors(pair[0], pair[1]));
+  const authorsMatch = fieldValuePairs.every(pair => (pair[0] && pair[1]) && testAuthors(pair[0], pair[1]));
 
   return {
     valid: authorsMatch,
