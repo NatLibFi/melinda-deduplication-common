@@ -21,7 +21,7 @@ function encodingLevel(record) {
   }
 
   var encodingLevel = record.leader.charAt(17);
-  if (encodingLevel === '#') {
+  if (encodingLevel === '^') {
     return 4;
   }
 
@@ -40,9 +40,18 @@ function encodingLevel(record) {
   if (['3','8'].indexOf(encodingLevel) !== -1) {
     return 1;
   }
-  
   return 0;  
 }
+
+function fenniOrNotLDR(record) {
+  if (record.leader === undefined || record.leader.length < 17) {
+    return undefined;
+  }
+
+  var encodingLevel = record.leader.charAt(17);
+  return encodingLevel === '^' ? 1 : 0;
+}
+
 
 function publicationYear(record) {
   var extractFunc = controlfieldPosition('008', 7, 4);
@@ -65,7 +74,7 @@ function catalogingSourceFrom008(record) {
   var extractFunc = controlfieldPosition('008', 39);
   var value = extractFunc(record);
   switch(value) {
-    case '#': return 4;
+    case '^': return 4;
     case 'c': return 3;
     case 'd': return 2;
     case 'u': return 1;
@@ -73,6 +82,13 @@ function catalogingSourceFrom008(record) {
   }
   return 0;
 }
+
+function fenniOrNotFrom008(record) {
+  var extractFunc = controlfieldPosition('008', 39);
+  var value = extractFunc(record);
+  return value === '^' ? 1 : 0;
+}
+
 
 /*
 
@@ -161,6 +177,13 @@ function fieldCount(tag, arrayOfSubfields) {
   };
 }
 
+function subfieldCount(tag) {
+  return function(record) {
+    const fieldsWithTag = record.fields.filter(field => field.tag === tag);
+    return _.flatMap(fieldsWithTag, field => field.subfields).length;
+  };
+}
+
 /*
   Extract specific field value from record
   Example usecases:
@@ -227,7 +250,11 @@ function specificLocalOwner(localOwnerTag) {
   returns timestamp in format YYYYMMDDHHmm
 */
 
-function latestChange(humanUsernameCheckFunction) {
+function latestChange(nameFilterFunction) {
+  if (nameFilterFunction === undefined) {
+    nameFilterFunction = () => true;
+  }
+
   return function(record) {
 
     var changeLog = record.fields.filter(tagFilter('CAT')).map(function(field) {
@@ -244,12 +271,9 @@ function latestChange(humanUsernameCheckFunction) {
 
     });
 
-    var humanChangeLog = changeLog.filter(function(changeEntry) {
-      if (humanUsernameCheckFunction === undefined) { 
-        return true;
-      }
-
-      return humanUsernameCheckFunction(changeEntry.user || '');
+    const humanChangeLog = changeLog.filter(function(changeEntry) {
+      if (changeEntry.user === undefined) return false;
+      return nameFilterFunction(changeEntry.user);
     });
 
     // sort in descending order by date
@@ -284,7 +308,10 @@ function field008nonEmptyCount(record) {
   if (value === undefined) {
     return 0;
   }
-  return value.split('').filter(c => c !== '|').length;
+  return value.split('')
+    .filter(c => c !== '|')
+    .filter(c => c !== '^')
+    .length;
 }
 
 /** Utility functions */
@@ -374,5 +401,8 @@ module.exports = {
   fieldLength,
   specificLocalOwner,
   specificField,
-  field008nonEmptyCount
+  field008nonEmptyCount,
+  fenniOrNotLDR,
+  fenniOrNotFrom008,
+  subfieldCount
 };
