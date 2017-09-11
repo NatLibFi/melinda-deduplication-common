@@ -331,6 +331,7 @@ function parseISBN(fields) {
 function toxmljsFormat(marcRecord) {
 
   var xmljsFormat = {
+    leader: marcRecord.leader,
     controlfield: marcRecord.getControlfields().map(controlfieldFormatter),
     datafield: marcRecord.getDatafields().map(datafieldFormatter)
   };
@@ -378,9 +379,37 @@ function fromXMLjsFormat(xmljsRecord) {
     const subfields = f.subfield.map(subfield => ({code: subfield.$.code, value: subfield._}));
     return {tag, ind1, ind2, subfields};
   });
-
-  const data = { fields: _.concat(controlFields, dataFields) };
+  
+  const data = { 
+    leader: xmljsRecord.leader,
+    fields: _.concat(controlFields, dataFields) 
+  };
   return MarcRecord.clone(data);
+}
+
+function extractFormat(record) {
+  
+  const l6 = record.leader.substr(6,1);
+  const l7 = record.leader.substr(7,1);
+
+  const isBK = (l6, l7) => ['a', 't'].includes(l6) && !['b', 'i', 's'].includes(l7);
+  const isCR = (l6, l7) => ['a', 't'].includes(l6) && ['b', 'i', 's'].includes(l7);
+  const isMP = (l6) => ['e', 'f'].includes(l6);
+  const isMU = (l6) => ['c', 'd', 'i', 'j'].includes(l6);
+  const isCF = (l6) => 'm' === l6;
+  const isMX = (l6) => 'p' === l6;
+  const isVM = (l6) => ['g', 'k', 'o', 'r'].includes(l6);
+  
+  switch(true) {
+    case isBK(l6, l7): return 'BK';
+    case isCR(l6, l7): return 'CR';
+    case isMP(l6): return 'MP';
+    case isMU(l6): return 'MU';
+    case isCF(l6): return 'CF';
+    case isMX(l6): return 'MX';
+    case isVM(l6): return 'VM';
+  }
+  
 }
 
 module.exports = {
@@ -405,5 +434,6 @@ module.exports = {
   getFields,
   getField,
   parseISBN,
-  fromXMLjsFormat
+  fromXMLjsFormat,
+  extractFormat
 };
