@@ -128,8 +128,8 @@ describe('extractors', () => {
       expect(extractors.catalogingSourceFrom008(testRecord)).to.be.within(0,4);
     });
 
-    it('should give 4 points for source #', function() {
-      setCatalogingSource(testRecord, '#');
+    it('should give 4 points for source ^', function() {
+      setCatalogingSource(testRecord, '^');
       expect(extractors.catalogingSourceFrom008(testRecord)).to.equal(4);
     });
 
@@ -171,9 +171,9 @@ describe('extractors', () => {
       expect(encodingLevel).to.be.within(0,5);
     });
 
-    it('should give 4 points for encoding level #', function() {
+    it('should give 4 points for encoding level ^', function() {
 
-      setEncodingLevel(testRecord,'#');
+      setEncodingLevel(testRecord,'^');
 
       expect(extractors.encodingLevel(testRecord)).to.equal(4);
     });
@@ -345,8 +345,8 @@ describe('extractors', () => {
   
     });
 
-    it('should return the number of nonEmpty (|) characters in the 008', function() {
-      expect(extractors.field008nonEmptyCount(rec)).to.equal(21);
+    it('should return the number of nonEmpty (|,^) characters in the 008', function() {
+      expect(extractors.field008nonEmptyCount(rec)).to.equal(17);
     });
     
     it('should return 0 if record is missing 008', function() {

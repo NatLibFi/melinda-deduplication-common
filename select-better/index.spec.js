@@ -39,7 +39,7 @@ SID    ‡bviola
     otherTestRecord.appendControlField(['008', '870506s1983^^^^xxu|||||||||||||||||eng||']);
 
     setEncodingLevel(otherTestRecord, 'u');
-    setEncodingLevel(testRecord, '#');
+    setEncodingLevel(testRecord, '^');
 
     it('should generate proper feature vector', function() {
       var featureArray = [
