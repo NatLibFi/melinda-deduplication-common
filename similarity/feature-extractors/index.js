@@ -1,6 +1,8 @@
 
 const AdditionalPhysicalForm = require('./feature-AdditionalPhysicalForm');
 const EAN = require('./feature-EAN');
+const F007 = require('./feature-F007');
+const F008 = require('./feature-F008');
 const F010 = require('./feature-F010');
 const F015 = require('./feature-F015');
 const F027 = require('./feature-F027');
@@ -27,6 +29,8 @@ const years = require('./feature-years');
 module.exports = {
   AdditionalPhysicalForm,
   EAN,
+  F007,
+  F008,
   F010,
   F015,
   F027,
