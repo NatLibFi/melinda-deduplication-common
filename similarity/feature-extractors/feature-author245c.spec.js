@@ -9,7 +9,7 @@ const Utils = require('./utils');
 
 const author245c = require('./feature-author245c');
 
-describe.only('author245c', function() {
+describe('author245c', function() {
 
   let record1;
   let record2;
