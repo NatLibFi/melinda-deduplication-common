@@ -187,7 +187,9 @@ function subfieldCount(tag) {
 }
 
 function uppercaseSubfield(record) {
-  const relevantField = (field) => !isNaN(field.tag) && parseInt(field.tag) > 10;
+  const relevantFields = ['245', '260', '300', '500', '600', '700', '710', '100'];
+  
+  const relevantField = (field) => relevantFields.includes(field.tag);
   const irrelevantCodes = ['0', '5', '9'];
 
   const hasUppercaseSubfield = _.chain(record.fields)
@@ -195,7 +197,7 @@ function uppercaseSubfield(record) {
     .flatMap(field => field.subfields.map(sub => _.set(sub, 'tag', field.tag)) )
     .filter(subfield => !irrelevantCodes.includes(subfield.code))
     .map('value')
-    .filter(value => value.length > 3)
+    .filter(value => value.length > 5)
     .filter(value => /[a-zA-Z]/.test(value))
     .some(value => value.toUpperCase() === value)
     .value();
