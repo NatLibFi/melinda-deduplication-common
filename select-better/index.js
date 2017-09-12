@@ -40,7 +40,7 @@ const ExtractorPreset = {
     { f830x:            [ extractors.specificField('830', ['x']), normalizers.identity ] },
     { f830subs:         [ extractors.subfieldCount('830'),        normalizers.lexical]},
     { f338count:        [ extractors.fieldCount('338'),           normalizers.lexical]},
-    
+    { uppercase:        [ extractors.uppercaseSubfield,           normalizers.identity]}
   ]
 };
 

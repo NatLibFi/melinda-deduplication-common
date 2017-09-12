@@ -356,4 +356,53 @@ describe('extractors', () => {
 
   });
 
+
+  describe('uppercaseSubfield', function() {
+
+    let rec;
+
+    beforeEach(() => {
+      
+      rec = new MarcRecord();
+      rec.appendControlField(['008','850506s1983^^^^xxu|||||||||||||||||eng||']);
+  
+    });
+
+    it('should return 1 if the record has some subfield in uppercase', function() {
+      
+      rec.appendField(['300','','','a','300s.', 'b', 'RANDOM']);
+      
+      expect(extractors.uppercaseSubfield(rec)).to.equal(1);
+    });
+
+    it('should return 0 if the record does not have any subfield in uppercase', function() {
+      
+      rec.appendField(['300','','','a','300s.', 'b', 'stufa']);
+      
+      expect(extractors.uppercaseSubfield(rec)).to.equal(0);
+    });
+
+
+    it('should return 0 if the record has control subfield in uppercase', function() {
+      
+      rec.appendField(['300','','','a','300s.', 'b', 'stufa', '9', '<FENNI>KEEP']);
+      rec.appendField(['300','','','a','300s.', 'b', 'stufa', '9', '<FENNI>KEEP']);
+      rec.appendField(['LOW','','','a','ORGANIZATION1']);
+      rec.appendField(['CAT','','','a','CONV-ISBD', 'b','',  'c','20120401','l','FIN01','h','2007']);
+
+      expect(extractors.uppercaseSubfield(rec)).to.equal(0);
+    });
+
+    it('should return 0 if the record has numeric subfield', function() {
+      rec.appendField(['300','','','a','2131']);      
+      expect(extractors.uppercaseSubfield(rec)).to.equal(0);
+    });
+
+    it('should return 0 if the record has short uppercase subfield', function() {
+      rec.appendField(['300','','','a','A.']);      
+      expect(extractors.uppercaseSubfield(rec)).to.equal(0);
+    });
+
+  });
+      
 });

@@ -186,6 +186,23 @@ function subfieldCount(tag) {
   };
 }
 
+function uppercaseSubfield(record) {
+  const relevantField = (field) => !isNaN(field.tag) && parseInt(field.tag) > 10;
+  const irrelevantCodes = ['0', '5', '9'];
+
+  const hasUppercaseSubfield = _.chain(record.fields)
+    .filter(relevantField)
+    .flatMap(field => field.subfields.map(sub => _.set(sub, 'tag', field.tag)) )
+    .filter(subfield => !irrelevantCodes.includes(subfield.code))
+    .map('value')
+    .filter(value => value.length > 3)
+    .filter(value => /[a-zA-Z]/.test(value))
+    .some(value => value.toUpperCase() === value)
+    .value();
+
+  return hasUppercaseSubfield ? 1 : 0;
+}
+
 /*
   Extract specific field value from record
   Example usecases:
@@ -380,6 +397,8 @@ function localOwnerList(record) {
   return _.uniq(localOwnerOrganizations);
 }
 
+
+
 function codeFilter(code) {
   return (subfield) => subfield.code === code;
 }
@@ -406,5 +425,6 @@ module.exports = {
   field008nonEmptyCount,
   fenniOrNotLDR,
   fenniOrNotFrom008,
-  subfieldCount
+  subfieldCount,
+  uppercaseSubfield
 };
