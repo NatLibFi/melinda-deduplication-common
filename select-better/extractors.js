@@ -49,9 +49,11 @@ function fenniOrNotLDR(record) {
   }
 
   var encodingLevel = record.leader.charAt(17);
+  if (encodingLevel === '8') {
+    return -1;
+  }
   return encodingLevel === '^' ? 1 : 0;
 }
-
 
 function publicationYear(record) {
   var extractFunc = controlfieldPosition('008', 7, 4);

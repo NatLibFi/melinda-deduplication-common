@@ -8,22 +8,23 @@ function defaultNotARobotFilter(name) {
 
 const ExtractorPreset = {
   Default: [
-    { encodingLevel:    [ extractors.fenniOrNotLDR,     normalizers.lexical ] },
+    { fenniOrNotLDR:    [ extractors.fenniOrNotLDR,     normalizers.lexical ] },
     { publicationYear:  [ extractors.publicationYear,   normalizers.lexical ] },
-    { catalogingSourceFrom008: [ extractors.fenniOrNotFrom008, normalizers.lexical ] }, 
+    { fenniOrNotFrom008: [ extractors.fenniOrNotFrom008, normalizers.lexical ] }, 
     { nonFinnishHELKA:  [ extractors.nonFinnishHELKA,   normalizers.identity ] }, 
     { FENNI:            [ extractors.specificLocalOwner('FENNI'), normalizers.identity ] },
     { VIOLA:            [ extractors.specificLocalOwner('VIOLA'), normalizers.identity ] },
     { TAISTO_ONLY:      [ extractors.specificSingleLocalOwner('TAISTO'), normalizers.identity ] },
     { VAARI_ONLY:       [ extractors.specificSingleLocalOwner('VAARI'), normalizers.identity ] },
     { ANDER_ONLY:       [ extractors.specificSingleLocalOwner('ANDER'), normalizers.identity ] },
-    { recordAge:        [ extractors.recordAge,         normalizers.lexical ] },
+    { recordAge:        [ extractors.recordAge,         normalizers.moreRecent(5, 1) ] },
     { reprintInfo:      [ extractors.reprintInfo,       normalizers.reprint ] },
     { localOwnerCount:  [ extractors.localOwnerCount,   normalizers.lexical ] },
     { FINL:             [ extractors.specificFieldValue('040', ['a', 'd'], ['FI-NL']), normalizers.identity ] },
+    { RDA:              [ extractors.specificFieldValue('040', ['e'], ['RDA', 'rda']), normalizers.identity]},
     { f245c:            [ extractors.specificField('245', ['c']), normalizers.identity ] },
-    { latestChange:     [ extractors.latestChange(defaultNotARobotFilter), normalizers.lexical ] },
-    { field008nonEmptyCount: [ extractors.field008nonEmptyCount,  normalizers.lexical ] },
+    { latestChange:     [ extractors.latestChange(defaultNotARobotFilter), normalizers.moreRecent(3, 1) ] },
+    { field008nonEmptyCount: [ extractors.field008nonEmptyCount,  normalizers.proportion ] },
     { f100d:            [ extractors.specificField('100', ['d']), normalizers.identity ] },
     { f100e:            [ extractors.specificField('100', ['e']), normalizers.identity ] },
     { f130a:            [ extractors.specificField('130', ['a']), normalizers.identity ] },
@@ -35,6 +36,10 @@ const ExtractorPreset = {
     { has007:           [ extractors.fieldCount('007'),           normalizers.lexical]},
     { f020q:            [ extractors.specificField('020', ['q']), normalizers.identity ] },
     { f260e_or_f:       [ extractors.specificField('260', ['e', 'f']), normalizers.identity ] },
+    { f084subs:         [ extractors.subfieldCount('084'),        normalizers.lexical]},
+    { f830x:            [ extractors.specificField('830', ['x']), normalizers.identity ] },
+    { f830subs:         [ extractors.subfieldCount('830'),        normalizers.lexical]},
+    { f338count:        [ extractors.fieldCount('338'),           normalizers.lexical]},
     
   ]
 };
