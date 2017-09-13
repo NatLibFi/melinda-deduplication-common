@@ -14,13 +14,15 @@ function createPreferredRecordService(model: Object): PreferredRecordService {
 
   function selectPreferredRecord(firstRecord, secondRecord) {
 
-    const features1 = SelectBetter.generateFeatures(firstRecord, SelectBetter.ExtractorPreset.Default);
-    const features2 = SelectBetter.generateFeatures(secondRecord, SelectBetter.ExtractorPreset.Default);
+    const FeatureExtractorSet = SelectBetter.ExtractorPreset.Default;
+
+    const features1 = SelectBetter.generateFeatures(firstRecord, FeatureExtractorSet);
+    const features2 = SelectBetter.generateFeatures(secondRecord, FeatureExtractorSet);
     
     const vector1 = SelectBetter.generateFeatureVector(features1);
     const vector2 = SelectBetter.generateFeatureVector(features2);
 
-    SelectBetter.normalizeFeatureVectors(vector1, vector2, SelectBetter.NormalizerPreset.Default);
+    SelectBetter.normalizeFeatureVectors(vector1, vector2, FeatureExtractorSet);
 
     const inputVector = _.concat(vector1, vector2);
 
