@@ -28,6 +28,7 @@ function createAlephRecordService(XServer, credentials) {
   function loadRecord(base, recordId) {
     
     const requestUrl = `${XServer}?op=find-doc&doc_num=${recordId}&base=${base}&show_sub6=Y`;
+    debug(`Fetching record from ${requestUrl}`);
 
     return fetch(requestUrl)
       .then(response => response.text())

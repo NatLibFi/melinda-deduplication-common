@@ -45,7 +45,8 @@ function createMelindaRecordService(melindaEndpoint: String, XServer: String, cr
 }
 
 function wrapInAlephRecordError(error) {
-  return new AlephRecordService.AlephRecordError(error.message);
+  error.name = 'AlephRecordError';
+  return error;
 }
 
 module.exports = { 
