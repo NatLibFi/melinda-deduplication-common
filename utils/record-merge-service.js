@@ -92,7 +92,7 @@ function createRecordMergeService(mergeConfiguration: any, melindaConnector: Mel
     
     logger.log('info', `Undeleting ${recordId}`);
     try {
-      const record = await melindaConnector.loadRecord(base, recordId, {handle_deleted:1, no_rerouting: 1});
+      const record = await melindaConnector.loadRecord(base, recordId, { handle_deleted:1, no_rerouting: 1 });
 
       record.fields = record.fields.filter(field => field.tag !== 'STA');
       updateRecordLeader(record, 5, 'c');
