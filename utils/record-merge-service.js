@@ -7,10 +7,15 @@ const _ = require('lodash');
 const createRecordMerger = require('@natlibfi/marc-record-merge');
 const PostMerge = require('melinda-deduplication-common/marc-record-merge-utils/marc-record-merge-postmerge-service');
 
+const MergeabilityClass = {
+  NOT_MERGEABLE: 'NOT_MERGEABLE',
+  MANUALLY_MERGEABLE: 'MANUALLY_MERGEABLE',
+  AUTOMATICALLY_MERGEABLE: 'AUTOMATICALLY_MERGEABLE'
+};
 
 function createRecordMergeService(mergeConfiguration: any, melindaConnector: MelindaRecordService, logger: Logger): RecordMergeService {
   
-  async function mergeRecords({ preferredRecord, otherRecord }) {
+  async function mergeRecords(preferredRecordFamily, otherRecordFamily) {
 
     const merge = createRecordMerger(mergeConfiguration);
     
@@ -121,5 +126,6 @@ function updateRecordLeader(record, index, characters) {
 }
 
 module.exports = {
-  createRecordMergeService
+  createRecordMergeService,
+  MergeabilityClass
 };
