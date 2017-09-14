@@ -12,12 +12,8 @@ export type RecordFamily = {
   subrecords: Array<MarcRecord>
 };
 
-export type MergeResult = {
-  mergedRecordFamily: RecordFamily
-};
-
 export type MergeabilityClass = 'NOT_MERGEABLE' | 'MANUALLY_MERGEABLE' | 'AUTOMATICALLY_MERGEABLE';
 
 export type RecordMergeService = {
-  mergeRecords: (preferredRecordFamily: RecordFamily, otherRecordFamily: RecordFamily) => Promise<MergeResult>
+  mergeRecords: (preferredRecordFamily: RecordFamily, otherRecordFamily: RecordFamily) => Promise<RecordFamily>
 };

@@ -15,6 +15,7 @@ const MergeabilityClass = {
   AUTOMATICALLY_MERGEABLE: 'AUTOMATICALLY_MERGEABLE'
 };
 
+
 function createRecordMergeService(
   mergeConfiguration: any, 
   componentRecordMatcherConfiguration: any, 
@@ -27,7 +28,6 @@ function createRecordMergeService(
     const merge = createRecordMerger(mergeConfiguration);
     const componentRecordMatcher = createComponentRecordMatchService(componentRecordMatcherConfiguration);
     
-    const RecordValidationRules = MergeValidation.preset.melinda_host_automerge;
     const postMergeFixes = PostMerge.preset.defaults;
 
     const componentRecordValidationRules = MergeValidation.preset.melinda_component;
@@ -38,7 +38,17 @@ function createRecordMergeService(
       const preferredRecord = preferredRecordFamily.record;
       const otherRecord = otherRecordFamily.record;
 
-      await MergeValidation.validateMergeCandidates(RecordValidationRules, preferredRecord, otherRecord);
+      try {
+        await MergeValidation.validateMergeCandidates(MergeValidation.preset.melinda_host, preferredRecord, otherRecord);
+      } catch(error) {
+        throw wrapWithMergeabilityClass(error, MergeabilityClass.NOT_MERGEABLE);
+      }
+      try {
+        await MergeValidation.validateMergeCandidates(MergeValidation.preset.melinda_host_automerge, preferredRecord, otherRecord);
+      } catch(error) {
+        throw wrapWithMergeabilityClass(error, MergeabilityClass.MANUALLY_MERGEABLE);
+      }
+
       const mergedRecord = await merge(preferredRecord, otherRecord);
       const result = await PostMerge.applyPostMergeModifications(postMergeFixes, preferredRecord, otherRecord, mergedRecord);
       
@@ -66,7 +76,12 @@ function createRecordMergeService(
       for (const pair of matchedSubrecordPairs) {
         const [preferredRecord, otherRecord] = pair;
 
-        await MergeValidation.validateMergeCandidates(componentRecordValidationRules, preferredRecord, otherRecord);
+        try {
+          await MergeValidation.validateMergeCandidates(componentRecordValidationRules, preferredRecord, otherRecord);
+        } catch(error) {
+          throw wrapWithMergeabilityClass(error, MergeabilityClass.MANUALLY_MERGEABLE);
+        }
+
         const mergedRecord = await merge(preferredRecord, otherRecord);
         const result = await PostMerge.applyPostMergeModifications(postMergeFixes, preferredRecord, otherRecord, mergedRecord);
         mergedSubrecords.push(result);
@@ -98,6 +113,13 @@ function validateSubrecordSets(matchedSubrecordPairs) {
 
 function selectRecordId(record) {
   return _.get(record.fields.find(field => field.tag === '001'), 'value');
+}
+
+function wrapWithMergeabilityClass(error, mergeabilityClass) {
+  if (error.name === 'MergeValidationError') {
+    error.mergeabilityClass = mergeabilityClass;
+  }
+  return error;
 }
 
 module.exports = {
