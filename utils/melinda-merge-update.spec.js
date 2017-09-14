@@ -1,10 +1,9 @@
 import sinon from 'sinon';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
-import sinonAsPromised from 'sinon-as-promised'; // eslint-disable-line
 chai.use(sinonChai);
 const expect = chai.expect;
-import { commitMerge } from '../melinda-merge-update';
+import { commitMerge } from './melinda-merge-update';
 
 import MarcRecord from 'marc-record-js';
 

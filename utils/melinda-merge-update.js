@@ -1,12 +1,14 @@
 import {executeTransaction, RollbackError} from './async-transaction';
 import _ from 'lodash';
-import { logger } from 'server/logger';
 import uuid from 'uuid';
+const debug = require('debug')('melinda-merge-update');
 
 const FUTURE_HOST_ID_PLACEHOLDER = '(FI-MELINDA)[future-host-id]';
+const DEFAULT_LOGGER = { log: (...args) => debug(...args)};
 
+export function commitMerge(client, preferredRecord, otherRecord, mergedRecord, opts) {
 
-export function commitMerge(client, preferredRecord, otherRecord, mergedRecord) {
+  const logger = _.get(opts, 'logger', DEFAULT_LOGGER);
 
   const jobId = uuid.v4().slice(0,8);
 

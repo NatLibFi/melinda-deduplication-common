@@ -25,7 +25,7 @@ export function executeTransaction(sequence, additionalRollbackActions) {
       results.push(lastResult);
       resolve(results);
     }).catch(function(error) {
-
+      
       var rollbacksToRun = error.rollbacks || [];
       rollbacksToRun = rollbacksToRun.concat(additionalRollbacksToRun);
 
@@ -48,20 +48,19 @@ export function executeTransaction(sequence, additionalRollbackActions) {
   function step(fn) {
 
     return function() {
-      var p = fn.action();
-    
-      p.catch(function(error) {
+      return fn.action()
+      .then(function(result) {
+        if (fn.rollback) {
+          rollbacks.unshift(fn.rollback.bind(null, result));
+        }
+        return result;
+      })
+      .catch(function(error) {
         //Add rollbackinfo to error
-        error.rollbacks = rollbacks;
+        error.rollbacks = rollbacks;        
         throw error;
       });
 
-      p.then(function(result) {
-        rollbacks.unshift(fn.rollback.bind(null, result));
-        return result;
-      });
-    
-      return p;
     };
   }
 }
@@ -76,7 +75,6 @@ function executeRollbacks(rollbackSequence) {
     }, inital).then(resolve);
   });
 }
-
 
 export function RollbackError(message) {
   this.name = 'RollbackError';

@@ -3,13 +3,10 @@
 
 var chai = require('chai');
 var sinon = require('sinon');
-var sinonChai = require('sinon-chai');
-chai.use(sinonChai);
 var expect = chai.expect;
 var assert = chai.assert;
 
-var {executeTransaction, RollbackError} = require('../async-transaction');
-
+var {executeTransaction, RollbackError} = require('./async-transaction');
 
 describe('transcation', function() {
 
@@ -52,9 +49,9 @@ describe('transcation', function() {
         if (error.name == 'AssertionError') {
           done(error);
         }
-        
         expect(error.message).to.equal('merge');
         done();
+        
       });
   });
 
@@ -135,7 +132,7 @@ describe('transcation', function() {
       {action: successFn('del2'), rollback: successFn('undel2')},
       {action: failingFn('merge'), rollback: undefined},
     ];
-
+    
     executeTransaction(sequence)
       .then(onFulfilledMustNotBeCalled(done))
       .catch(catchHandler(function(error) {
@@ -159,7 +156,6 @@ function catchHandler(fn, done) {
   };
 }
 
-
 describe('RollbackError', function() {
   it('should be accessible', function() {
     expect(RollbackError).to.be.a('function');
@@ -169,7 +165,6 @@ describe('RollbackError', function() {
     expect(rollbackError.message).to.equal('Rollback failed');
   });
 });
-
 
 function successFn(text) {
   return function() {
