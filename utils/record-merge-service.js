@@ -3,9 +3,9 @@ import type { RecordMergeService } from 'types/record-merge-service.flow';
 
 const _ = require('lodash');
 const createRecordMerger = require('@natlibfi/marc-record-merge');
-const PostMerge = require('melinda-deduplication-common/marc-record-merge-utils/marc-record-merge-postmerge-service');
 const createComponentRecordMatchService = require('./component-record-match-service.js');
-const MergeValidation = require('melinda-deduplication-common/marc-record-merge-utils/marc-record-merge-validate-service');
+const PostMerge = require('../marc-record-merge-utils/marc-record-merge-postmerge-service');
+const MergeValidation = require('../marc-record-merge-utils/marc-record-merge-validate-service');
 
 const MergeabilityClass = {
   NOT_MERGEABLE: 'NOT_MERGEABLE',
