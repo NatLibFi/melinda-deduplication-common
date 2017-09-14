@@ -1,7 +1,5 @@
 // @flow
 import type { RecordMergeService } from 'types/record-merge-service.flow';
-import type { MelindaRecordService } from 'types/melinda-record-service.flow';
-import type { Logger } from 'types/logger.flow';
 
 const _ = require('lodash');
 const createRecordMerger = require('@natlibfi/marc-record-merge');
@@ -15,12 +13,9 @@ const MergeabilityClass = {
   AUTOMATICALLY_MERGEABLE: 'AUTOMATICALLY_MERGEABLE'
 };
 
-
 function createRecordMergeService(
   mergeConfiguration: any, 
-  componentRecordMatcherConfiguration: any, 
-  melindaConnector: MelindaRecordService, 
-  logger: Logger
+  componentRecordMatcherConfiguration: any
 ): RecordMergeService {
   
   async function mergeRecords(preferredRecordFamily, otherRecordFamily) {
