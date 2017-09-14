@@ -23,6 +23,14 @@ function createMelindaRecordService(melindaEndpoint: String, XServer: String, cr
     return alephRecordServiceX.loadRecord(base, recordId);
   }
 
+  function loadSubrecords(base, recordId, options) {
+    if (base.toLowerCase() !== 'fin01') {
+      throw new Error(`Loading subrecords is not supported for base ${base}. Only supported base is fin01`);
+    }
+
+    return client.loadChildRecords(recordId, options);
+  }
+
   function createRecord(base, record, options) {
     if (base.toLowerCase() === 'fin01') {
       return new Promise((resolve, reject) => client.createRecord(record, options).then(resolve).catch(err => reject(wrapInAlephRecordError(err))).done());
@@ -39,6 +47,7 @@ function createMelindaRecordService(melindaEndpoint: String, XServer: String, cr
 
   return {
     loadRecord,
+    loadSubrecords,
     saveRecord,
     createRecord
   };

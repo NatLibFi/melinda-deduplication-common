@@ -43,7 +43,23 @@ async function checkMergeability(preferredRecord, otherRecord) {
   return MergeabilityClass.NOT_MERGEABLE;
 }
 
+async function checkSubrecordMergeability({ preferredSubrecords, otherSubrecords }) {
+
+  // neither or either has subrecords
+  if (preferredSubrecords.length === 0 || otherSubrecords.length === 0) {
+    return true;
+  }
+
+  // both have subrecords
+  if (preferredSubrecords.length === otherSubrecords.length) {
+    return true;
+  }
+  
+  return false;
+}
+
 module.exports = {
   checkMergeability,
-  MergeabilityClass  
+  MergeabilityClass,
+  checkSubrecordMergeability
 };

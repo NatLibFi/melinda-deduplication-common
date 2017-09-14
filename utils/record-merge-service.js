@@ -10,7 +10,7 @@ const PostMerge = require('melinda-deduplication-common/marc-record-merge-utils/
 
 function createRecordMergeService(mergeConfiguration: any, melindaConnector: MelindaRecordService, logger: Logger): RecordMergeService {
   
-  async function mergeRecords({ preferredRecord, otherRecord }) {
+  async function mergeRecords({ preferredRecord, otherRecord, preferredSubrecords, otherSubrecords }) {
 
     const merge = createRecordMerger(mergeConfiguration);
     
@@ -81,7 +81,6 @@ function createRecordMergeService(mergeConfiguration: any, melindaConnector: Mel
       }
       
     } catch(error) {
-      //TODO: error handling
       throw error;
     }
   }
