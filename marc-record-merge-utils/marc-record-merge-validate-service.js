@@ -78,7 +78,9 @@ const defaultPreset = [recordsHaveDifferentIds, preferredRecordIsNotDeleted, oth
 const autoMergeExtraChecks = [
   recordsHaveSimilarAuthors,
   recordsHaveSimilarNumberOfPages,
-  recordsHaveSimilarNumbersInTitle
+  recordsHaveSimilarNumbersInTitle,
+  recordsHaveSameCountriesAndYears,
+  recordsHaveSaneReprintHistory
 ];
 
 
@@ -284,19 +286,29 @@ export function recordsHaveSimilarNumberOfPages(preferredRecord, otherRecord) {
   };
 }
 
+
+function extractYearsFromRecord(record) {
+  const get260C = _.partial(getFieldValue, '260', 'c');
+  const extractYearFrom008 = (str) => str ? str.substr(7,4) : '';
+  
+  const record260c = get260C(record);
+  const record008year = extractYearFrom008(getFieldValue('008', record));
+
+  const years = _.chain(RecordUtils.parseYears(record260c))
+    .concat(RecordUtils.parseYears(record008year))
+    .sort()
+    .uniq()
+    .value();
+
+  return years;
+
+}
+
 // Same years
 export function recordsHaveSimilarYears(preferredRecord, otherRecord) {
-  const get260C = _.partial(getFieldValue, '260', 'c');
-  
-  const recordA260c = get260C(preferredRecord);
-  const recordB260c = get260C(otherRecord);
 
-  const extractYearFrom008 = (str) => str ? str.substr(7,4) : '';
-  const recordA008year = extractYearFrom008(getFieldValue('008', preferredRecord));
-  const recordB008year = extractYearFrom008(getFieldValue('008', otherRecord));
-
-  const yearsInA = _.chain(RecordUtils.parseYears(recordA260c)).concat(RecordUtils.parseYears(recordA008year)).sort().uniq().value();
-  const yearsInB = _.chain(RecordUtils.parseYears(recordB260c)).concat(RecordUtils.parseYears(recordB008year)).sort().uniq().value();
+  const yearsInA = extractYearsFromRecord(preferredRecord);
+  const yearsInB = extractYearsFromRecord(otherRecord);
   
   return {
     valid: _.isEqual(yearsInA, yearsInB),
@@ -318,6 +330,63 @@ export function recordsHaveSimilarNumbersInTitle(preferredRecord, otherRecord) {
   return {
     valid: _.isEqual(numbersInA, numbersInB),
     validationFailureMessage: `Records have different numbers in title: ${numbersInA} vs ${numbersInB}`
+  };
+}
+
+// eri maat eri vuodet
+export function recordsHaveSameCountriesAndYears(preferredRecord, otherRecord) {
+  const get008 = _.partial(getFieldValue, '008');
+  const country = (f008) => f008.substr(15,3);
+  
+  const yearA = _.head(extractYearsFromRecord(preferredRecord));
+  const yearB = _.head(extractYearsFromRecord(otherRecord));
+  const countryA = country(get008(preferredRecord));
+  const countryB = country(get008(otherRecord));
+
+  if (countryA === 'xx^' || countryB === 'xx^') {
+    return {
+      valid: true
+    };
+  }
+
+  const yearCountryA = `${yearA}-${countryA}`;
+  const yearCountryB = `${yearB}-${countryB}`;
+  
+  return {
+    valid: _.isEqual(yearCountryA, yearCountryB),
+    validationFailureMessage: `Records have different years+countries: ${yearCountryA} vs ${yearCountryB}`
+  };
+}
+
+// Tietue A on vanhempi kuin B
+// Tietueessa A painostieto 250, 
+// Tietueessa B ei painostietoa
+
+export function recordsHaveSaneReprintHistory(preferredRecord, otherRecord) {
+  const get250A = _.partial(getFieldValue, '250', 'a');
+
+  const yearA = _.head(extractYearsFromRecord(preferredRecord));
+  const yearB = _.head(extractYearsFromRecord(otherRecord));
+
+  const reprintA = get250A(preferredRecord) !== null;
+  const reprintB = get250A(otherRecord) !== null;
+
+  if (yearA < yearB && reprintA && !reprintB) {
+    return {
+      valid: false,
+      validationFailureMessage: 'Younger record has reprint information'
+    };
+  }
+
+  if (yearA > yearB && !reprintA && reprintB) {
+    return {
+      valid: false,
+      validationFailureMessage: 'Younger record has reprint information'
+    };
+  }
+
+  return {
+    valid: true
   };
 }
 
