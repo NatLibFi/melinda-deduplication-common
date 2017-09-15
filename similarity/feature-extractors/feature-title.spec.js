@@ -6,7 +6,7 @@ const Utils = require('./utils');
 const { Labels } = require('./constants');
 const title = require('./feature-title');
 
-describe.only('title', () => {
+describe('title', () => {
 
   let record1;
   let record2;
@@ -91,9 +91,20 @@ describe.only('title', () => {
     
     expect(featureValue).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
   });
+
+  it('should return SURE for titles with special characters that are normalized away', () => {
+    record1.appendField(Utils.stringToField('245 00 ‡aAdobe Premiere® Elements 10 :‡bclassroom in a book® : the official training workbook from Adobe'));
+    record2.appendField(Utils.stringToField('245 00 ‡aAdobe Premiere Elements 10 :‡bclassroom in a book : the official training workbook from Adobe'));
+    
+    const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
+    expect(extractor).not.to.be.null;
+
+    const featureValue = extractor.check();
+    
+    expect(featureValue).to.equal(Labels.SURE);
+  });
+  
 });
-
-
 
 function toWeirdFormat(record) {
 
