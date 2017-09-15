@@ -1,7 +1,17 @@
 const normalizeFuncs = require('./core.normalize');
 const compareFuncs = require('./core.compare');
-
 const _ = require('lodash');
+const fs = require('fs');
+const path = require('path');
+
+const stopWordData = fs.readFileSync(path.resolve(__dirname, '..', '..', 'default-configs', 'f245ab-stop-words.txt'), 'utf8');
+
+const STOP_WORD_FREQUENCY = 1200;
+const stopWords = stopWordData.split('\n')
+  .map(line => line.split(' '))
+  .filter(pair => _.head(pair) > STOP_WORD_FREQUENCY)
+  .map(pair => _.last(pair))
+  .reduce((lookup, word) => _.set(lookup, word, true), {});
 
 const {
   normalize,
@@ -68,6 +78,20 @@ function title(record1, record2) {
   normalized1 = normalize(clone(normalized1), ['toSpace("-()[]!?<>*%½+¡")','delChars("\'/,.:\\"")', 'trim', 'upper', 'collapse']);
   normalized2 = normalize(clone(normalized2), ['toSpace("-()[]!?<>*%½+¡")','delChars("\'/,.:\\"")', 'trim', 'upper', 'collapse']);
 
+  const removeStopWords = (field => {
+    field.subfield = field.subfield.map(subfield => {
+      if (subfield.$.code === 'X') {
+        const withoutStopWords = subfield._.split(' ').filter(word => !stopWords[word]).join(' ');
+
+        subfield._ = withoutStopWords;
+      }
+      return subfield;
+    }); 
+  });
+
+  normalized1.forEach(removeStopWords);
+  normalized2.forEach(removeStopWords);
+  
   return {
     check: check,
     getData: getData
@@ -111,6 +135,13 @@ function title(record1, record2) {
     set2.forEach(removeSubfields('n'));
     
     if (!hasSubfield(set1, 'X') || !hasSubfield(set2, 'X')) {
+      return null;
+    }
+
+    // we remove stopwords from titles, if there nothing left then skip the check
+    const fieldContent = (fields, code) => _.flatMap(fields, field => field.subfield).filter(sub => sub.$.code === code).map(subfield => subfield._).join(' ');
+    
+    if (fieldContent(set1, 'X').length < 2 || fieldContent(set1, 'X').length < 2) {
       return null;
     }
 

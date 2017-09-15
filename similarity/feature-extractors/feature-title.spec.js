@@ -6,7 +6,7 @@ const Utils = require('./utils');
 const { Labels } = require('./constants');
 const title = require('./feature-title');
 
-describe('title', () => {
+describe.only('title', () => {
 
   let record1;
   let record2;
@@ -18,8 +18,8 @@ describe('title', () => {
 
   it('should return SURE for identical titles', () => {
   
-    record1.appendField(Utils.stringToField('245    ‡aAsia'));
-    record2.appendField(Utils.stringToField('245    ‡aAsia'));
+    record1.appendField(Utils.stringToField('245    ‡aAsia Traktori Hiuslakka'));
+    record2.appendField(Utils.stringToField('245    ‡aAsia Traktori Hiuslakka'));
 
     const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
     expect(extractor).not.to.be.null;
@@ -28,6 +28,20 @@ describe('title', () => {
     
     expect(featureValue).to.equal(Labels.SURE);
   });
+
+  it('should return null for titles with only stopwords', () => {
+  
+    record1.appendField(Utils.stringToField('245    ‡aAsia'));
+    record2.appendField(Utils.stringToField('245    ‡aAsia Traktori Hiuslakka'));
+
+    const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
+    expect(extractor).not.to.be.null;
+
+    const featureValue = extractor.check();
+    
+    expect(featureValue).to.equal(null);
+  });
+  
 
   it('should return SURELY_NOT for titles with different numbers in a-subfield', () => {
 
