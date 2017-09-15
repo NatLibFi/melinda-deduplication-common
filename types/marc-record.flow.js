@@ -1,23 +1,23 @@
 // @flow
 
-type ControlField = {
+export type ControlField = {
   tag: string,
   value: string
 }
 
-type Subfield = {
+export type Subfield = {
   code: string,
   value: string
 }
 
-type DataField = {
+export type DataField = {
   tag: string,
   ind1: string,
   ind2: string,
   subfields: Array<Subfield>
 }
 
-type Field = ControlField | DataField;
+export type Field = ControlField | DataField;
 
 export type MarcRecord = {
   leader: string,

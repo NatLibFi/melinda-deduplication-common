@@ -1,7 +1,19 @@
+
+import type { MarcRecord, Field, DataField, ControlField } from 'types/marc-record.flow';
+
+const moment = require('moment');
 const _ = require('lodash');
+const debug = require('debug')('marc-record-utils');
 const toArabic = require('roman-numerals').toArabic;
 
-function parsePageInfo(inputString) {
+type PageInfo = {
+  start: number,
+  end: number,
+  str: string,
+  total: number
+};
+
+function parsePageInfo(inputString: string): ?PageInfo {
   if (!inputString) return null;
 
   const charactersToRemove = '[]';
@@ -70,7 +82,7 @@ function parsePageInfo(inputString) {
   };
 
   // string -> number
-  function parsePreambleSize(str) {
+  function parsePreambleSize(str: string): number {
     let preambleSize = 0;
     str.split(' ').some(function(word) {
       try {
@@ -84,7 +96,7 @@ function parsePageInfo(inputString) {
   }
 
   // string -> bool
-  function isNotAllowed(word) {
+  function isNotAllowed(word: string): boolean {
 
     const charsToRemove = ':.()[],-'.split('');
 
@@ -98,8 +110,8 @@ function parsePageInfo(inputString) {
   }
 }
 
-// str -> [number]
-function parseYears(str) {
+// str -> [string]
+function parseYears(str: string): Array<string> {
   if (!str) return [];
 
   // keeps only words that are 4 characters long and between 1000 and 2100 (exclusive)
@@ -114,20 +126,26 @@ function parseYears(str) {
   }
 }
 
-
-
-function fieldToString(field) {
+function fieldToString(field: Field): string {
   if (field && field.subfields) {
+    return dataFieldToString(field);
+  } else {
+    return controlfieldToString(field);
+  }
+
+  function dataFieldToString(field: DataField): string {
     const ind1 = field.ind1 || ' ';
     const ind2 = field.ind2 || ' ';
     const subfields = field.subfields.map(subfield => `‡${subfield.code}${subfield.value}`).join('');
     return `${field.tag} ${ind1}${ind2} ${subfields}`;
-  } else {
+  }
+
+  function controlfieldToString(field: ControlField): string {
     return `${field.tag}    ${field.value}`;
   }
 }
 
-function stringToField(fieldStr) {
+function stringToField(fieldStr: string): Field {
   const tag = fieldStr.substr(0,3);
   if (parseInt(tag) < 10) {
     const value = fieldStr.substr(7);
@@ -145,13 +163,40 @@ function stringToField(fieldStr) {
   return { tag, ind1, ind2, subfields };
 }
 
-function selectRecordId(record) {
+function selectRecordId(record: MarcRecord): boolean {
   return _.get(record.fields.find(field => field.tag === '001'), 'value');
 }
 
-function isDeleted(record) {
+function isDeleted(record: MarcRecord): boolean {
   return record.leader.substr(5,1) === 'd';
 }
+
+function parseParentId(record: MarcRecord): string {
+  return _.chain(record.fields)
+    .filter(field => field.tag === '773')
+    .flatMap(field => field.subfields)
+    .filter(subfield => subfield.code === 'w')
+    .map('value')
+    .head()
+    .value();
+}
+
+function isComponentRecord(record: MarcRecord): boolean {
+  const parentId = parseParentId(record);
+  return parentId !== undefined;
+}
+
+function getLastModificationDate(record: MarcRecord): Date {
+  const timestamp005 = _.get(record.fields.find(field => field.tag === '005'), 'value');
+
+  if (timestamp005) {
+    return moment(timestamp005, 'YYYYMMDDHHmmss.S').toDate();
+  }
+
+  debug('Could not parse timestamp from record', record.toString());
+  return new Date(0);
+}
+
 
 module.exports = { 
   parsePageInfo,
@@ -159,5 +204,8 @@ module.exports = {
   fieldToString,
   stringToField,
   selectRecordId,
-  isDeleted
+  isDeleted,
+  parseParentId,
+  isComponentRecord,
+  getLastModificationDate
 };
