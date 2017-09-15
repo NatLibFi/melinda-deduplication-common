@@ -65,8 +65,8 @@ function title(record1, record2) {
   normalized1[0].subfield = normalized1[0].subfield.concat( normalized_f245pn1[0].subfield );
   normalized2[0].subfield = normalized2[0].subfield.concat( normalized_f245pn2[0].subfield );
 
-  normalized1 = normalize(clone(normalized1), ['toSpace("-")','delChars("\'/,.:\\"")', 'trim', 'upper', 'collapse']);
-  normalized2 = normalize(clone(normalized2), ['toSpace("-")','delChars("\'/,.:\\"")', 'trim', 'upper', 'collapse']);
+  normalized1 = normalize(clone(normalized1), ['toSpace("-()[]!?<>*%½+¡")','delChars("\'/,.:\\"")', 'trim', 'upper', 'collapse']);
+  normalized2 = normalize(clone(normalized2), ['toSpace("-()[]!?<>*%½+¡")','delChars("\'/,.:\\"")', 'trim', 'upper', 'collapse']);
 
   return {
     check: check,
