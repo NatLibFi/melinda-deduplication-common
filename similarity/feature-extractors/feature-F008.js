@@ -3,6 +3,8 @@ const _ = require('lodash');
 
 const formatDefinitions = require('./feature-F008-formats.js');
 
+const ANY = 'ANY';
+
 const {
   fromXMLjsFormat,
   extractFormat
@@ -28,7 +30,7 @@ function F008(record1, record2) {
   const typeOfDate = (f008) => f008.substr(6,1);
   const publishDate1 = (f008) => f008.substr(7,4);
   const publishDate2 = (f008) => f008.substr(11,4);
-  const country = (f008) => f008.substr(15,3);
+  const country = (f008) => f008.substr(15,3) === 'xx^' ? ANY : f008.substr(15,3);
   const language = (f008) => f008.substr(33,3);
   const modifiedRecord = (f008) => f008.substr(38,1);
   const catalogingSource = (f008) => f008.substr(39,1);
@@ -65,6 +67,9 @@ function F008(record1, record2) {
     return _.zip(recordA, recordB)
       .map(([item1, item2]) => {
         if (item1 && item2) {
+          if (item1 === ANY || item2 === ANY && item1 !== item2) {
+            return Labels.ALMOST_SURE;
+          }
           if (_.isArray(item1) && _.isArray(item2)) {
             return _.mean(_.zip(item1, item2).map(([a, b]) => a === b ? 1 : 0));
           }

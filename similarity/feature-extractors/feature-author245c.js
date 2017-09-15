@@ -46,7 +46,9 @@ function author245c(record1, record2) {
 
     const getValue = (set) => _.get(set, '[0].subfield', []).map(sub => sub._).join(' ');
     const isSubset = (subset, superset) => _.difference(subset, superset).length === 0;
+    const isSubsetWith = (subset, superset, comparator) => _.differenceWith(subset, superset, comparator).length === 0;
     const isIdentical = (set1, set2) => isSubset(set1, set2) && isSubset(set2, set1);
+    const startsWithComparator = (wordA, wordB) =>  wordA.startsWith(wordB) || wordB.startsWith(wordA);
     const generateAbbrevations = (str) => str.split(' ').map((word, index, arr) => {
       const abbreviation = word.substr(0,1);
       return _.concat(arr.slice(0,index), abbreviation, arr.slice(index+1) ).join(' ');
@@ -70,9 +72,6 @@ function author245c(record1, record2) {
       return Labels.SURE;
     }
 
-    if (isSubset(words1, words2) || isSubset(words2, words1)) {
-      return Labels.ALMOST_SURE;
-    }
 	
     if (compareFuncs.isIdentical(set1, set2, compareFuncs.lvComparator(0.80))) {
       debug('isIdentical lvComparator.80');
@@ -89,6 +88,12 @@ function author245c(record1, record2) {
       return Labels.ALMOST_SURE;
     }
     
+    
+    
+    if (isSubsetWith(words1, words2, startsWithComparator) || isSubsetWith(words2, words1, startsWithComparator)) {
+      return Labels.ALMOST_SURE;
+    }
+
     return Labels.SURELY_NOT;
   }
 

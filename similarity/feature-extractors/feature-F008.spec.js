@@ -2,7 +2,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 const { Labels } = require('./constants');
-const { SURE, SURELY_NOT } = Labels;
+const { SURE, SURELY_NOT, ALMOST_SURE } = Labels;
 
 const MarcRecord = require('marc-record-js');
 const Utils = require('./utils');
@@ -71,4 +71,16 @@ describe('F008', function() {
 
     expect(labels).to.eql([SURELY_NOT, SURE, SURE, SURE, SURELY_NOT, SURE, SURE, SURE, null]);
   });
+
+  it('should return SURE for country code if other is missing it (xx^)', () => {
+    record1.leader = '^^^^^amm^a22004934i^4500';
+    record1.appendField(Utils.stringToField('008    010608s2000^^^^fi^ppz|||x||||||||||mul||'));
+    record2.appendField(Utils.stringToField('008    010602s2000^^^^xx^ppz|||x||||||||||mul||'));
+
+    const extractor = F008(Utils.toxmljsFormat(record1), Utils.toxmljsFormat(record2));
+    const labels = extractor.check();
+
+    expect(labels).to.eql([SURELY_NOT, SURE, SURE, SURE, ALMOST_SURE, SURE, SURE, SURE, null]);
+  });
+
 });

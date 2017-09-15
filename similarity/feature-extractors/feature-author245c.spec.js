@@ -60,6 +60,21 @@ describe('author245c', function() {
     expect(labels).to.eql(ALMOST_SURE);
   });
 
+  it('should return ALMOST_SURE if other 245c is subset', () => {
+
+    record1.appendField(Utils.stringToField(
+      '245 10 ‡aSidosryhmät ja riski pörssiyhtiössä.‡n[1] /‡ctoimittanut Kullervo'
+    ));
+    record2.appendField(Utils.stringToField(
+      '245 10 ‡aSidosryhmät ja riski pörssiyhtiössä /‡ctoim. Kullervo'
+    ));
+    
+    const extractor = author245c(Utils.toxmljsFormat(record1), Utils.toxmljsFormat(record2));
+    const labels = extractor.check();
+
+    expect(labels).to.eql(ALMOST_SURE);
+  });
+
   it('should return SURE if other 245c is abbreviated', () => {
     record1.appendField(Utils.stringToField(
       '245 14 ‡aThe prophet armed :‡bTrotsky: 1879-1921 /‡cIsaac Deutscher.'

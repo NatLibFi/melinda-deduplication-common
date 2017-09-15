@@ -6,7 +6,7 @@ const Utils = require('./utils');
 const { Labels } = require('./constants');
 const sarjat = require('./feature-sarjat');
 
-describe.only('feature-series', () => {
+describe('feature-series', () => {
 
   let record1;
   let record2;
