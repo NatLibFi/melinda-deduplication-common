@@ -1,5 +1,6 @@
 const compareFuncs = require('./core.compare');
 const { Labels } = require('./constants');
+const _ = require('lodash');
 
 const {
   normalize,
@@ -18,7 +19,7 @@ function sarjat(record1, record2) {
   normalized1 = normalize( normalized1 , ['onlyNumbers', 'trim', 'sortContent'], {subcode: 'v'}); 
   normalized2 = normalize( normalized2 , ['onlyNumbers', 'trim', 'sortContent'], {subcode: 'v'});
 
-  var normalizations = ['utf8norm', 'removediacs', 'delChars("\':;,.")', 'trimEnd', 'upper']; // ['toSpace("-")', 'delChars("\':,.")', 'trimEnd', 'upper', 'utf8norm', 'removediacs', 'sortContent']);
+  var normalizations = ['utf8norm', 'removediacs', 'toSpace("\':;,.")', 'collapse', 'trimEnd', 'upper']; // ['toSpace("-")', 'delChars("\':,.")', 'trimEnd', 'upper', 'utf8norm', 'removediacs', 'sortContent']);
   normalized1 = normalize( normalized1 , normalizations); 
   normalized2 = normalize( normalized2 , normalizations);
 
@@ -49,6 +50,7 @@ function sarjat(record1, record2) {
       var subs1 = field1.subfield;
       var subs2 = field2.subfield;
 
+      
       return isSubset(subs1, subs2) && isSubset(subs2, subs1);
 
       function isSubset(smallerSet, largerSet) {
@@ -80,13 +82,16 @@ function sarjat(record1, record2) {
       return Labels.SURE;
     }
 
-    // ISSN check could handle cases when there is a typo (determined by tarkistusnumero)
 
-
-    //if other set is subset of the other, then we are sure
+    //if other set of series fields is subset of the other, then we are sure
     if (compareFuncs.isSubset(set1, set2, wholeFieldComparator) || 
       compareFuncs.isSubset(set2, set1, wholeFieldComparator)) {
       return Labels.ALMOST_SURE;
+    }
+
+    if (compareFuncs.isSubset(set1, set2) || 
+      compareFuncs.isSubset(set2, set1)) {
+      return Labels.MAYBE;
     }
 
     return Labels.SURELY_NOT;
