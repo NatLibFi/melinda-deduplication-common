@@ -83,6 +83,10 @@ const normalizedSubfieldSubstringEquals = (subA, subB) => {
 
 // true if substring matches all fields and equality all but one
 const isSubsetWithSingleSubstring = (set1, set2) => {
+  // skip fields with <KEEP>s
+  if (_.concat(set1, set2).some(sub => sub.code === '9' && sub.value.includes('<KEEP>'))) {
+    return false;
+  }
 
   const differenceWithoutSubstring = _.differenceWith(set1, set2, normalizedSubfieldEquals).length;
   const differenceWithSubstring = _.differenceWith(set1, set2, normalizedSubfieldSubstringEquals).length;
@@ -90,11 +94,41 @@ const isSubsetWithSingleSubstring = (set1, set2) => {
   return differenceWithoutSubstring <= 1 && differenceWithSubstring === 0;
 };
 
+function betterFieldComparator(a, b) {
+  // field with more subfields is better
+  const subfieldCountDiff = a.subfields.length - b.subfields.length;
+  if (subfieldCountDiff !== 0) {
+    return subfieldCountDiff;
+  }
+
+  // failing that, field with largest amount of longer-of-the-pair subfields is better
+  const aLengths = a.subfields.map(s => s.value.length);
+  const bLengths = b.subfields.map(s => s.value.length);
+  
+  const [aLongers, bLongers] = _.chain(aLengths).zip(bLengths).map(([a, b]) => {
+    if (a === b) {
+      return [0,0];
+    }
+    return a > b ? [1,0] : [0,1];
+  }).unzip().value();
+
+  return _.sum(aLongers) - _.sum(bLongers);
+
+}
+
 export function removeIdenticalFields(preferredRecord, otherRecord, mergedRecord) {
+  const SKIP_FIELDS = ['080', '650', '651', '652', '653', '654', '655', '656', '657', '658', '659'];
+  const SKIP_INDICATOR_CHECK = ['100', '110', '111', '600', '610', '611', '700', '710', '711'];
 
   const compare = (fieldA, fieldB) => {
 
-    if (fieldA.tag === fieldB.tag && fieldA.ind1 === fieldB.ind1 && fieldA.ind2 === fieldB.ind2) {
+    if (SKIP_FIELDS.includes(fieldA.tag) || SKIP_FIELDS.includes(fieldB.tag)) {
+      return false;
+    }
+
+    const indicatorsMatch = SKIP_INDICATOR_CHECK.includes(fieldA.tag) || (fieldA.ind1 === fieldB.ind1 && fieldA.ind2 === fieldB.ind2);
+
+    if (fieldA.tag === fieldB.tag && indicatorsMatch) {      
       return isSubsetWithSingleSubstring(fieldA.subfields, fieldB.subfields) || isSubsetWithSingleSubstring(fieldB.subfields, fieldA.subfields);
     } else {
       return false;
@@ -104,7 +138,14 @@ export function removeIdenticalFields(preferredRecord, otherRecord, mergedRecord
   
   const duplicateFields = mergedRecord.fields.reduce((duplicates, field, i, fields) => {
     const matches = fields.slice(i+1).filter(candidateField => compare(field, candidateField));
-    return _.concat(duplicates, matches);
+
+    const similarFields = _.concat(matches, field);
+
+    similarFields.sort(betterFieldComparator);
+
+    const best = _.last(similarFields);
+
+    return _.concat(duplicates, _.without(similarFields, best));
   }, []);
 
   mergedRecord.fields = mergedRecord.fields.filter(field => !duplicateFields.includes(field));

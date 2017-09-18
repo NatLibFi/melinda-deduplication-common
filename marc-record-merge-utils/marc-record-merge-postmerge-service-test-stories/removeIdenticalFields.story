@@ -161,48 +161,161 @@ LDR    00000_a____
 
 
 
-All post merge modifications 
+It does not remove duplicate 080 fields
 Preferred record:
 LDR    00000_a____
 001    28474
-041    ‡aFI
+080    ‡a801.3‡x=30‡x-022
+080    ‡a801.321.2
 100    ‡aTest Author
 245    ‡aSome content
-LOW    ‡aTEST-A
 
 Other record:
 LDR    00000_a____
 001    28475
-008    _______2016___
 100    ‡aTest Author
 245    ‡aSome content
-250    ‡a7. ed
-LOW    ‡aTEST-B
-SID    ‡btest-b‡c123
 
 Merged record before postmerge:
 LDR    00000_a____
-001    000000000
-035    ‡z(FI-MELINDA)28474
-035    ‡z(FI-MELINDA)28475
-041    ‡aFI
+001    28475
+080    ‡a801.3‡x=30‡x-022
+080    ‡a801.321.2
 100    ‡aTest Author
 245    ‡aSome content
-LOW    ‡aTEST-A
-LOW    ‡aTEST-B
-SID    ‡cFCC28474‡btest-a
-SID    ‡btest-b‡c123
 
 Expected record after postmerge:
 LDR    00000_a____
-001    000000000
-035    ‡z(FI-MELINDA)28474
-035    ‡z(FI-MELINDA)28475
-041    ‡aFI
+001    28475
+080    ‡a801.3‡x=30‡x-022
+080    ‡a801.321.2
 100    ‡aTest Author
 245    ‡aSome content
-LOW    ‡aTEST-A
-LOW    ‡aTEST-B
-SID    ‡cFCC28474‡btest-a
-SID    ‡btest-b‡c123
 
+
+
+It does not remove duplicate 65. fields
+Preferred record:
+LDR    00000_a____
+001    28474
+100    ‡aTest Author
+245    ‡aSome content
+650  7 ‡aetymologiset sanakirjat‡xsaksan kieli‡2ysa
+650  7 ‡aetymologiset sanakirjat‡2ysa
+
+Other record:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+
+Merged record before postmerge:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+650  7 ‡aetymologiset sanakirjat‡xsaksan kieli‡2ysa
+650  7 ‡aetymologiset sanakirjat‡2ysa
+
+Expected record after postmerge:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+650  7 ‡aetymologiset sanakirjat‡xsaksan kieli‡2ysa
+650  7 ‡aetymologiset sanakirjat‡2ysa
+
+
+
+It does not consider fields with ‡9ID<KEEP>
+Preferred record:
+LDR    00000_a____
+001    28474
+100    ‡aTest Author
+245    ‡aSome content
+
+Other record:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+
+Merged record before postmerge:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+260    ‡aTestipaikka‡9FENNI<KEEP>
+260    ‡aTestipaikka, hieno
+
+Expected record after postmerge:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+260    ‡aTestipaikka‡9FENNI<KEEP>
+260    ‡aTestipaikka, hieno
+
+
+
+It does not consider indicators for author fields
+Preferred record:
+LDR    00000_a____
+001    28474
+100    ‡aTest Author
+245    ‡aSome content
+700 1  ‡aTest
+
+Other record:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+700 2  ‡aTest author
+
+Merged record before postmerge:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+700 1  ‡aTest
+700 2  ‡aTest author
+
+Expected record after postmerge:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+700 2  ‡aTest author
+
+
+
+It selects the longer field
+Preferred record:
+LDR    00000_a____
+001    28474
+100    ‡aTest Author
+245    ‡aSome content
+700 2  ‡aTest author
+
+Other record:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+700 1  ‡aTest‡ekirjoittaja
+
+Merged record before postmerge:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+700 2  ‡aTest author
+700 1  ‡aTest‡ekirjoittaja
+
+Expected record after postmerge:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+700 1  ‡aTest‡ekirjoittaja
