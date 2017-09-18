@@ -15,7 +15,7 @@ describe('marc-record-merge-validate-service', () => {
   const storyFiles = files.filter(filename => filename.substr(-6) === '.story').sort();
   
   storyFiles.map(loadStoriesFromFile).forEach(testSuite => {
-    
+
     describe(testSuite.suiteName, () => {
 
       testSuite.testCases.forEach(testCase => {

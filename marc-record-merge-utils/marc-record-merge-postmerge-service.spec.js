@@ -14,7 +14,7 @@ const TEST_CASE_SEPARATOR = '\n\n\n\n';
 
 const storiesPath = path.resolve(__dirname, './marc-record-merge-postmerge-service-test-stories/');
 
-describe('marc-record-merge-validate-service', () => {
+describe('marc-record-merge-postmerge-service', () => {
 
   before(() => {
   
@@ -42,7 +42,9 @@ describe('marc-record-merge-validate-service', () => {
 
       testSuite.testCases.forEach(testCase => {
 
-        it(testCase.testName, () => {
+        const itFn = testCase.testName.startsWith('!') ? it.only : it;
+
+        itFn(testCase.testName, () => {
           
           const functionUnderTest = prepareTestFunction(testSuite.functionUnderTest);
 
@@ -61,7 +63,9 @@ describe('marc-record-merge-validate-service', () => {
 
     validateMergeCandidatesTestCases.forEach(testCase => {
 
-      it(testCase.testName, () => {
+      const itFn = testCase.testName.startsWith('!') ? it.only : it;
+      
+      itFn(testCase.testName, () => {
 
         const postMergeFixers = MarcRecordMergePostmergeService.preset.defaults;
         const {record, notes} = MarcRecordMergePostmergeService.applyPostMergeModifications(postMergeFixers, testCase.preferredRecord, testCase.otherRecord, testCase.mergedRecord);

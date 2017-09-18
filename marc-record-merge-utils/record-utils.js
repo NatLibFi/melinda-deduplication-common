@@ -126,3 +126,15 @@ export function isLinkedFieldOf(queryField) {
     return fieldMatchesQueryLinkTag && linkNumberMatchesQueryLinkNumber && linkTagLinksBackToQueryField;
   };
 }
+
+
+export function fieldToString(field) {
+  if (field && field.subfields) {
+    const ind1 = field.ind1 || ' ';
+    const ind2 = field.ind2 || ' ';
+    const subfields = field.subfields.map(subfield => `‡${subfield.code}${subfield.value}`).join('');
+    return `${field.tag} ${ind1}${ind2} ${subfields}`;
+  } else {
+    return `${field.tag}    ${field.value}`;
+  }
+}

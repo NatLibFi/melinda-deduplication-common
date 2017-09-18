@@ -27,11 +27,18 @@ import { fieldOrderComparator } from './marc-field-sort';
 
 const defaultPreset = [
   check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, removeExtra035aFromMerged, 
-  setAllZeroRecordId, add583NoteAboutMerge, removeCATHistory, add500ReprintInfo, handle880Fields, sortMergedRecordFields];
+  setAllZeroRecordId, add583NoteAboutMerge, removeCATHistory, add500ReprintInfo, handle880Fields, removeIdenticalFields, sortMergedRecordFields];
+
+const automergePreset = [
+  check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, removeExtra035aFromMerged, 
+  setAllZeroRecordId, add583NoteAboutMerge, removeCATHistory, add500ReprintInfo, handle880Fields, removeIdenticalFields, sortMergedRecordFields
+];
 
 export const preset = {
-  defaults: defaultPreset
+  defaults: defaultPreset,
+  automerge: automergePreset
 };
+
 
 export function applyPostMergeModifications(postMergeFunctions, preferredRecord, otherRecord, originalMergedRecord) {
 
@@ -53,6 +60,57 @@ export function applyPostMergeModifications(postMergeFunctions, preferredRecord,
   return { 
     record: result.mergedRecord,
     notes: result.notes
+  };
+}
+
+const substringComparator = (strA, strB) => strA.includes(strB) || strB.includes(strA);
+
+
+const subfieldNormalizer = (subfield) => ({
+  code: subfield.code, 
+  value: subfield.value.replace(/\W/g, '').toUpperCase()  
+});
+
+const subfieldSubstringComparator = (subA, subB) => subA.code === subB.code && substringComparator(subA.value, subB.value);
+
+const normalizedSubfieldEquals = (subA, subB) => {
+  return _.isEqual(subfieldNormalizer(subA), subfieldNormalizer(subB));
+};
+
+const normalizedSubfieldSubstringEquals = (subA, subB) => {
+  return subfieldSubstringComparator(subfieldNormalizer(subA), subfieldNormalizer(subB));
+};
+
+// true if substring matches all fields and equality all but one
+const isSubsetWithSingleSubstring = (set1, set2) => {
+
+  const differenceWithoutSubstring = _.differenceWith(set1, set2, normalizedSubfieldEquals).length;
+  const differenceWithSubstring = _.differenceWith(set1, set2, normalizedSubfieldSubstringEquals).length;
+
+  return differenceWithoutSubstring <= 1 && differenceWithSubstring === 0;
+};
+
+export function removeIdenticalFields(preferredRecord, otherRecord, mergedRecord) {
+
+  const compare = (fieldA, fieldB) => {
+
+    if (fieldA.tag === fieldB.tag && fieldA.ind1 === fieldB.ind1 && fieldA.ind2 === fieldB.ind2) {
+      return isSubsetWithSingleSubstring(fieldA.subfields, fieldB.subfields) || isSubsetWithSingleSubstring(fieldB.subfields, fieldA.subfields);
+    } else {
+      return false;
+    }
+
+  };
+  
+  const duplicateFields = mergedRecord.fields.reduce((duplicates, field, i, fields) => {
+    const matches = fields.slice(i+1).filter(candidateField => compare(field, candidateField));
+    return _.concat(duplicates, matches);
+  }, []);
+
+  mergedRecord.fields = mergedRecord.fields.filter(field => !duplicateFields.includes(field));
+
+  return {
+    mergedRecord
   };
 }
 
