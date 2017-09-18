@@ -128,13 +128,13 @@ function betterFieldComparator(a, b) {
 }
 
 export function removeIdenticalFields(preferredRecord, otherRecord, mergedRecord) {
-  const SKIP_FIELDS = ['080', '650', '651', '652', '653', '654', '655', '656', '657', '658', '659'];
+  const SKIP_FIELDS = [/08./, /65./];
   const SKIP_INDICATOR_CHECK = ['100', '110', '111', '600', '610', '611', '700', '710', '711'];
  
 
   const compare = (fieldA, fieldB) => {
 
-    if (SKIP_FIELDS.includes(fieldA.tag) || SKIP_FIELDS.includes(fieldB.tag)) {
+    if (SKIP_FIELDS.some(pattern => pattern.test(fieldA.tag)) || SKIP_FIELDS.some(pattern => pattern.test(fieldB.tag))) {
       return false;
     }
 
