@@ -319,3 +319,36 @@ LDR    00000_a____
 100    ‡aTest Author
 245    ‡aSome content
 700 1  ‡aTest‡ekirjoittaja
+
+
+
+It uses alias mappings to ignore common abbreviations
+Preferred record:
+LDR    00000_a____
+001    28474
+100    ‡aTest Author
+245    ‡aSome content
+260    ‡aHelsinki
+
+Other record:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+260    ‡aHki‡c1992
+
+Merged record before postmerge:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+260    ‡aHki‡c1992
+260    ‡aHelsinki
+260    ‡aHelsingissä
+
+Expected record after postmerge:
+LDR    00000_a____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+260    ‡aHki‡c1992

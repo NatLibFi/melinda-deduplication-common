@@ -26,12 +26,14 @@ import { selectValues, selectRecordId, selectFieldsByValue, fieldHasSubfield, re
 import { fieldOrderComparator } from './marc-field-sort';
 
 const defaultPreset = [
-  check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, removeExtra035aFromMerged, 
-  setAllZeroRecordId, add583NoteAboutMerge, removeCATHistory, add500ReprintInfo, handle880Fields, removeIdenticalFields, sortMergedRecordFields];
+  check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, 
+  removeExtra035aFromMerged, setAllZeroRecordId, add583NoteAboutMerge, removeCATHistory, add500ReprintInfo, 
+  handle880Fields, removeObsolete260Fields, removeIdenticalFields, sortMergedRecordFields];
 
 const automergePreset = [
-  check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, removeExtra035aFromMerged, 
-  setAllZeroRecordId, add583NoteAboutMerge, removeCATHistory, add500ReprintInfo, handle880Fields, removeIdenticalFields, sortMergedRecordFields
+  check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, 
+  removeExtra035aFromMerged, setAllZeroRecordId, add583NoteAboutMerge, removeCATHistory, add500ReprintInfo, 
+  handle880Fields, removeObsolete260Fields, removeIdenticalFields, sortMergedRecordFields
 ];
 
 export const preset = {
@@ -66,9 +68,18 @@ export function applyPostMergeModifications(postMergeFunctions, preferredRecord,
 const substringComparator = (strA, strB) => strA.includes(strB) || strB.includes(strA);
 
 
+// NOTE: these are normalized forms:
+const ALIASES = {
+  'HKI': 'HELSINKI',
+  'HELSINGISS': 'HELSINKI'
+};
+
 const subfieldNormalizer = (subfield) => ({
   code: subfield.code, 
-  value: subfield.value.replace(/\W/g, '').toUpperCase()  
+  value: subfield.value.replace(/\W/g, '').toUpperCase().split(' ').map(word => {
+    const aliased = _.get(ALIASES, word, word);
+    return aliased;
+  }).join(' ')
 });
 
 const subfieldSubstringComparator = (subA, subB) => subA.code === subB.code && substringComparator(subA.value, subB.value);
@@ -119,6 +130,7 @@ function betterFieldComparator(a, b) {
 export function removeIdenticalFields(preferredRecord, otherRecord, mergedRecord) {
   const SKIP_FIELDS = ['080', '650', '651', '652', '653', '654', '655', '656', '657', '658', '659'];
   const SKIP_INDICATOR_CHECK = ['100', '110', '111', '600', '610', '611', '700', '710', '711'];
+ 
 
   const compare = (fieldA, fieldB) => {
 
@@ -153,6 +165,20 @@ export function removeIdenticalFields(preferredRecord, otherRecord, mergedRecord
   return {
     mergedRecord
   };
+}
+
+export function removeObsolete260Fields(preferredRecord, otherRecord, mergedRecord) {
+
+  const recordContainsField264 = mergedRecord.fields.some(field => field.tag === '264');
+  
+  if (recordContainsField264) {
+    mergedRecord.fields = mergedRecord.fields.filter(field => field.tag !== '260');
+  }
+
+  return {
+    mergedRecord
+  };
+
 }
 
 export function check041aLength(preferredRecord, otherRecord, mergedRecord) {
