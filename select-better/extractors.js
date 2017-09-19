@@ -360,6 +360,15 @@ function controlfieldPosition(tag, index, count) {
   };
 }
 
+function containsValue(tags, values) {
+  return function(record) {
+    return _.chain(record.fields)
+      .filter(field => tags.includes(field.tag))
+      .flatMap(field => field.subfields)
+      .some(subfield => values.some(lookupValue => subfield.value.includes(lookupValue)))
+      .value() ? 1 : 0;
+  };
+}
 
 function localOwnerList(record) {
 
@@ -428,5 +437,6 @@ module.exports = {
   fenniOrNotLDR,
   fenniOrNotFrom008,
   subfieldCount,
-  uppercaseSubfield
+  uppercaseSubfield,
+  containsValue
 };

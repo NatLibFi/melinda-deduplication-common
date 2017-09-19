@@ -17,13 +17,13 @@ const ExtractorPreset = {
     { TAISTO_ONLY:      [ extractors.specificSingleLocalOwner('TAISTO'), normalizers.identity ] },
     { VAARI_ONLY:       [ extractors.specificSingleLocalOwner('VAARI'), normalizers.identity ] },
     { ANDER_ONLY:       [ extractors.specificSingleLocalOwner('ANDER'), normalizers.identity ] },
-    { recordAge:        [ extractors.recordAge,         normalizers.moreRecent(5, 1) ] },
+    { recordAge:        [ extractors.recordAge,         normalizers.moreRecent(5, 2) ] },
     { reprintInfo:      [ extractors.reprintInfo,       normalizers.reprint ] },
     { localOwnerCount:  [ extractors.localOwnerCount,   normalizers.lexical ] },
     { FINL:             [ extractors.specificFieldValue('040', ['a', 'd'], ['FI-NL']), normalizers.identity ] },
     { RDA:              [ extractors.specificFieldValue('040', ['e'], ['RDA', 'rda']), normalizers.identity]},
     { f245c:            [ extractors.specificField('245', ['c']), normalizers.identity ] },
-    { latestChange:     [ extractors.latestChange(defaultNotARobotFilter), normalizers.moreRecent(3, 1) ] },
+    { latestChange:     [ extractors.latestChange(defaultNotARobotFilter), normalizers.moreRecent(5, 2) ] },
     { field008nonEmptyCount: [ extractors.field008nonEmptyCount,  normalizers.proportion ] },
     { f100d:            [ extractors.specificField('100', ['d']), normalizers.identity ] },
     { f100e:            [ extractors.specificField('100', ['e']), normalizers.identity ] },
@@ -33,6 +33,7 @@ const ExtractorPreset = {
     { f250subs:         [ extractors.subfieldCount('250'),        normalizers.lexical]},
     { f300subs:         [ extractors.subfieldCount('300'),        normalizers.lexical]},
     { f260subs:         [ extractors.subfieldCount('260'),        normalizers.lexical]},
+    { f264subs:         [ extractors.subfieldCount('264'),        normalizers.lexical]},
     { has007:           [ extractors.fieldCount('007'),           normalizers.lexical]},
     { f020q:            [ extractors.specificField('020', ['q']), normalizers.identity ] },
     { f260e_or_f:       [ extractors.specificField('260', ['e', 'f']), normalizers.identity ] },
@@ -40,7 +41,8 @@ const ExtractorPreset = {
     { f830x:            [ extractors.specificField('830', ['x']), normalizers.identity ] },
     { f830subs:         [ extractors.subfieldCount('830'),        normalizers.lexical]},
     { f338count:        [ extractors.fieldCount('338'),           normalizers.lexical]},
-    { uppercase:        [ extractors.uppercaseSubfield,           normalizers.identity]}
+    { uppercase:        [ extractors.uppercaseSubfield,           normalizers.identity]},
+    { unknownPublisher: [ extractors.containsValue(['260', '264'], ['tuntematon']), normalizers.identity ]}
   ]
 };
 

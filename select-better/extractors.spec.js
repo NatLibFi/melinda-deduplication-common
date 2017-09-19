@@ -357,6 +357,26 @@ describe('extractors', () => {
   });
 
 
+  describe('containsValue', function() {
+    let rec;
+    beforeEach(() => {
+      rec = new MarcRecord();
+      rec.appendControlField(['008','850506s1983^^^^xxu|||||||||||||||||eng||']);
+    });
+
+    it('should return 0 if the record does not have any subfield in with value', function() {
+      rec.appendField(['260','','','a','300s.', 'b', 'stuf']);
+      expect(extractors.containsValue(['260'],['testvalue'])(rec)).to.equal(0);
+    });
+    
+    it('should return 1 if the record has subfield in with any value', function() {
+      rec.appendField(['260','','','a','300s.', 'b', '[tuntematon]']);
+      expect(extractors.containsValue(['260'],['testvalue', 'tuntematon'])(rec)).to.equal(1);
+    });
+    
+  });
+
+
   describe('uppercaseSubfield', function() {
 
     let rec;
