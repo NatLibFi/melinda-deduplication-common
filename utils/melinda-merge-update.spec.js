@@ -10,8 +10,10 @@ import MarcRecord from 'marc-record-js';
 describe('melinda merge update', function() {
   describe('commitMerge', function() {
     let clientStub;
+    let base;
 
     beforeEach(() => {
+      base = 'FIN01';
       clientStub = createClientStub();
     });
 
@@ -19,7 +21,7 @@ describe('melinda merge update', function() {
 
       const [preferred, other, merged, unmodified] = [createRecordFamily(), createRecordFamily(), createRecordFamily(), createRecordFamily()];
 
-      commitMerge(clientStub, preferred, other, merged, unmodified)
+      commitMerge(clientStub, base, preferred, other, merged, unmodified)
         .then(expectFulfillmentToNotBeCalled(done))
         .catch(expectErrorMessage('Id not found for preferred record.', done));
 
@@ -29,7 +31,7 @@ describe('melinda merge update', function() {
 
       const [preferred, other, merged, unmodified] = [createRandomRecordFamily(), createRecordFamily(), createRecordFamily(), createRecordFamily()];
 
-      commitMerge(clientStub, preferred, other, merged, unmodified)
+      commitMerge(clientStub, base, preferred, other, merged, unmodified)
         .then(expectFulfillmentToNotBeCalled(done))
         .catch(expectErrorMessage('Id not found for other record.', done));
 
@@ -41,7 +43,7 @@ describe('melinda merge update', function() {
 
       preferred.subrecords[1].fields = preferred.subrecords[1].fields.filter(f => f.tag !== '001');
 
-      commitMerge(clientStub, preferred, other, merged, unmodified)
+      commitMerge(clientStub, base, preferred, other, merged, unmodified)
         .then(expectFulfillmentToNotBeCalled(done))
         .catch(expectErrorMessage('Id not found for 2. subrecord from preferred record.', done));
         
@@ -50,15 +52,15 @@ describe('melinda merge update', function() {
     it('returns metadata of successful operation', function(done) {
       const expectedRecordId = 15;
 
-      clientStub.updateRecord.resolves('UPDATE-OK');
+      clientStub.saveRecord.resolves('UPDATE-OK');
       clientStub.createRecord.resolves(createSuccessResponse(expectedRecordId));
 
       const [preferred, other, merged, unmodified] = [createRandomRecordFamily(), createRandomRecordFamily(), createRecordFamily(), createRecordFamily()];
   
-      commitMerge(clientStub, preferred, other, merged, unmodified)
+      commitMerge(clientStub, base, preferred, other, merged, unmodified)
         .then(res => {
           expect(res).not.to.be.undefined;
-          expect(res[0].recordId).to.equal(expectedRecordId);
+          expect(res.recordId).to.equal(expectedRecordId);
           done();
         })
         .catch(done);
@@ -69,7 +71,7 @@ describe('melinda merge update', function() {
 
 function createClientStub() {
   return {
-    updateRecord: sinon.stub(),
+    saveRecord: sinon.stub(),
     createRecord: sinon.stub()
   };
 }
