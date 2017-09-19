@@ -6,6 +6,7 @@ const createRecordMerger = require('@natlibfi/marc-record-merge');
 const { createComponentRecordMatchService } = require('./component-record-match-service.js');
 const PostMerge = require('../marc-record-merge-utils/marc-record-merge-postmerge-service');
 const MergeValidation = require('../marc-record-merge-utils/marc-record-merge-validate-service');
+import { decorateFieldsWithUuid } from '../marc-record-merge-utils/record-utils';
 
 const MergeabilityClass = {
   NOT_MERGEABLE: 'NOT_MERGEABLE',
@@ -18,13 +19,12 @@ function createRecordMergeService(
   componentRecordMatcherConfiguration: any
 ): RecordMergeService {
   
-  async function mergeRecords(preferredRecordFamily, otherRecordFamily) {
+  async function mergeRecords(preferredRecordFamily, otherRecordFamily, postMergeFixes = PostMerge.preset.automerge) {
 
     const merge = createRecordMerger(mergeConfiguration);
+    
     const componentRecordMatcher = createComponentRecordMatchService(componentRecordMatcherConfiguration);
     
-    const postMergeFixes = PostMerge.preset.automerge;
-
     const componentRecordValidationRules = MergeValidation.preset.melinda_component;
     const componentPostMergeFixes = _.clone(PostMerge.preset.automerge);
 
@@ -44,6 +44,9 @@ function createRecordMergeService(
         throw wrapWithMergeabilityClass(error, MergeabilityClass.MANUALLY_MERGEABLE);
       }
 
+      decorateFieldsWithUuid(preferredRecord);
+      decorateFieldsWithUuid(otherRecord);
+
       const mergedRecord = await merge(preferredRecord, otherRecord);
       const result = await PostMerge.applyPostMergeModifications(postMergeFixes, preferredRecord, otherRecord, mergedRecord);
       
@@ -52,8 +55,8 @@ function createRecordMergeService(
       const preferredRecordId = selectRecordId(preferredRecord);
       const otherRecordId = selectRecordId(otherRecord);
   
-      const preferredSubrecordList = preferredRecordFamily.subrecords;
-      const otherSubrecordList = otherRecordFamily.subrecords;
+      const preferredSubrecordList = _.get(preferredRecordFamily, 'subrecords', []);
+      const otherSubrecordList = _.get(otherRecordFamily, 'subrecords', []);
       
       const matchedSubrecordPairs = componentRecordMatcher.match(preferredSubrecordList, otherSubrecordList);
 
@@ -79,6 +82,9 @@ function createRecordMergeService(
           throw wrapWithMergeabilityClass(error, MergeabilityClass.MANUALLY_MERGEABLE);
         }
 
+        decorateFieldsWithUuid(preferredRecord);
+        decorateFieldsWithUuid(otherRecord);
+  
         const mergedRecord = await merge(preferredRecord, otherRecord);
         const result = await PostMerge.applyPostMergeModifications(componentPostMergeFixes, preferredRecord, otherRecord, mergedRecord);
         mergedSubrecords.push(result);

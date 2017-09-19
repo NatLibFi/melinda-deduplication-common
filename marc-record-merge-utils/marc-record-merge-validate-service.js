@@ -336,7 +336,7 @@ export function recordsHaveSimilarNumbersInTitle(preferredRecord, otherRecord) {
 // eri maat eri vuodet
 export function recordsHaveSameCountriesAndYears(preferredRecord, otherRecord) {
   const get008 = _.partial(getFieldValue, '008');
-  const country = (f008) => f008.substr(15,3);
+  const country = (f008) => f008 ? f008.substr(15,3) : 'xx^';
   
   const yearA = _.head(extractYearsFromRecord(preferredRecord));
   const yearB = _.head(extractYearsFromRecord(otherRecord));
