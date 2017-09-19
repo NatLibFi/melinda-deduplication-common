@@ -458,7 +458,7 @@ export function removeObsolete500ReprintInfo(preferredRecord, otherRecord, merge
     .map('value')
     .value();
 
-  const normalize = (str) => str.replace(/\W/g, '').toUpperCase();
+  const normalize = (str) => str && str.replace(/\W/g, '').toUpperCase();
 
   const notesToRemove = reprintNotes.filter(note => normalize(note).includes(normalize(reprint)));
   mergedRecord.fields = mergedRecord.fields
