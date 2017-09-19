@@ -28,12 +28,12 @@ import { fieldOrderComparator } from './marc-field-sort';
 const defaultPreset = [
   check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, 
   removeExtra035aFromMerged, setAllZeroRecordId, add583NoteAboutMerge, removeCATHistory, add500ReprintInfo, 
-  handle880Fields, removeObsolete260Fields, removeIdenticalFields, sortMergedRecordFields];
+  handle880Fields, removeObsolete260Fields, removeObsolete500ReprintInfo, removeIdenticalFields, sortMergedRecordFields];
 
 const automergePreset = [
   check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, 
   removeExtra035aFromMerged, setAllZeroRecordId, add583NoteAboutAutoMerge, removeCATHistory, add500ReprintInfo, 
-  handle880Fields, removeObsolete260Fields, removeIdenticalFields, sortMergedRecordFields
+  handle880Fields, removeObsolete260Fields, removeObsolete500ReprintInfo, removeIdenticalFields, sortMergedRecordFields
 ];
 
 export const preset = {
