@@ -1,13 +1,12 @@
 const normalizeFuncs = require('./core.normalize');
 const compareFuncs = require('./core.compare');
 const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
 
-const stopWordData = fs.readFileSync(path.resolve(__dirname, '..', '..', 'default-configs', 'f245ab-stop-words.txt'), 'utf8');
+const stopWordData = require('../../default-configs/f245ab-stop-words');
 
 const STOP_WORD_FREQUENCY = 1200;
 const stopWords = stopWordData.split('\n')
+  .filter(line => line.length > 1)
   .map(line => line.split(' '))
   .filter(pair => _.head(pair) > STOP_WORD_FREQUENCY)
   .map(pair => _.last(pair))

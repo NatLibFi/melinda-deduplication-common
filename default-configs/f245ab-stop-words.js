@@ -1,3 +1,4 @@
+const stopWords = `
 400 ADRIAN
 400 ALLOY
 400 ARROW
@@ -15460,3 +15461,5 @@
 983172 AND
 1260273 OF
 1618634 THE
+`;
+module.exports = stopWords;
