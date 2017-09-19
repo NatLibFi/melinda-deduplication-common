@@ -434,6 +434,48 @@ export function add500ReprintInfo(preferredRecord, otherRecord, mergedRecordPara
   };
 }
 
+export function removeObsolete500ReprintInfo(preferredRecord, otherRecord, mergedRecordParam) {  
+  const mergedRecord = new MarcRecord(mergedRecordParam);
+  
+  const year = _.chain(mergedRecord.fields)
+    .filter(field => field.tag === '008')
+    .map('value')
+    .map(value => value.substr(7,4))
+    .head()
+    .value();
+
+  const reprint = _.chain(mergedRecord.fields).filter(field => field.tag === '250')
+    .flatMap(field => field.subfields)
+    .filter(sub => sub.code === 'a')
+    .map('value')
+    .map(reprintText => `${reprintText} ${year}`)
+    .head()
+    .value();
+  
+  const reprintNotes = _.chain(mergedRecord.fields).filter(field => field.tag === '500')
+    .flatMap(field => field.subfields)
+    .filter(subfield => subfield.value.startsWith('Lisäpainokset'))
+    .map('value')
+    .value();
+
+  const normalize = (str) => str.replace(/\W/g, '').toUpperCase();
+
+  const notesToRemove = reprintNotes.filter(note => normalize(note).includes(normalize(reprint)));
+  mergedRecord.fields = mergedRecord.fields
+    .filter(field => {
+      if (field.tag !== '500') {
+        return true;
+      }
+      const containsObsoleteNote = notesToRemove.some(note => fieldHasSubfield('a', note)(field));
+
+      return !containsObsoleteNote;
+    });
+
+  return {
+    mergedRecord
+  };
+}
+
 export function handle880Fields(preferredRecord, otherRecord, mergedRecordParam) {
   const mergedRecord = new MarcRecord(mergedRecordParam);
 
