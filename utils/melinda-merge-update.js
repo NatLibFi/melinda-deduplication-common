@@ -1,3 +1,7 @@
+// @flow
+import type { MelindaRecordService } from 'melinda-deduplication-common/types/melinda-record-service.flow';
+import type { RecordFamily } from 'melinda-deduplication-common/types/record-merge-service.flow';
+
 import {executeTransaction, RollbackError} from './async-transaction';
 import _ from 'lodash';
 import uuid from 'uuid';
@@ -6,7 +10,13 @@ const debug = require('debug')('melinda-merge-update');
 const FUTURE_HOST_ID_PLACEHOLDER = '(FI-MELINDA)[future-host-id]';
 const DEFAULT_LOGGER = { log: (...args) => debug(...args)};
 
-export function commitMerge(client, preferredRecord, otherRecord, mergedRecord, opts) {
+export function commitMerge(
+  client: MelindaRecordService, 
+  base: string, 
+  preferredRecord: RecordFamily, 
+  otherRecord: RecordFamily, 
+  mergedRecord: RecordFamily, 
+  opts: any): Promise<any> {
 
   const logger = _.get(opts, 'logger', DEFAULT_LOGGER);
 
@@ -71,7 +81,16 @@ export function commitMerge(client, preferredRecord, otherRecord, mergedRecord, 
     ), [mergedRecordRollbackAction]).then(function(results) {
       results.unshift(res);
       logger.log('info', `${jobId}] Commit merge job ${jobId} completed.`);
-      return results;
+      const mergedHostRecordId = _.chain(results)
+        .filter(result => result.operation === 'CREATE')
+        .map('recordId')
+        .head()
+        .value();
+        
+      return {
+        recordId: mergedHostRecordId,
+        results
+      };
     }).catch(function(error) {
 
       if (error instanceof RollbackError) {
@@ -82,7 +101,7 @@ export function commitMerge(client, preferredRecord, otherRecord, mergedRecord, 
         logger.log('info', jobId, error);
         logger.log('info', `${jobId}] Commit merge job ${jobId} failed.`);
       } else {
-        error.message += ' (rollback was successful)';
+        error.message = `${error.message} (rollback was successful)`;
         logger.log('info', `${jobId}] Rollback was successful`);
         logger.log('info', `${jobId}] Error in transaction`, error);
         logger.log('info', `${jobId}] Commit merge job ${jobId} failed.`);
@@ -90,28 +109,33 @@ export function commitMerge(client, preferredRecord, otherRecord, mergedRecord, 
       throw error;
     });
   }).catch(error => {
-    error.message += ' (rollback was successful)';
+    error.message = `${error.message} (rollback was successful)`;
     logger.log('info', `${jobId}] Rollback was successful`);
     throw error;
   });
 
   function createRecord(record) {
     logger.log('info', `${jobId}] Creating new record`);
-    return client.createRecord(record, {bypass_low_validation: 1, bypass_index_check: 1}).then(res => {
+    return client.createRecord(base, record, {bypass_low_validation: 1, bypass_index_check: 1}).then(res => {
       logger.log('info', `${jobId}] Create record ok for ${res.recordId}`, res.messages);
       return _.assign({}, res, {operation: 'CREATE'});
     }).catch(err => {
       logger.log('info', `${jobId}] Failed to create record`, err);
+      const isAlephError = err => err.errors !== undefined;
+      if (isAlephError(err)) {
+        err.message  = _.get(err, 'errors', []).map(error => `[code=${error.code}] ${error.message}`).join();        
+      }
+      
       throw err;
     });
   }
 
   function undeleteRecordFromMelinda(recordId) {
     logger.log('info', `${jobId}] Undeleting ${recordId}`);
-    return client.loadRecord(recordId, {handle_deleted:1, no_rerouting: 1}).then(function(record) {
+    return client.loadRecord(base, recordId, {handle_deleted:1, no_rerouting: 1}).then(function(record) {
       record.fields = record.fields.filter(field => field.tag !== 'STA');
       updateRecordLeader(record, 5, 'c');
-      return client.updateRecord(record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
+      return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
         logger.log('info', `${jobId}] Undelete ok for ${recordId}`, res.messages);
         return _.assign({}, res, {operation: 'UNDELETE'});
       });
@@ -128,7 +152,7 @@ export function commitMerge(client, preferredRecord, otherRecord, mergedRecord, 
     record.appendField(['STA', '', '', 'a', 'DELETED']);
     updateRecordLeader(record, 5, 'd');
 
-    return client.updateRecord(record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
+    return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
       logger.log('info', `${jobId}] Delete ok for ${recordId}`, res.messages);
       return _.assign({}, res, {operation: 'DELETE'});
     }).catch(err => {
@@ -139,10 +163,10 @@ export function commitMerge(client, preferredRecord, otherRecord, mergedRecord, 
 
   function deleteRecordById(recordId) {
     logger.log('info', `${jobId}] Deleting ${recordId}`);
-    return client.loadRecord(recordId, {handle_deleted: 1, no_rerouting: 1}).then(function(record) {
+    return client.loadRecord(base, recordId, {handle_deleted: 1, no_rerouting: 1}).then(function(record) {
       record.appendField(['STA', '', '', 'a', 'DELETED']);
       updateRecordLeader(record, 5, 'd');
-      return client.updateRecord(record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
+      return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
         logger.log('info', `${jobId}] Delete ok for ${recordId}`, res.messages);
         return _.assign({}, res, {operation: 'DELETE'});
       });
@@ -154,14 +178,14 @@ export function commitMerge(client, preferredRecord, otherRecord, mergedRecord, 
 
 }
 
-function setParentRecordId(id) {
-  return function(subrecord) {
+function setParentRecordId(parentRecordId) {
+  return function(componentRecord) {
 
-    subrecord.fields = subrecord.fields.map(field => {
+    componentRecord.fields = componentRecord.fields.map((field: any) => {
       if (field.tag === '773') {
         field.subfields = field.subfields.map(sub => {
           if (sub.code === 'w' && sub.value === FUTURE_HOST_ID_PLACEHOLDER) {
-            return _.assign({}, sub, {value: `(FI-MELINDA)${id}`});
+            return _.assign({}, sub, {value: `(FI-MELINDA)${parentRecordId}`});
           }
           return sub;
         });
@@ -169,7 +193,7 @@ function setParentRecordId(id) {
       return field;
     });
 
-    return subrecord;
+    return componentRecord;
 
   };
 }
