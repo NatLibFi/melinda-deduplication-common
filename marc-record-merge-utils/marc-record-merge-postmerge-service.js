@@ -32,7 +32,7 @@ const defaultPreset = [
 
 const automergePreset = [
   check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, 
-  removeExtra035aFromMerged, setAllZeroRecordId, add583NoteAboutMerge, removeCATHistory, add500ReprintInfo, 
+  removeExtra035aFromMerged, setAllZeroRecordId, add583NoteAboutAutoMerge, removeCATHistory, add500ReprintInfo, 
   handle880Fields, removeObsolete260Fields, removeIdenticalFields, sortMergedRecordFields
 ];
 
@@ -354,10 +354,7 @@ export function setAllZeroRecordId(preferredRecord, otherRecord, mergedRecordPar
   };
 }
 
-export const add583NoteAboutMerge = _.curry(add583NoteMergeNote)('MERGED FROM');
-export const add583NoteAboutAutoMerge = _.curry(add583NoteMergeNote)('AUTOMATICALLY MERGED FROM');
-  
-export function add583NoteMergeNote(note, preferredRecord, otherRecord, mergedRecordParam) {
+export function add583Note(note, preferredRecord, otherRecord, mergedRecordParam) {
   const mergedRecord = new MarcRecord(mergedRecordParam);
   const preferredRecordId = selectRecordId(preferredRecord);
   const otherRecordId = selectRecordId(otherRecord);
@@ -374,6 +371,14 @@ export function add583NoteMergeNote(note, preferredRecord, otherRecord, mergedRe
   return {
     mergedRecord
   };
+}
+
+export function add583NoteAboutMerge(preferredRecord, otherRecord, mergedRecordParam) {
+  return add583Note('MERGED FROM', preferredRecord, otherRecord, mergedRecordParam);
+}
+
+export function add583NoteAboutAutoMerge(preferredRecord, otherRecord, mergedRecordParam) {
+  return add583Note('AUTOMATICALLY MERGED FROM', preferredRecord, otherRecord, mergedRecordParam);
 }
 
 export function removeCATHistory(preferredRecord, otherRecord, mergedRecordParam) {

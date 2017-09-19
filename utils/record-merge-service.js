@@ -23,10 +23,10 @@ function createRecordMergeService(
     const merge = createRecordMerger(mergeConfiguration);
     const componentRecordMatcher = createComponentRecordMatchService(componentRecordMatcherConfiguration);
     
-    const postMergeFixes = PostMerge.preset.defaults;
+    const postMergeFixes = PostMerge.preset.automerge;
 
     const componentRecordValidationRules = MergeValidation.preset.melinda_component;
-    const componentPostMergeFixes = _.clone(PostMerge.preset.defaults);
+    const componentPostMergeFixes = _.clone(PostMerge.preset.automerge);
 
     try {
    
