@@ -354,7 +354,10 @@ export function setAllZeroRecordId(preferredRecord, otherRecord, mergedRecordPar
   };
 }
 
-export function add583NoteAboutMerge(preferredRecord, otherRecord, mergedRecordParam) {
+export const add583NoteAboutMerge = _.curry(add583NoteMergeNote)('MERGED FROM');
+export const add583NoteAboutAutoMerge = _.curry(add583NoteMergeNote)('AUTOMATICALLY MERGED FROM');
+  
+export function add583NoteMergeNote(note, preferredRecord, otherRecord, mergedRecordParam) {
   const mergedRecord = new MarcRecord(mergedRecordParam);
   const preferredRecordId = selectRecordId(preferredRecord);
   const otherRecordId = selectRecordId(otherRecord);
@@ -362,7 +365,7 @@ export function add583NoteAboutMerge(preferredRecord, otherRecord, mergedRecordP
   mergedRecord.fields.push(createField({
     tag: '583',
     subfields: [
-      { code: 'a', value: `MERGED FROM (FI-MELINDA)${otherRecordId} + (FI-MELINDA)${preferredRecordId}` },
+      { code: 'a', value: `${note} (FI-MELINDA)${otherRecordId} + (FI-MELINDA)${preferredRecordId}` },
       { code: 'c', value: formatDate(new Date()) },
       { code: '5', value: 'MELINDA' },
     ]

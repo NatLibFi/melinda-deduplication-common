@@ -3,7 +3,7 @@ import type { RecordMergeService } from 'types/record-merge-service.flow';
 
 const _ = require('lodash');
 const createRecordMerger = require('@natlibfi/marc-record-merge');
-const createComponentRecordMatchService = require('./component-record-match-service.js');
+const { createComponentRecordMatchService } = require('./component-record-match-service.js');
 const PostMerge = require('../marc-record-merge-utils/marc-record-merge-postmerge-service');
 const MergeValidation = require('../marc-record-merge-utils/marc-record-merge-validate-service');
 
@@ -58,7 +58,9 @@ function createRecordMergeService(
       const matchedSubrecordPairs = componentRecordMatcher.match(preferredSubrecordList, otherSubrecordList);
 
       if (!validateSubrecordSets(matchedSubrecordPairs)) {
-        throw new MergeValidation.MergeValidationError('subrecord sets are not equal');
+        const failureMessages = ['Component record sets are not equal'];
+        const error = new MergeValidation.MergeValidationError('Component record validation failed', failureMessages);
+        throw wrapWithMergeabilityClass(error, MergeabilityClass.MANUALLY_MERGEABLE);
       }
      
       const preferredHostRecordId = preferredRecordId;
@@ -78,7 +80,7 @@ function createRecordMergeService(
         }
 
         const mergedRecord = await merge(preferredRecord, otherRecord);
-        const result = await PostMerge.applyPostMergeModifications(postMergeFixes, preferredRecord, otherRecord, mergedRecord);
+        const result = await PostMerge.applyPostMergeModifications(componentPostMergeFixes, preferredRecord, otherRecord, mergedRecord);
         mergedSubrecords.push(result);
       }
 
