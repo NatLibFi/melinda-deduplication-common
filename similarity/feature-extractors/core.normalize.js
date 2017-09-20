@@ -58,6 +58,8 @@ function romanToArabicConversion(str) {
 
   function asArabic(word) {
     if (word === '') return '';
+    if (word === word.toLowerCase()) return word;
+
     try {
       var num = toArabic(word);
       return num;
