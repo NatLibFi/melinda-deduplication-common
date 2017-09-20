@@ -148,7 +148,40 @@ describe('title', () => {
       expect(runExtractor()).to.equal(Labels.SURELY_NOT);
     });
   });
+
+  describe('should not return SURELY_NOT for similar titles', () => {
+
+    function primeRecords(strForRec1, strForRec2) {
+      record1.appendField(Utils.stringToField(strForRec1));
+      record2.appendField(Utils.stringToField(strForRec2));      
+    }
+
+    function runExtractor() {
+
+      const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
+      expect(extractor).not.to.be.null;
   
+      return extractor.check();
+    }
+
+    it('test a', () => {
+      primeRecords(
+        '245 10 ‡aMateriaalin valinta :‡bliukulaakerit.',
+        '245 10 ‡aMateriaalivalinta - liukulaakerit.'
+      );
+      expect(runExtractor()).not.to.equal(Labels.SURELY_NOT);
+    });
+    
+    it('test b', () => {
+      primeRecords(
+        '245 10 ‡aSuomi - järvien ja metsien maa =‡bFinland i bild = Finnland in Bildern /‡cMatti A. Pitkänen ; [svensk övers.: Lars Hamberg ; deutsche Übers.: Michael Knaup].',
+        '245 10 ‡aSuomi :‡bjärvien ja metsien maa.'
+      );
+      expect(runExtractor()).not.to.equal(Labels.SURELY_NOT);
+    });
+    
+  });
+
 });
 
 function toWeirdFormat(record) {

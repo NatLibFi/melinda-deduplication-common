@@ -168,7 +168,6 @@ function title(record1, record2) {
       var subs1 = set1.reduce(function(memo, field) { memo = memo.concat(field.subfield); return memo; }, []);
       var subs2 = set2.reduce(function(memo, field) { memo = memo.concat(field.subfield); return memo; }, []);
 
-
       var ratio = Math.min(subs1.length, subs2.length) / Math.max(subs1.length, subs2.length);
       
       if (ratio >= 0.5 ) {
@@ -178,14 +177,17 @@ function title(record1, record2) {
     }
 
     if (compareFuncs.isIdentical(set1, set2, compareFuncs.lvComparator(0.85))) {
-      
       return Labels.ALMOST_SURE;
     }
 
     // if one set has strings that are contained is the set of other strings
     if (compareFuncs.isIdentical(set1, set2, compareFuncs.stringPartofComparatorRatio(0.75))) {
       return Labels.ALMOST_SURE;
-    }		
+    }
+
+    if (compareFuncs.isIdentical(concatSameSubfields(set1), concatSameSubfields(set2), compareFuncs.lvComparator(0.85))) {
+      return Labels.ALMOST_SURE;
+    }
 
     // if one set has strings that are contained in the set of other strings
     if (compareFuncs.isIdentical(set1, set2, compareFuncs.stringPartofComparator)) {
@@ -194,6 +196,21 @@ function title(record1, record2) {
 
     return Labels.SURELY_NOT;
 
+  }
+
+  // merges multiple subfields with same code to a single subfield
+  function concatSameSubfields(set) {
+
+    return set.map(field => {
+      const groups = _.chain(field.subfield).groupBy('$.code').value();
+      const mergedSubfields = Object.keys(groups).map(code => {
+        const subs = groups[code];
+        const val = _.map(subs, '_').join(' ');
+        return { _: val, $: {code}};
+      });
+      field.subfield = mergedSubfields;
+      return field;
+    });
   }
 
   // removes words that are 4 characters long and between 1000 and 2100 (exclusive)
