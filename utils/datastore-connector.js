@@ -1,11 +1,14 @@
 // @flow
 import type { DataStoreConnector } from 'types/datastore-connector.flow';
+const _ = require('lodash');
 const fetch = require('node-fetch');
 const MarcRecord = require('marc-record-js');
-const logger = require('./logger');
+const DEFAULT_LOGGER = require('./logger');
 const debug = require('debug')('datastore-connector');
 
-function createDataStoreConnector(datastoreAPI: string): DataStoreConnector {
+function createDataStoreConnector(datastoreAPI: string, options: any): DataStoreConnector {
+
+  const logger = _.get(options, 'logger', DEFAULT_LOGGER);
 
   async function saveRecord(base, recordId, record) {
     

@@ -31,8 +31,8 @@ describe('title', () => {
 
   it('should return null for titles with only stopwords', () => {
   
-    record1.appendField(Utils.stringToField('245    ‡aAsia'));
-    record2.appendField(Utils.stringToField('245    ‡aAsia Traktori Hiuslakka'));
+    record1.appendField(Utils.stringToField('245    ‡aData kehittäminen'));
+    record2.appendField(Utils.stringToField('245    ‡aData kehittäminen'));
 
     const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
     expect(extractor).not.to.be.null;
@@ -102,6 +102,51 @@ describe('title', () => {
     const featureValue = extractor.check();
     
     expect(featureValue).to.equal(Labels.SURE);
+  });
+
+  describe('should return SURELY_NOT for different titles with somewhat common terms', () => {
+
+    function primeRecords(strForRec1, strForRec2) {
+      record1.appendField(Utils.stringToField(strForRec1));
+      record2.appendField(Utils.stringToField(strForRec2));      
+    }
+
+    function runExtractor() {
+
+      const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
+      expect(extractor).not.to.be.null;
+  
+      return extractor.check();
+    }
+
+    it('test a', () => {
+      primeRecords(
+        '245 00 ‡aThe corporation and the economy.',
+        '245 00 ‡aThe corporation, ethics and the environment /‡ced. by W. Michael Hoffman, Robert Frederick and Edward S. Petry.'
+      );
+      expect(runExtractor()).to.equal(Labels.SURELY_NOT);
+    });
+    it('test b', () => {
+      primeRecords(
+        '245 10 ‡aEssentials of investments /‡cZvi Bodie, Alex Kane, Alan J. Marcus.',
+        '245 10 ‡aStudent solutions manual for investments /‡cZvi Bodie, Alex Kane, Alan Marcus ; Prepared by Nicholas Racculia.'
+      );
+      expect(runExtractor()).to.equal(Labels.SURELY_NOT);
+    });
+    it('test c', () => {
+      primeRecords(
+        '245 00 ‡aKantian theory and human rights /‡cedited by Andreas Føllesdal and Reidar Maliks.',
+        '245 10 ‡aKantian thinking about military ethics /‡cJ. Carl Ficarrotta.'
+      );
+      expect(runExtractor()).to.equal(Labels.SURELY_NOT);
+    });
+    it('test d', () => {
+      primeRecords(
+        '245 00 ‡aKantian review.',
+        '245 00 ‡aKantian thinking about military ethics /‡cJ. Carl Ficarrotta.'
+      );
+      expect(runExtractor()).to.equal(Labels.SURELY_NOT);
+    });
   });
   
 });

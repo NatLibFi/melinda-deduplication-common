@@ -4,11 +4,11 @@ const _ = require('lodash');
 
 const stopWordData = require('../../default-configs/f245ab-stop-words');
 
-const STOP_WORD_FREQUENCY = 1200;
+const STOP_WORD_FREQUENCY = 12000;
 const stopWords = stopWordData.split('\n')
   .filter(line => line.length > 1)
   .map(line => line.split(' '))
-  .filter(pair => _.head(pair) > STOP_WORD_FREQUENCY)
+  .filter(pair => parseInt(_.head(pair)) > STOP_WORD_FREQUENCY)
   .map(pair => _.last(pair))
   .reduce((lookup, word) => _.set(lookup, word, true), {});
 
@@ -77,16 +77,15 @@ function title(record1, record2) {
   normalized1 = normalize(clone(normalized1), ['toSpace("-()[]!?<>*%½+¡®")','delChars("\'/,.:\\"")', 'trim', 'upper', 'collapse']);
   normalized2 = normalize(clone(normalized2), ['toSpace("-()[]!?<>*%½+¡®")','delChars("\'/,.:\\"")', 'trim', 'upper', 'collapse']);
 
-  const removeStopWords = (field => {
+  const removeStopWords = field => {
     field.subfield = field.subfield.map(subfield => {
       if (subfield.$.code === 'X') {
         const withoutStopWords = subfield._.split(' ').filter(word => !stopWords[word]).join(' ');
-
         subfield._ = withoutStopWords;
       }
       return subfield;
-    }); 
-  });
+    });
+  };
 
   normalized1.forEach(removeStopWords);
   normalized2.forEach(removeStopWords);
@@ -102,6 +101,7 @@ function title(record1, record2) {
     //check function will mutate sets, so make a clone.
     var set1 = clone(normalized1);
     var set2 = clone(normalized2);
+
 
     //if both are missing, we skip the step.
     if (set1.length === set2.length === 0) {
@@ -187,55 +187,55 @@ function title(record1, record2) {
       return Labels.ALMOST_SURE;
     }		
 
-    // if one set has strings that are contained is the set of other strings
+    // if one set has strings that are contained in the set of other strings
     if (compareFuncs.isIdentical(set1, set2, compareFuncs.stringPartofComparator)) {
       return 0.3;
     }		
 
     return Labels.SURELY_NOT;
 
-    // removes words that are 4 characters long and between 1000 and 2100 (exclusive)
-    function withoutYears(str) {
-      str = str.split(' ').filter(function(str) { return !isYear(str); }).join(' ');
-      return str;
-    }
-    function isYear(str) {
-
-      if (str.length != 4) return false;
-      if (isNaN(str)) return false;
-      var number = parseInt(str, 10);
-
-      return number < 2100 && number > 1000;
-    }
-
-    function removeSubfields(subCode) {
-      return function(field) {
-        field.subfield = field.subfield.filter(function(subfield) {
-          return (subfield.$.code !== subCode);
-        });
-      };
-    }
-
-    function isNumber(char) {
-      if (char === '' || char === ' ') return false;
-      return !isNaN(char);
-    }
-
-    function get(set, tag, subCode) {
-      var contents = [];
-      set.forEach(function(field) {
-        if (field.$.tag == tag) {
-          field.subfield.forEach(function(subfield) {
-            if (subfield.$.code === subCode) {
-              contents.push(subfield._);
-            }
-          });
-        }
-      });
-      return contents;
-    }
   }
 
+  // removes words that are 4 characters long and between 1000 and 2100 (exclusive)
+  function withoutYears(str) {
+    str = str.split(' ').filter(function(str) { return !isYear(str); }).join(' ');
+    return str;
+  }
+  function isYear(str) {
+
+    if (str.length != 4) return false;
+    if (isNaN(str)) return false;
+    var number = parseInt(str, 10);
+
+    return number < 2100 && number > 1000;
+  }
+
+  function removeSubfields(subCode) {
+    return function(field) {
+      field.subfield = field.subfield.filter(function(subfield) {
+        return (subfield.$.code !== subCode);
+      });
+    };
+  }
+
+  function isNumber(char) {
+    if (char === '' || char === ' ') return false;
+    return !isNaN(char);
+  }
+
+  function get(set, tag, subCode) {
+    var contents = [];
+    set.forEach(function(field) {
+      if (field.$.tag == tag) {
+        field.subfield.forEach(function(subfield) {
+          if (subfield.$.code === subCode) {
+            contents.push(subfield._);
+          }
+        });
+      }
+    });
+    return contents;
+  }
 
   function getData() {
     return {
