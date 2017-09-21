@@ -14,6 +14,10 @@ function featureVectorToInputVector(featureVector) {
 
   const input = Object.keys(featureVector).map(key => {
     if (featureVector[key]) {
+      if (featureVector[key] < 0) {
+        return featureVector[key];
+      }
+      
       return featureVector[key] * 2 - 1;
     } else {
       return 0;
