@@ -25,6 +25,7 @@ const sarjat = require('./feature-sarjat');
 const size = require('./feature-size');
 const title = require('./feature-title');
 const years = require('./feature-years');
+const format = require('./feature-format');
 
 module.exports = {
   AdditionalPhysicalForm,
@@ -52,5 +53,6 @@ module.exports = {
   sarjat,
   size,
   title,
-  years
+  years,
+  format
 };

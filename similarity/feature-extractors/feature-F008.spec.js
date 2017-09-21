@@ -28,7 +28,7 @@ describe('F008', function() {
     const extractor = F008(Utils.toxmljsFormat(record1), Utils.toxmljsFormat(record2));
     const label = extractor.check();
 
-    expect(label).to.equal(null);
+    expect(label).to.eql([null, null, null, null, null, null, null, null, null]);
   });
 
   it('should return SURE for identical 008', () => {

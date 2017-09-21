@@ -58,7 +58,7 @@ function F008(record1, record2) {
   function check() {
 
     if (f008A === undefined || f008A.length === 0 || f008B === undefined || f008B.length === 0) {
-      return null;
+      return extractors.map(() => null);
     }
 
     const recordA = extractors.map(extract => extract(f008A));
