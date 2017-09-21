@@ -164,18 +164,6 @@ function title(record1, record2) {
       return Labels.SURE;
     }
 
-    if (compareFuncs.isSubset(set1, set2) || compareFuncs.isSubset(set2, set1)) {
-      var subs1 = set1.reduce(function(memo, field) { memo = memo.concat(field.subfield); return memo; }, []);
-      var subs2 = set2.reduce(function(memo, field) { memo = memo.concat(field.subfield); return memo; }, []);
-
-      var ratio = Math.min(subs1.length, subs2.length) / Math.max(subs1.length, subs2.length);
-      
-      if (ratio >= 0.5 ) {
-        
-        return 0.5;	
-      }
-    }
-
     if (compareFuncs.isIdentical(set1, set2, compareFuncs.lvComparator(0.85))) {
       return Labels.ALMOST_SURE;
     }
@@ -188,6 +176,19 @@ function title(record1, record2) {
     if (compareFuncs.isIdentical(concatSameSubfields(set1), concatSameSubfields(set2), compareFuncs.lvComparator(0.85))) {
       return Labels.ALMOST_SURE;
     }
+
+    if (compareFuncs.isSubset(set1, set2) || compareFuncs.isSubset(set2, set1)) {
+      var subs1 = set1.reduce(function(memo, field) { memo = memo.concat(field.subfield); return memo; }, []);
+      var subs2 = set2.reduce(function(memo, field) { memo = memo.concat(field.subfield); return memo; }, []);
+
+      var ratio = Math.min(subs1.length, subs2.length) / Math.max(subs1.length, subs2.length);
+      
+      if (ratio >= 0.5 ) {
+        
+        return 0.5;	
+      }
+    }
+
 
     // if one set has strings that are contained in the set of other strings
     if (compareFuncs.isIdentical(set1, set2, compareFuncs.stringPartofComparator)) {
