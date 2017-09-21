@@ -5,7 +5,6 @@ const {
   extractFormat
 } = require('./utils');
 
-
 function format(record1, record2) {
   
   const formatA = extractFormat(fromXMLjsFormat(record1));
@@ -14,8 +13,6 @@ function format(record1, record2) {
   const formatNames = ['BK', 'CR', 'MP', 'MU', 'CF', 'MX', 'VM'];  
 
   function check() {
-
-    console.log(formatA, formatB);
 
     if (formatA === undefined || formatB === undefined) {
       return formatNames.map(() => null);

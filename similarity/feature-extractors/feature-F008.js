@@ -17,6 +17,8 @@ function getExtractorsForFormat(formatCode) {
   return formatDefinition.extractors.map(f => f.extractor);
 }
 
+const valueIsMissing = (part) => part.replace(/\|/g, '').replace(/\^/g, '').length === 0;
+
 function F008(record1, record2) {
   
   const f008A = _.get(fromXMLjsFormat(record1).fields.find(f => f.tag === '008'), 'value');
@@ -34,7 +36,6 @@ function F008(record1, record2) {
   const language = (f008) => f008.substr(33,3);
   const modifiedRecord = (f008) => f008.substr(38,1);
   const catalogingSource = (f008) => f008.substr(39,1);
-
   
   const extractorNames = ['recordDate', 'typeOfDate', 'publishDate1', 'publishDate2', 'country', 'language', 'modifiedRecord', 'catalogingSource'];
   const extractors = [recordDate, typeOfDate, publishDate1, publishDate2, country, language, modifiedRecord, catalogingSource];
@@ -70,9 +71,21 @@ function F008(record1, record2) {
           if (item1 === ANY || item2 === ANY && item1 !== item2) {
             return Labels.ALMOST_SURE;
           }
+          
           if (_.isArray(item1) && _.isArray(item2)) {
-            return _.mean(_.zip(item1, item2).map(([a, b]) => a === b ? 1 : 0));
+            const labels = _.zip(item1, item2).map(([a, b]) => {
+              if (valueIsMissing(a) || valueIsMissing(b)) return null;
+              return a === b ? 1 : 0;
+            });
+
+            const labelsWithValue = labels.filter(val => val !== null);
+
+            return labelsWithValue.length > 0 ? _.mean(labelsWithValue) : null;
           }
+          if (valueIsMissing(item1) || valueIsMissing(item2)) {
+            return null; 
+          }
+
           return item1 === item2 ? Labels.SURE : Labels.SURELY_NOT;
         }
         return null;

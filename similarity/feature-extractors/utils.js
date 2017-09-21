@@ -392,8 +392,6 @@ function extractFormat(record) {
   const l6 = record.leader.substr(6,1);
   const l7 = record.leader.substr(7,1);
 
-  console.log(l6, l7);
-
   const isBK = (l6, l7) => ['a', 't'].includes(l6) && !['b', 'i', 's'].includes(l7);
   const isCR = (l6, l7) => ['a', 't'].includes(l6) && ['b', 'i', 's'].includes(l7);
   const isMP = (l6) => ['e', 'f'].includes(l6);
