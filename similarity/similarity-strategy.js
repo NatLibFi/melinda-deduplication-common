@@ -49,5 +49,7 @@ module.exports = [
   { 'name': 'ISBNextra' },
   { 'name': 'F007' },
   { 'name': 'F008' },
-  { 'name': 'format' }
+  { 'name': 'format' },
+  { 'name': 'F337_F338' },
+  { 'name': 'subjectAccessTerms' }
 ];

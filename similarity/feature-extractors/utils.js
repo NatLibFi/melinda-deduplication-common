@@ -412,6 +412,17 @@ function extractFormat(record) {
   
 }
 
+
+const getValue = (set) => _.get(set, '[0].subfield', []).map(sub => sub._).join(' ');
+const isSubset = (subset, superset) => _.difference(subset, superset).length === 0;
+const isSubsetWith = (subset, superset, comparator) => _.differenceWith(subset, superset, comparator).length === 0;
+const isIdentical = (set1, set2) => isSubset(set1, set2) && isSubset(set2, set1);
+const startsWithComparator = (wordA, wordB) =>  wordA.startsWith(wordB) || wordB.startsWith(wordA);
+const generateAbbrevations = (str) => str.split(' ').map((word, index, arr) => {
+  const abbreviation = word.substr(0,1);
+  return _.concat(arr.slice(0,index), abbreviation, arr.slice(index+1) ).join(' ');
+});
+
 module.exports = {
   normalize,
   singleNormalize,
@@ -435,5 +446,11 @@ module.exports = {
   getField,
   parseISBN,
   fromXMLjsFormat,
-  extractFormat
+  extractFormat,
+  getValue,
+  isSubset,
+  isSubsetWith,
+  isIdentical,
+  startsWithComparator,
+  generateAbbrevations
 };

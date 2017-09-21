@@ -26,6 +26,8 @@ const size = require('./feature-size');
 const title = require('./feature-title');
 const years = require('./feature-years');
 const format = require('./feature-format');
+const F337_F338 = require('./feature-F337-F338');
+const subjectAccessTerms = require('./feature-subject-access-terms');
 
 module.exports = {
   AdditionalPhysicalForm,
@@ -54,5 +56,7 @@ module.exports = {
   size,
   title,
   years,
-  format
+  format,
+  F337_F338,
+  subjectAccessTerms
 };
