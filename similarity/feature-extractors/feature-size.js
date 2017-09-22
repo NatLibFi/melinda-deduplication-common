@@ -1,123 +1,118 @@
 const _ = require('lodash');
-const compareFuncs = require('./core.compare');
 const { Labels } = require('./constants');
 
 const {
-  normalize,
-  select,
-  clone,
-  getSubfields,
-  generateField
+  fromXMLjsFormat,
+  selectValue,
+  normalizeWith,
+  normalizeText,
+  expandAlias,
+  isSubsetWith
 } = require('./utils');
 
 
-function size(record1, record2) {
+const startsWithComparator = (a, b) => a.startsWith(b) || b.startsWith(a);
 
-  var fields1 = select(['300..a'], record1);
-  var fields2 = select(['300..a'], record2);
-
-  var norm = ['utf8norm', 'removediacs', 'onlyNumbers', 'removeEmpty'];
-  var normalized1 = normalize(clone(fields1), norm);
-  var normalized2 = normalize(clone(fields2), norm);
-
-  var aSubcodeExtractor = function(field) {
-    return getSubfields(field, 'a');
-  };
-  //var f1_s = _.flatten(normalized1.map(aSubcodeExtractor)).map(normalizeFuncs.onlyNumbers);
-  //var f2_s = _.flatten(normalized2.map(aSubcodeExtractor)).map(normalizeFuncs.onlyNumbers);
-
-  var f1_s = _.flatten(normalized1.map(aSubcodeExtractor));
-  var f2_s = _.flatten(normalized2.map(aSubcodeExtractor));
-
-
-  normalized1 = [];
-  normalized2 = [];
-
-  f1_s.forEach(function(item) {
-    item.split(' ').forEach(addTo(normalized1));
-  });
-
-  f2_s.forEach(function(item) {
-    item.split(' ').forEach(addTo(normalized2));
-  });
-
-  function addTo(arr) {
-    return function(content) {
-      if (content !== '') {
-        arr.push( generateField(300, 'a', content));
-      }
-    };
+const compareNumbers = (allowedDiff) => (numA, numB) => {
+  if (typeof allowedDiff === 'string') {
+    const percentDiff = (parseInt(allowedDiff) + 100) / 100;
+    return Math.max(numA, numB) / Math.min(numA, numB) <= percentDiff;
   }
+  return Math.abs(numA - numB) <= allowedDiff;
+};
 
-  /*
-  f1_s.forEach(function(pageInfo) {
-    if (pageInfo != null) {
-      var contents = pageInfoToString(pageInfo);
-      normalized1.push( generateField(300, 'a', contents) );
-    }
-  });
-  f2_s.forEach(function(pageInfo) {
-    if (pageInfo != null) {
-      var contents = pageInfoToString(pageInfo);
-      normalized2.push( generateField(300, 'a', contents) );
-    }
-  });
+const compareNumberSets = (allowedDiff) => (listA, listB) => {
 
-  function pageInfoToString(pageInfo) {
-    if (pageInfo.start !== 0) {
-      return [
-        `RANGE ${pageInfo.start}-${pageInfo.end}`,
-        pageInfo.total
-      ];
-    } else {
-      if (pageInfo.total !== pageInfo.end) {
-        return [pageInfo.end, pageInfo.total];
-      }
-      return pageInfo.end;
-    }
-  }
-  */
+  return isSubsetWith(listA, listB, compareNumbers(allowedDiff)) 
+      || isSubsetWith(listB, listA, compareNumbers(allowedDiff));
+};
 
-  var set1 = normalized1;
-  var set2 = normalized2;
+const removeSuffix = word => word.length > 6 ? word.substr(0, word.length-3) : word;
 
-  function getData() {
-    return {
-      fields: [fields1, fields2],
-      normalized: [normalized1, normalized2]
-    };
-  }
+const compareStringSets = (listA, listB) => {
+  
+  const shortenedA = listA.map(removeSuffix);
+  const shortenedB = listB.map(removeSuffix);
+
+  const differentElements = _.concat(
+    _.differenceWith(shortenedA, shortenedB, startsWithComparator),
+    _.differenceWith(shortenedB, shortenedA, startsWithComparator)
+  );
+
+  return differentElements.length === 0;
+
+};
+
+const compareStringSubsets = (listA, listB) => {
+  const shortenedA = listA.map(removeSuffix);
+  const shortenedB = listB.map(removeSuffix);
+
+  return isSubsetWith(shortenedA, shortenedB, startsWithComparator) 
+      || isSubsetWith(shortenedB, shortenedA, startsWithComparator);
+};
+
+const selectNumbers = (sentence) => {
+  return sentence.split(' ').filter(isValid).filter(word => !isNaN(word)).map(num => parseInt(num));
+};
+
+// keep only items that are not numbers and longer than 3 characters
+const words = (sentence) => sentence.split(' ').filter(word => isNaN(word)).filter(word => word.length > 3);
+
+const isValid = val => !(_.isNull(val) || _.isUndefined(val) || val.length === 0);
+
+// number if sentence starts with a number, otherwise 1
+const initNumber = (sentence) => {
+  return _.isString(sentence) ? isNaN(sentence.charAt(0)) ? 1 : _.get(selectNumbers(sentence), '[0]', null) : null;
+};
+
+function size(xmlJsrecord1, xmlJsrecord2) {
+
+  const record1 = fromXMLjsFormat(xmlJsrecord1);
+  const record2 = fromXMLjsFormat(xmlJsrecord2);
+
+  const featureNames = ['numbers-a', 'terms-a', 'terms-b', 'numbers-c', 'terms-e', 'numbers-e'];
+
+
+  // Selectors
+  const numbersA = _.flow(selectValue('300', 'a'), normalizeWith(normalizeText, expandAlias, selectNumbers, _.max));
+  const termsA = _.flow(selectValue('300', 'a'), normalizeWith(normalizeText, expandAlias, words));
+  const termsB = _.flow(selectValue('300', 'b'), normalizeWith(normalizeText, expandAlias, words));
+  const numbersC = _.flow(selectValue('300', 'c'), normalizeWith(normalizeText, expandAlias, selectNumbers));
+  const termsE = _.flow(selectValue('300', 'e'), normalizeWith(normalizeText, expandAlias, words));
+  const numbersE = _.flow(selectValue('300', 'e'), normalizeWith(normalizeText, expandAlias, initNumber));
+  
+  const selectors = [numbersA, termsA, termsB, numbersC, termsE, numbersE];
+
+  // Comparators
+  const comparators = [
+    compareNumbers('2%'), 
+    compareStringSubsets, 
+    compareStringSubsets, 
+    compareNumberSets(1), 
+    compareStringSets, 
+    compareNumbers(0)
+  ];
 
   function check() {
 
-    if (set1.length === 0 || set2.length === 0) {
-      return null;
-    }
+    return _.zip(selectors, comparators).map(([select, compare], i) => {
+      const valueA = select(record1);
+      const valueB = select(record2);
+      //console.log({i,valueA, valueB});
+      if (!isValid(valueA) || !isValid(valueB)) {
+        return null;
+      }
+      
+      return compare(valueA, valueB) ? Labels.SURE : Labels.SURELY_NOT;
+    });
 
-    if (compareFuncs.isIdentical(set1, set2)) {
-      return Labels.SURE;
-    }
-
-    if (compareFuncs.isIdentical(set1, set2, compareFuncs.distanceComparator(5))) {
-      return Labels.ALMOST_SURE;
-    }
-
-    if (compareFuncs.isSubset(set1, set2, compareFuncs.distanceComparator(3)) ||
-      compareFuncs.isSubset(set2, set1, compareFuncs.distanceComparator(3))) {
-      return Labels.ALMOST_SURE;
-    }
-
-    if (compareFuncs.hasIntersection(set1, set2, compareFuncs.skipSmallerThan(20))) {
-      return Labels.MAYBE;
-    }
-
-    return Labels.SURELY_NOT;
   }
 
   return {
     check: check,
-    getData: getData
+    names: featureNames.map(n => `size-${n}`)
   };
 }
 
 module.exports = size;
+
