@@ -7,7 +7,8 @@ const {
   normalizeWith,
   normalizeText,
   expandAlias,
-  isSubsetWith
+  isSubsetWith,
+  isValid
 } = require('./utils');
 
 
@@ -57,8 +58,6 @@ const selectNumbers = (sentence) => {
 
 // keep only items that are not numbers and longer than 3 characters
 const words = (sentence) => sentence.split(' ').filter(word => isNaN(word)).filter(word => word.length > 3);
-
-const isValid = val => !(_.isNull(val) || _.isUndefined(val) || val.length === 0);
 
 // number if sentence starts with a number, otherwise 1
 const initNumber = (sentence) => {

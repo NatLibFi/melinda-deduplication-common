@@ -28,6 +28,7 @@ const years = require('./feature-years');
 const format = require('./feature-format');
 const F337_F338 = require('./feature-F337-F338');
 const subjectAccessTerms = require('./feature-subject-access-terms');
+const bundleNote = require('./feature-bundle-note');
 
 module.exports = {
   AdditionalPhysicalForm,
@@ -58,5 +59,6 @@ module.exports = {
   years,
   format,
   F337_F338,
-  subjectAccessTerms
+  subjectAccessTerms,
+  bundleNote
 };

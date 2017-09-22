@@ -51,5 +51,6 @@ module.exports = [
   { 'name': 'F008' },
   { 'name': 'format' },
   { 'name': 'F337_F338' },
-  { 'name': 'subjectAccessTerms' }
+  { 'name': 'subjectAccessTerms' },
+  { 'name': 'bundleNote' }
 ];

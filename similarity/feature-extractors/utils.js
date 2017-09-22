@@ -409,7 +409,6 @@ function extractFormat(record) {
     case isMX(l6): return 'MX';
     case isVM(l6): return 'VM';
   }
-  
 }
 
 
@@ -461,6 +460,8 @@ const skandit = word => word.split('').map(c => _.get(characterMap, c.toLowerCas
 const expandAlias = sentence => _.isString(sentence) ? sentence.split(' ').map(word => _.get(ALIASES, word, word)).join(' ') : sentence;
 const normalizeText = str => _.isString(str) ? skandit(str).replace(/\W/g, ' ').replace(/\s+/g, ' ').toUpperCase().trim() : str;
 
+const isValid = val => !(_.isNull(val) || _.isUndefined(val) || val.length === 0);
+
 module.exports = {
   normalize,
   singleNormalize,
@@ -498,5 +499,6 @@ module.exports = {
   empty,
   ALIASES,
   expandAlias,
-  normalizeText
+  normalizeText,
+  isValid
 };
