@@ -1,67 +1,71 @@
-const compareFuncs = require('./core.compare');
+const _ = require('lodash');
 const { Labels } = require('./constants');
+const compareFuncs = require('./core.compare');
 
 const {
-  normalize,
-  select,
-  clone
+  fromXMLjsFormat,
+  selectValue,
+  normalizeWith,
+  isDefined,
+  empty,
+  expandAlias,
+  normalizeText
 } = require('./utils');
 
 
-function publisher(record1, record2) {
-  var fields1 = select(['260..ab'], record1);
-  var fields2 = select(['260..ab'], record2);
+function publisher(xmlJsrecord1, xmlJsrecord2) {
+  
+  const record1 = fromXMLjsFormat(xmlJsrecord1);
+  const record2 = fromXMLjsFormat(xmlJsrecord2);
+  
+  const placeOfPublication = _.flow(selectValue('260', 'a'), normalizeWith(normalizeText, expandAlias));
+  const nameOfPublisher = _.flow(selectValue('260', 'b'), normalizeWith(normalizeText, expandAlias));
+  const dateOfPublication = selectValue('260', 'c');
+  const placeOfManufacture = _.flow(selectValue('260', 'e'), normalizeWith(normalizeText, expandAlias));
+  const manufacturer = _.flow(selectValue('260', 'f'), normalizeWith(normalizeText, expandAlias));
+  const dateOfManufacture = selectValue('260', 'g');
+  
+  const extractorNames = ['placeOfPublication', 'nameOfPublisher', 'dateOfPublication', 'placeOfManufacture', 'manufacturer', 'dateOfManufacture'];
+  const extractors = [placeOfPublication, nameOfPublisher, dateOfPublication, placeOfManufacture, manufacturer, dateOfManufacture];
 
-  var norm = ['toSpace("-.")', 'delChars("\':,[]()")', 'trimEnd', 'upper', 'utf8norm', 'removediacs', 'removeEmpty'];
-  var normalized1 = normalize(clone(fields1), norm);
-  var normalized2 = normalize(clone(fields2), norm);
-
-  var set1 = normalized1;
-  var set2 = normalized2;
-
-  function getData() {
-    return {
-      fields: [fields1, fields2],
-      normalized: [normalized1, normalized2]
-    };
-  }
 
   function check() {
 
-    if (set1.length === 0 || set2.length === 0) {
-      return null;
-    }
-
-    if (compareFuncs.isIdentical(set1, set2)) {
-      return Labels.SURE;
-    }
-
-    if (compareFuncs.isIdentical(set1, set2, compareFuncs.lvComparator(0.65))) {
-      return Labels.ALMOST_SURE;
-    }
-
-    if (compareFuncs.intersection(set1, set2).length > 0) {
-      return 0.7;
-    }
-
-    if (compareFuncs.isIdentical(set1, set2, compareFuncs.jaccardComparator(0.5))) {
-      return 0.7;
-    }
+    const valuesA = extractors.map(extract => extract(record1));
+    const valuesB = extractors.map(extract => extract(record2));
     
-    if (compareFuncs.hasIntersection(set1, set2, compareFuncs.jaccardComparator(0.5))) {
-      return 0.5;
-    }
-    if (compareFuncs.hasIntersection(set1, set2, compareFuncs.stringPartofComparator)) {
-      return 0.5;
-    }
+    return _.zip(valuesA, valuesB).map(([a, b], i) => {
+      
+      const isDateField = i === 2 || i === 5;
 
-    return Labels.SURELY_NOT;
+      if (!isDefined(a,b) || empty(a,b)) {
+        return null;
+      }
+
+      // no edit-distance checks for date fields.
+      if (isDateField) {
+        return a === b ? Labels.SURE : Labels.SURELY_NOT;  
+      }
+
+      if (a === b) {
+        return Labels.SURE;
+      }
+
+      const almostSame = compareFuncs.lvComparator(0.80);
+
+      if (almostSame(a,b)) {
+        return Labels.ALMOST_SURE;
+      }
+
+      return Labels.SURELY_NOT;
+    });
+
   }
 
 
   return {
     check: check,
-    getData: getData
+    names: extractorNames
   };
 
 }

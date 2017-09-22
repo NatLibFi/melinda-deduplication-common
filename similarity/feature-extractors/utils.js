@@ -423,6 +423,44 @@ const generateAbbrevations = (str) => str.split(' ').map((word, index, arr) => {
   return _.concat(arr.slice(0,index), abbreviation, arr.slice(index+1) ).join(' ');
 });
 
+const selectValues = (tag, code) => record => {
+  return _.chain(record.fields)
+    .filter(field => field.tag === tag)
+    .flatMap(field => field.subfields)
+    .filter(sub => sub.code === code)
+    .map(sub => sub.value)
+    .value();
+};
+
+const selectValue = (tag, code) => record => selectValues(tag, code)(record).join(' ');
+
+const normalizeWith = (...normalizers) => value => {
+  return normalizers.reduce((currentValue, nextNormalizer) => nextNormalizer(currentValue), value);
+};
+
+const isDefined = (...vals) => vals.every(val => val !== null && val !== undefined);
+const empty = (...vals) => vals.some(val => val.length === 0);
+
+
+// NOTE: these are normalized forms:
+const ALIASES = {
+  'HKI': 'HELSINKI',
+  'HELSINGISS': 'HELSINKI',
+  'HELSINGFORS': 'HELSINKI',
+  'HFORS': 'HELSINKI'
+};
+
+const characterMap = {
+  'ä': 'a',
+  'ö': 'o',
+  'å': 'a'
+};
+
+const skandit = word => word.split('').map(c => _.get(characterMap, c.toLowerCase(), c)).join('');
+
+const expandAlias = sentence => _.isString(sentence) ? sentence.split(' ').map(word => _.get(ALIASES, word, word)).join(' ') : sentence;
+const normalizeText = str => _.isString(str) ? skandit(str).replace(/\W/g, ' ').replace(/\s+/g, ' ').toUpperCase().trim() : str;
+
 module.exports = {
   normalize,
   singleNormalize,
@@ -452,5 +490,13 @@ module.exports = {
   isSubsetWith,
   isIdentical,
   startsWithComparator,
-  generateAbbrevations
+  generateAbbrevations,
+  selectValues,
+  selectValue,
+  normalizeWith,
+  isDefined,
+  empty,
+  ALIASES,
+  expandAlias,
+  normalizeText
 };
