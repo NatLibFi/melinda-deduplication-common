@@ -6,6 +6,7 @@ const F008 = require('./feature-F008');
 const F010 = require('./feature-F010');
 const F015 = require('./feature-F015');
 const F027 = require('./feature-F027');
+const F041 = require('./feature-F041');
 const ISBN = require('./feature-ISBN');
 const ISBNextra = require('./feature-ISBNextra');
 const ISMN = require('./feature-ISMN');
@@ -60,5 +61,6 @@ module.exports = {
   format,
   F337_F338,
   subjectAccessTerms,
-  bundleNote
+  bundleNote,
+  F041
 };
