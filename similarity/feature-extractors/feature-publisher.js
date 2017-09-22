@@ -9,7 +9,8 @@ const {
   isDefined,
   empty,
   expandAlias,
-  normalizeText
+  normalizeText,
+  selectNumbers
 } = require('./utils');
 
 
@@ -20,10 +21,10 @@ function publisher(xmlJsrecord1, xmlJsrecord2) {
   
   const placeOfPublication = _.flow(selectValue('260', 'a'), normalizeWith(normalizeText, expandAlias));
   const nameOfPublisher = _.flow(selectValue('260', 'b'), normalizeWith(normalizeText, expandAlias));
-  const dateOfPublication = selectValue('260', 'c');
+  const dateOfPublication = _.flow(selectValue('260', 'c'), normalizeWith(normalizeText, expandAlias, selectNumbers));
   const placeOfManufacture = _.flow(selectValue('260', 'e'), normalizeWith(normalizeText, expandAlias));
   const manufacturer = _.flow(selectValue('260', 'f'), normalizeWith(normalizeText, expandAlias));
-  const dateOfManufacture = selectValue('260', 'g');
+  const dateOfManufacture = _.flow(selectValue('260', 'g'), normalizeWith(normalizeText, expandAlias, selectNumbers));
   
   const extractorNames = ['placeOfPublication', 'nameOfPublisher', 'dateOfPublication', 'placeOfManufacture', 'manufacturer', 'dateOfManufacture'];
   const extractors = [placeOfPublication, nameOfPublisher, dateOfPublication, placeOfManufacture, manufacturer, dateOfManufacture];
@@ -44,7 +45,7 @@ function publisher(xmlJsrecord1, xmlJsrecord2) {
 
       // no edit-distance checks for date fields.
       if (isDateField) {
-        return a === b ? Labels.SURE : Labels.SURELY_NOT;  
+        return _.isEqual(a, b) ? Labels.SURE : Labels.SURELY_NOT;  
       }
 
       if (a === b) {

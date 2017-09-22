@@ -8,11 +8,12 @@ const {
   normalizeText,
   expandAlias,
   isSubsetWith,
-  isValid
+  isValid,
+  startsOrEndsComparator,
+  selectNumbers
 } = require('./utils');
 
 
-const startsWithComparator = (a, b) => a.startsWith(b) || b.startsWith(a);
 
 const compareNumbers = (allowedDiff) => (numA, numB) => {
   if (typeof allowedDiff === 'string') {
@@ -36,8 +37,8 @@ const compareStringSets = (listA, listB) => {
   const shortenedB = listB.map(removeSuffix);
 
   const differentElements = _.concat(
-    _.differenceWith(shortenedA, shortenedB, startsWithComparator),
-    _.differenceWith(shortenedB, shortenedA, startsWithComparator)
+    _.differenceWith(shortenedA, shortenedB, startsOrEndsComparator),
+    _.differenceWith(shortenedB, shortenedA, startsOrEndsComparator)
   );
 
   return differentElements.length === 0;
@@ -48,13 +49,10 @@ const compareStringSubsets = (listA, listB) => {
   const shortenedA = listA.map(removeSuffix);
   const shortenedB = listB.map(removeSuffix);
 
-  return isSubsetWith(shortenedA, shortenedB, startsWithComparator) 
-      || isSubsetWith(shortenedB, shortenedA, startsWithComparator);
+  return isSubsetWith(shortenedA, shortenedB, startsOrEndsComparator) 
+      || isSubsetWith(shortenedB, shortenedA, startsOrEndsComparator);
 };
 
-const selectNumbers = (sentence) => {
-  return sentence.split(' ').filter(isValid).filter(word => !isNaN(word)).map(num => parseInt(num));
-};
 
 // keep only items that are not numbers and longer than 3 characters
 const words = (sentence) => sentence.split(' ').filter(word => isNaN(word)).filter(word => word.length > 3);

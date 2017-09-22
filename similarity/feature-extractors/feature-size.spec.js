@@ -57,6 +57,14 @@ describe('feature-size', function() {
       expect(runExtractor()).to.eql([SURE, null, null, null, null, null]);
     });
 
+    it('it should return SURE if largest numbers are same and part of larger string', () => {
+      primeRecords(
+        '300    ‡a1 partituuri (15s.)',
+        '300    ‡a1 kuoropartituuri (15 sivua) :‡bkuvitettu ;‡c30 cm'
+      );
+      expect(runExtractor()).to.eql([SURE, SURE, null, null, null, null]);
+    });
+
     it('it should return SURE if largest numbers are different', () => {
       primeRecords(
         '300    ‡a332 s.',

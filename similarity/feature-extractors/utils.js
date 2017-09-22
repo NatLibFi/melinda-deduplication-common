@@ -416,7 +416,6 @@ const getValue = (set) => _.get(set, '[0].subfield', []).map(sub => sub._).join(
 const isSubset = (subset, superset) => _.difference(subset, superset).length === 0;
 const isSubsetWith = (subset, superset, comparator) => _.differenceWith(subset, superset, comparator).length === 0;
 const isIdentical = (set1, set2) => isSubset(set1, set2) && isSubset(set2, set1);
-const startsWithComparator = (wordA, wordB) =>  wordA.startsWith(wordB) || wordB.startsWith(wordA);
 const generateAbbrevations = (str) => str.split(' ').map((word, index, arr) => {
   const abbreviation = word.substr(0,1);
   return _.concat(arr.slice(0,index), abbreviation, arr.slice(index+1) ).join(' ');
@@ -462,6 +461,27 @@ const normalizeText = str => _.isString(str) ? skandit(str).replace(/\W/g, ' ').
 
 const isValid = val => !(_.isNull(val) || _.isUndefined(val) || val.length === 0);
 
+const startsWithComparator = (a, b) => a.startsWith(b) || b.startsWith(a);
+const endsWithComparator = (a, b) => a.endsWith(b) || b.endsWith(a);
+const startsOrEndsComparator = (a, b) => startsWithComparator(a,b) || endsWithComparator(a, b);
+
+const startsOrEndsComparatorWith = (a, b, equalityFunction = _.isEqual) => {
+  const [shorter, longer] = [a,b].sort((a,b) => a.length - b.length);
+  const longerStart = longer.substring(0, shorter.length);
+  const longerEnd = longer.substring(-shorter.length);
+
+  return equalityFunction(shorter, longerStart) || equalityFunction(shorter, longerEnd);
+};
+
+
+const selectNumbers = (sentence) => {
+  return _.chain(sentence).split(' ')
+    .flatMap(word => word.replace(/\D/g, ' ').split(' '))
+    .filter(word => !isNaN(word) && word.length > 0)
+    .map(num => parseInt(num))
+    .value();
+};
+
 module.exports = {
   normalize,
   singleNormalize,
@@ -500,5 +520,9 @@ module.exports = {
   ALIASES,
   expandAlias,
   normalizeText,
-  isValid
+  isValid,
+  startsOrEndsComparator,
+  endsWithComparator,
+  startsOrEndsComparatorWith,
+  selectNumbers
 };

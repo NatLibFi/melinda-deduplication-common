@@ -63,12 +63,20 @@ describe('feature-publisher', function() {
   });
 
 
-  it('it should return almost sure for similar items', () => {
+  it('it should return ALMOST_SURE for similar items', () => {
     primeRecords(
       '260    ‡aHelsinki :‡b[Valtion painXXtuskeskus],‡c1985.',
       '260    ‡aHki :‡bValtion painatuskeskus,‡c1985.'
     );
     expect(runExtractor()).to.eql([ SURE, ALMOST_SURE, SURE, null, null, null ]);
+  });
+
+  it('it should return SURE for similar c-subfields with extra characters', () => {
+    primeRecords(
+      '260    ‡aHelsinki :‡b[Valtion painatuskeskus],‡ccop. 1985.',
+      '260    ‡aHki :‡bValtion painatuskeskus,‡c1985.'
+    );
+    expect(runExtractor()).to.eql([ SURE, SURE, SURE, null, null, null ]);
   });
 
 });

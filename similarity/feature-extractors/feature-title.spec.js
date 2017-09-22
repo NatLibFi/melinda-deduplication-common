@@ -29,17 +29,17 @@ describe('title', () => {
     expect(featureValue).to.equal(Labels.SURE);
   });
 
-  it('should return null for titles with only stopwords', () => {
+  it('should not remove any stopwords if title contains only stopwords', () => {
   
-    record1.appendField(Utils.stringToField('245    ‡aData kehittäminen'));
-    record2.appendField(Utils.stringToField('245    ‡aData kehittäminen'));
+    record1.appendField(Utils.stringToField('245    ‡aKehittäminen'));
+    record2.appendField(Utils.stringToField('245    ‡aData'));
 
     const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
     expect(extractor).not.to.be.null;
 
     const featureValue = extractor.check();
     
-    expect(featureValue).to.equal(null);
+    expect(featureValue).to.equal(Labels.SURELY_NOT);
   });
   
 
@@ -203,32 +203,42 @@ describe('title', () => {
         '245 10 ‡aEducation culture and politics in modern France /‡cW. D. Halls.',
         '245 10 ‡aEducation, culture and politics in modern France /‡cby W. D. Halls.'
       );
-      expect(runExtractor()).not.to.equal(Labels.SURE);
+      expect(runExtractor()).to.equal(Labels.SURE);
     });
 
-    it('it should return ALMOST_SURE if there are only minor differences', () => {
+    it('it should return SURE if there are only minor differences', () => {
       primeRecords(
         '245 00 ‡aBibliotheca academica Helsingfors universitetsbibliotek :‡bFinlands nationalbibliotek /‡cred. Rainer Knapas.',
         '245 00 ‡aBibliotheca academica :‡bHelsingfors universitetsbibliotek /‡c[arbetsgrupp: Dorrit Gustafsson, Esko Häkli, Eija Vuori] ; [redaktion: Rainer Knapas] ; [översättning ... Rainer Knapas].'
       );
-      expect(runExtractor()).not.to.equal(Labels.SURE);
+      expect(runExtractor()).to.equal(Labels.SURE);
     });
     
-    it('it should return ALMOST_SURE if there are only minor differences', () => {
+    it('it should return SURE if there are only minor differences', () => {
       primeRecords(
         '245 04 ‡aThe global competitiveness report 2001-2002 :‡bWorld Economic Forum, Geneva, Switzerland 2001 /‡cKlaus Schwab, Michawl E. Porter, Jeffery D. Sachs ; project leaders, Peter K. Cornelius, John W. McArthur.',
         '245 04 ‡aThe global competitiveness report 2001-2002 /‡cCentre for International Development ; Klaus Schwab ...[ja muita].'
       );
-      expect(runExtractor()).not.to.equal(Labels.SURE);
+      expect(runExtractor()).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
     });
     
-    it('it should return ALMOST_SURE if there are only minor differences', () => {
+    it('it should return SURE if there are only minor differences', () => {
       primeRecords(
         '245 00 ‡aSata vuotta suomalaisia viinejä ja liköörejä :‡b(Nordfors (Marli) 1867 3/5 1967) : Juhlakirja /‡cJulkaistu Nordforsin (Marlin) viini- ja likööritehtaan täyttäessä sata vuotta 3.5.1967 ; Toim. Eero Saarenheimo.',
         '245 00 ‡aSata vuotta suomalaisia viinejä ja liköörejä :‡bNordfors (Marli) 1867 3/5 1967 : juhlakirja julkaistu Nordforsin (Marlin) viini- ja likööritehtaan täyttäessä sata vuotta 3.5.1967 /‡ctoimittanut: Eero Saarenheimo.'
       );
-      expect(runExtractor()).not.to.equal(Labels.SURE);
+      expect(runExtractor()).to.equal(Labels.SURE);
     });
+    
+    it('it should return SURE if there are only minor differences', () => {
+      primeRecords(
+        '245 00 ‡aTiernapojat :‡bVANHA JOULUKUVAELMA ; Mieskvartetille sovittanut Matti Apajalahti',
+        '245 00 ‡aTiernapojat :‡bwanha joulukuvaelma /‡cdiskanttiäänille sovittanut Matti Apajalahti.'
+      );
+      expect(runExtractor()).to.equal(Labels.SURE);
+    });
+    
+
     
 
   });

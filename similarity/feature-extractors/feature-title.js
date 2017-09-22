@@ -16,7 +16,8 @@ const {
   normalize,
   select,
   clone,
-  hasSubfield
+  hasSubfield,
+  startsOrEndsComparatorWith
 } = require('./utils');
 
 const { Labels } = require('./constants');
@@ -81,14 +82,32 @@ function title(record1, record2) {
     field.subfield = field.subfield.map(subfield => {
       if (subfield.$.code === 'X') {
         const withoutStopWords = subfield._.split(' ').filter(word => !stopWords[word]).join(' ');
-        subfield._ = withoutStopWords;
+        
+        if (withoutStopWords.length > 0) {
+          subfield._ = withoutStopWords;
+        }
+
       }
       return subfield;
     });
+    return field;
   };
 
-  normalized1.forEach(removeStopWords);
-  normalized2.forEach(removeStopWords);
+  
+  const mergeSubfields = code => field => {
+    const newSubValue = field.subfield.filter(sub => sub.$.code === code).map(sub => sub._).join(' ');
+    field.subfield = field.subfield.filter(sub => sub.$.code !== code);
+    field.subfield.push({
+      $: { code },
+      _: newSubValue
+    });
+    return field;
+  };
+
+  const handleStopWords = _.flow(mergeSubfields('X'), removeStopWords);
+
+  normalized1 = normalized1.map(handleStopWords);
+  normalized2 = normalized2.map(handleStopWords);
   
   return {
     check: check,
@@ -137,10 +156,13 @@ function title(record1, record2) {
       return null;
     }
 
-    // we remove stopwords from titles, if there nothing left then skip the check
+    // stopwords were removed from titles, if there nothing left then skip the check
     const fieldContent = (fields, code) => _.flatMap(fields, field => field.subfield).filter(sub => sub.$.code === code).map(subfield => subfield._).join(' ');
     
-    if (fieldContent(set1, 'X').length < 2 || fieldContent(set1, 'X').length < 2) {
+    const content1 = fieldContent(set1, 'X');
+    const content2 = fieldContent(set2, 'X');
+
+    if (fieldContent(set1, 'X').length < 2 || fieldContent(set2, 'X').length < 2) {
       return null;
     }
 
@@ -152,7 +174,10 @@ function title(record1, record2) {
    
     const identical = (a,b) => compareFuncs.setDifference(a, b).length === 0;
 
-    if (!identical(set1NumbersInSubfieldA, set2NumbersInSubfieldA)) {
+    if (!identical(
+      _.concat(set1NumbersInSubfieldA, set1NumbersInSubfieldB), 
+      _.concat(set2NumbersInSubfieldA, set2NumbersInSubfieldB))) {
+
       return Labels.ABSOLUTELY_NOT_DOUBLE;
     }
 
@@ -161,6 +186,10 @@ function title(record1, record2) {
     }
 
     if (compareFuncs.isIdentical(set1, set2)) {
+      return Labels.SURE;
+    }
+
+    if (startsOrEndsComparatorWith(content1, content2, compareFuncs.lvComparator(0.85))) {
       return Labels.SURE;
     }
 
