@@ -43,7 +43,7 @@ describe('title', () => {
   });
   
 
-  it('should return SURELY_NOT for titles with different numbers in a-subfield', () => {
+  it('should return ABSOLUTELY_NOT_DOUBLE for titles with different numbers in a-subfield', () => {
 
     record1.appendField(Utils.stringToField('245 10 ‡aSotkamon Hyvösiä II /‡cAssar Hyvönen ; [valokuvat: Assar Hyvönen].'));
     record2.appendField(Utils.stringToField('245 10 ‡aSotkamon Hyvösiä /‡cAssar Hyvönen.'));
@@ -53,10 +53,10 @@ describe('title', () => {
 
     const featureValue = extractor.check();
     
-    expect(featureValue).to.equal(Labels.SURELY_NOT);
+    expect(featureValue).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
   });
 
-  it('should return SURELY_NOT for titles with different numbers in b-subfield', () => {
+  it('should return ABSOLUTELY_NOT_DOUBLE for titles with different numbers in b-subfield', () => {
     record1.appendField(Utils.stringToField('245 10 ‡aSotkamon Hyvösiä ‡bTää on joku juttu [2]/‡cAssar Hyvönen ; [valokuvat: Assar Hyvönen].'));
     record2.appendField(Utils.stringToField('245 10 ‡aSotkamon Hyvösiä ‡bTää on joku juttu /‡cAssar Hyvönen.'));
 
@@ -65,7 +65,7 @@ describe('title', () => {
 
     const featureValue = extractor.check();
     
-    expect(featureValue).to.equal(Labels.SURELY_NOT);
+    expect(featureValue).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
   });
 
   it('should return ABSOLUTELY_NOT_DOUBLE for titles with different numbers in n-subfield', () => {
@@ -180,6 +180,57 @@ describe('title', () => {
       expect(runExtractor()).not.to.equal(Labels.SURELY_NOT);
     });
     
+  });
+
+
+  describe('miscellaneous tests from actual data', () => {
+
+    function primeRecords(strForRec1, strForRec2) {
+      record1.appendField(Utils.stringToField(strForRec1));
+      record2.appendField(Utils.stringToField(strForRec2));      
+    }
+
+    function runExtractor() {
+
+      const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
+      expect(extractor).not.to.be.null;
+  
+      return extractor.check();
+    }
+
+    it('it should return SURE if they are almost identical', () => {
+      primeRecords(
+        '245 10 ‡aEducation culture and politics in modern France /‡cW. D. Halls.',
+        '245 10 ‡aEducation, culture and politics in modern France /‡cby W. D. Halls.'
+      );
+      expect(runExtractor()).not.to.equal(Labels.SURE);
+    });
+
+    it('it should return ALMOST_SURE if there are only minor differences', () => {
+      primeRecords(
+        '245 00 ‡aBibliotheca academica Helsingfors universitetsbibliotek :‡bFinlands nationalbibliotek /‡cred. Rainer Knapas.',
+        '245 00 ‡aBibliotheca academica :‡bHelsingfors universitetsbibliotek /‡c[arbetsgrupp: Dorrit Gustafsson, Esko Häkli, Eija Vuori] ; [redaktion: Rainer Knapas] ; [översättning ... Rainer Knapas].'
+      );
+      expect(runExtractor()).not.to.equal(Labels.SURE);
+    });
+    
+    it('it should return ALMOST_SURE if there are only minor differences', () => {
+      primeRecords(
+        '245 04 ‡aThe global competitiveness report 2001-2002 :‡bWorld Economic Forum, Geneva, Switzerland 2001 /‡cKlaus Schwab, Michawl E. Porter, Jeffery D. Sachs ; project leaders, Peter K. Cornelius, John W. McArthur.',
+        '245 04 ‡aThe global competitiveness report 2001-2002 /‡cCentre for International Development ; Klaus Schwab ...[ja muita].'
+      );
+      expect(runExtractor()).not.to.equal(Labels.SURE);
+    });
+    
+    it('it should return ALMOST_SURE if there are only minor differences', () => {
+      primeRecords(
+        '245 00 ‡aSata vuotta suomalaisia viinejä ja liköörejä :‡b(Nordfors (Marli) 1867 3/5 1967) : Juhlakirja /‡cJulkaistu Nordforsin (Marlin) viini- ja likööritehtaan täyttäessä sata vuotta 3.5.1967 ; Toim. Eero Saarenheimo.',
+        '245 00 ‡aSata vuotta suomalaisia viinejä ja liköörejä :‡bNordfors (Marli) 1867 3/5 1967 : juhlakirja julkaistu Nordforsin (Marlin) viini- ja likööritehtaan täyttäessä sata vuotta 3.5.1967 /‡ctoimittanut: Eero Saarenheimo.'
+      );
+      expect(runExtractor()).not.to.equal(Labels.SURE);
+    });
+    
+
   });
 
 });

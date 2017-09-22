@@ -33,10 +33,10 @@ function F008(record1, record2) {
   const publishDate1 = (f008) => f008.substr(7,4);
   const publishDate2 = (f008) => f008.substr(11,4);
   const country = (f008) => f008.substr(15,3) === 'xx^' ? ANY : f008.substr(15,3);
-  const language = (f008) => f008.substr(33,3);
+  const language = (f008) => f008.substr(35,3);
   const modifiedRecord = (f008) => f008.substr(38,1);
   const catalogingSource = (f008) => f008.substr(39,1);
-  
+
   const extractorNames = ['recordDate', 'typeOfDate', 'publishDate1', 'publishDate2', 'country', 'language', 'modifiedRecord', 'catalogingSource'];
   const extractors = [recordDate, typeOfDate, publishDate1, publishDate2, country, language, modifiedRecord, catalogingSource];
 

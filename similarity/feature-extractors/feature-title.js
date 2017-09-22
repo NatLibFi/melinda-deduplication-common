@@ -153,11 +153,11 @@ function title(record1, record2) {
     const identical = (a,b) => compareFuncs.setDifference(a, b).length === 0;
 
     if (!identical(set1NumbersInSubfieldA, set2NumbersInSubfieldA)) {
-      return Labels.SURELY_NOT;
+      return Labels.ABSOLUTELY_NOT_DOUBLE;
     }
 
     if (!identical(set1NumbersInSubfieldB, set2NumbersInSubfieldB)) {
-      return Labels.SURELY_NOT;
+      return Labels.ABSOLUTELY_NOT_DOUBLE;
     }
 
     if (compareFuncs.isIdentical(set1, set2)) {

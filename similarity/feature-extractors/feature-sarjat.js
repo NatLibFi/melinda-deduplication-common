@@ -3,6 +3,7 @@ const { Labels } = require('./constants');
 const _ = require('lodash');
 
 const {
+  isSubset,
   normalize,
   select,
   clone
@@ -22,8 +23,7 @@ function sarjat(record1, record2) {
   var normalizations = ['utf8norm', 'removediacs', 'toSpace("\':;,.")', 'collapse', 'trimEnd', 'upper']; // ['toSpace("-")', 'delChars("\':,.")', 'trimEnd', 'upper', 'utf8norm', 'removediacs', 'sortContent']);
   normalized1 = normalize( normalized1 , normalizations); 
   normalized2 = normalize( normalized2 , normalizations);
-
-
+  
   var set1 = normalized1;
   var set2 = normalized2;
 
@@ -82,6 +82,17 @@ function sarjat(record1, record2) {
       return Labels.SURE;
     }
 
+    const getValues = code => set => _.flatMap(set, set => set.subfield).filter(s => s.$.code === code).map(s => s._);
+    const getX = getValues('x');
+
+    const set1_x = getX(set1);
+    const set2_x = getX(set2);
+    
+    if (set1_x.length > 0 && set2_x.length > 0) {
+      if ( isSubset(set1_x, set2_x) || isSubset(set2_x, set1_x)) {
+        return Labels.SURE;
+      }
+    }
 
     //if other set of series fields is subset of the other, then we are sure
     if (compareFuncs.isSubset(set1, set2, wholeFieldComparator) || 

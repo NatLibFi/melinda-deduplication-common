@@ -149,6 +149,7 @@ function jaccardComparator(threshold) {
     return wuzzy.jaccard(str1.split(' '), str2.split(' ')) >= threshold;
   };
 }
+
 function distanceComparator(maxDistance) {
   return function(num1, num2) {
     if (isInt(num1) && isInt(num2)) {

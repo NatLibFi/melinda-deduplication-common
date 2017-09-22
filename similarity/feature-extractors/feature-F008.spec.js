@@ -93,4 +93,15 @@ describe('F008', function() {
     expect(labels).to.eql([SURELY_NOT, SURE, SURE, null, ALMOST_SURE, SURE, null, null, null]);
   });
 
+  it('should return SURE for same languages', () => {
+    record1.leader = '^^^^^amm^a22004934i^4500';
+    record1.appendField(Utils.stringToField('008    901221s1978^^^^xx^|||||||||||||||||fin||'));
+    record2.appendField(Utils.stringToField('008    790410s1978^^^^fi^|||||||||||||||f|fin||'));
+
+    const extractor = F008(Utils.toxmljsFormat(record1), Utils.toxmljsFormat(record2));
+    const labels = extractor.check();
+
+    expect(labels).to.eql([SURELY_NOT, SURE, SURE, null, ALMOST_SURE, SURE, null, null, null]);
+  });
+
 });

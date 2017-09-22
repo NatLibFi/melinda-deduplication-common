@@ -6,7 +6,7 @@ const Utils = require('./utils');
 const { Labels } = require('./constants');
 const sarjat = require('./feature-sarjat');
 
-describe('feature-series', () => {
+describe('feature-sarjat', () => {
 
   let record1;
   let record2;
@@ -85,6 +85,27 @@ describe('feature-series', () => {
     expect(featureValue).to.equal(Labels.SURELY_NOT);
   });
 
+  it('should return SURE for series where sets of x subfields are identical', () => {
+  
+    [
+      '490 1  ‡aYleislääketiede, Tutkimuksia,‡x1237-9883 ;‡v1994, 2',
+      '490 1  ‡aOulun yliopisto. Yleislääketiede, tutkimus,‡x1237-9883 ;‡v2/1994',
+      '490 1  ‡aYleislääketiede, Tutkimus,‡x1237-9883 ;‡v2',
+      '490 1  ‡aYleislääketiede, Tutkimus,‡x1237-9883 ;‡v1994, 2',
+    ].forEach(str => record1.appendField(Utils.stringToField(str)));
+
+    [
+      '490 1  ‡aYleislääketiede / Oulun yliopisto, kansanterveystieteen ja yleislääketieteen laitos, Tutkimus,‡x1237-9883 ;‡v2/1994',
+      '830  0 ‡aYleislääketiede / Oulun yliopisto, kansanterveystieteen ja yleislääketieteen laitos,‡pTutkimus,‡x1237-9883 ;‡v2/1994.'
+    ].forEach(str => record2.appendField(Utils.stringToField(str)));
+    
+    const extractor = sarjat(toWeirdFormat(record1), toWeirdFormat(record2));
+    expect(extractor).not.to.be.null;
+
+    const featureValue = extractor.check();
+    
+    expect(featureValue).to.equal(Labels.SURE);
+  });
 
 });
 
