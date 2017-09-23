@@ -1,120 +1,66 @@
-const compareFuncs = require('./core.compare');
-const normalizeFuncs = require('./core.normalize');
 const { Labels } = require('./constants');
+const _ = require('lodash');
 
 const {
-  normalize,
-  select,
-  clone,
-  hasSubfield,
-  removeSubfields,
   convertToISBN13,
-  actOnPublicationDate,
-  subCode
+  fromXMLjsFormat,
+  normalizeWith,
+  selectPublicationYear,
+  isSubset,
+  flattenFields
 } = require('./utils');
 
-function convertSubCode(from, to, field) {
-  field.subfield.forEach(sub => {
-    if (sub.$.code === from) {
-      sub.$.code = to;
-    }
-  });
-}
+const keepNumbers = str => _.isString(str) ? str.replace(/[^\d|X]/g, '') : str;
+const removeParenthesisFromEnd = str => _.isString(str) ? str.replace(/\s*\(.*\)$/, '') : str;
+const removeCheckDigit = str => _.isString(str) ? str.substr(0,12) : str;
 
-function convertISBNField(field) {
-  field.subfield.forEach(sub => {
-    sub._ = convertToISBN13(sub._);
-  });
-}
+const selectISBNs = record => flattenFields(record.fields)
+  .filter(sub => sub.tag === '020' && ['a','z'].includes(sub.code))
+  .map(s => s.value);
 
-function ISBN(record1, record2) {
+const selectNormalizedISBNs = record => {
+  const normalizer = normalizeWith(removeParenthesisFromEnd, keepNumbers, convertToISBN13, removeCheckDigit);
+  return selectPublicationYear(record) > 1971 ? selectISBNs(record).map(normalizer).filter(isbn => isbn.length > 3) : [];
+};
+
+function ISBN(xmlJsrecord1, xmlJsrecord2) {
   
-  var fields1 = select(['020..az'], record1);
-  var fields2 = select(['020..az'], record2);
+  const record1 = fromXMLjsFormat(xmlJsrecord1);
+  const record2 = fromXMLjsFormat(xmlJsrecord2);
   
-  fields1.forEach(field => convertSubCode('z', 'a', field));
-  fields2.forEach(field => convertSubCode('z', 'a', field));
-
-  var normalized1 = normalize( clone(fields1) , ['delChars(":-")', 'trimEnd', 'upper', removeSidNid()]);
-  var normalized2 = normalize( clone(fields2) , ['delChars(":-")', 'trimEnd', 'upper', removeSidNid()]);
-
-  normalized1.forEach(removeSubfields(shortenThan('c', 3)));
-  normalized2.forEach(removeSubfields(shortenThan('c', 3)));
-
-  var removeISBNFromOldRecord = actOnPublicationDate(1972, removeSubfields(subCode('a')));
-  removeISBNFromOldRecord(record1, fields1, normalized1);
-  removeISBNFromOldRecord(record2, fields2, normalized2);
-
-  normalized1.forEach(convertISBNField);
-  normalized2.forEach(convertISBNField);
-
-  var set1 = normalized1;
-  var set2 = normalized2;
-
-  function getData() {
-    return {
-      fields: [fields1, fields2],
-      normalized: [normalized1, normalized2]
-    };
-  }
+  const isbn1 = selectNormalizedISBNs(record1);
+  const isbn2 = selectNormalizedISBNs(record2);
 
   function check() {
 
-    //if ISBNs are missing, we skip the step.
-    if (set1.length === set2.length === 0) {
+    if (isbn1.length === 0 || isbn2.length === 0) {
       return null;
     }
 
-    //if other is missing an isbn, then we skip the step
-    if (set1.length === 0 || set2.length === 0) {
-      return null;
-    }
-
-    //if set1 or set2 dont have any a subfields, skip
-    if (!hasSubfield(set1, 'a') || !hasSubfield(set2, 'a')) {
-      return null;
-    }
-
-    //if the sets are identical, we are sure by isbn
-    if (compareFuncs.isIdentical(set1, set2)) {
-      return Labels.SURE;
-    }
-
-    //if other set is subset of the other, then we are ALMOST_SURE by isbn
-    if (compareFuncs.isSubset(set1, set2) || compareFuncs.isSubset(set2, set1)) {
+    // if other set is subset of the other, then we are SURE by isbn
+    if (isSubset(isbn1, isbn2) || isSubset(isbn2, isbn1)) {
       return Labels.SURE;
     }
 
     //if the sets have a single identical entry, (but some non-identical entries too) we are almost sure by isbn
-    if (compareFuncs.intersection(set1, set2).length > 0) {
+    if (_.intersection(isbn1, isbn2).length > 0) {
       return Labels.MAYBE;
     }
 
-    //erottelevana isbnnä vois olla 7##,530 kentässä "tämä teos on kuvattu erilaisessa ilmisasussa jonka isbn on tämä" eli näitä ei yhteen!
+    // erottelevana isbnnä vois olla 7##,530 kentässä "tämä teos on kuvattu erilaisessa ilmisasussa jonka isbn on tämä" 
+    // eli näitä ei yhteen!
 
-    //jos isbn tarkistusnumero ei matsaa, niin vertaa normalisoidulla levenshteinillä?
+    // jos isbn tarkistusnumero ei matsaa, niin vertaa normalisoidulla levenshteinillä?
     
-    //515 kentässä voi olla kokoteoksen isbn? 
+    // 515 kentässä voi olla kokoteoksen isbn? 
     
-    //TODO: Q-osakenttä,
+    // TODO: Q-osakenttä,
     
-    // Otherwise the isbns suggest that these are different records.
     return Labels.SURELY_NOT;
   }
 
   return {
-    check: check,
-    getData: getData
-  };
-}
-
-function removeSidNid() {
-  return normalizeFuncs.replace( new RegExp(/\s*\(.*\)$/) );
-}
-
-function shortenThan(subcode, length) {
-  return function(subfield) {
-    return (subfield.$.code == subcode && subfield._.length < length);
+    check: check
   };
 }
 

@@ -9,7 +9,7 @@ const Utils = require('./utils');
 
 const stopConditions = require('./feature-stop-conditions');
 
-describe.only('subjectAccessTerms', function() {
+describe('stop conditions', function() {
 
   let record1;
   let record2;

@@ -229,6 +229,7 @@ function dateOfPublication(record) {
 
 }
 
+
 function subCode(subcode) {
   return function(subfield) {
     return (subfield.$.code == subcode);
@@ -482,6 +483,31 @@ const selectNumbers = (sentence) => {
     .value();
 };
 
+
+function selectPublicationYear(record) {
+  const from260c = selectValue('260', 'c');
+
+  const from008 = record.fields
+    .filter(field => field.tag === '008')
+    .map(field => field.value)
+    .map(value => value.substr(7, 4));
+
+  const normalizedYears = _.flatMap([from260c, from008], normalizeWith(selectNumbers));
+
+  if (normalizedYears.length === 0) {
+    return 9999;
+  }
+  return _.max(normalizedYears);
+}
+
+// fields -> subfields (with tag)
+const flattenFields = fields => _.flatMap(fields, field => {
+  if (field.subfields) {
+    return field.subfields.map(sub => Object.assign({}, sub, { tag: field.tag }));
+  }
+  return field;
+});
+
 module.exports = {
   normalize,
   singleNormalize,
@@ -524,5 +550,7 @@ module.exports = {
   startsOrEndsComparator,
   endsWithComparator,
   startsOrEndsComparatorWith,
-  selectNumbers
+  selectNumbers,
+  selectPublicationYear,
+  flattenFields
 };
