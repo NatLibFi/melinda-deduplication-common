@@ -82,7 +82,7 @@ function ISBN(record1, record2) {
 
     //if other set is subset of the other, then we are ALMOST_SURE by isbn
     if (compareFuncs.isSubset(set1, set2) || compareFuncs.isSubset(set2, set1)) {
-      return Labels.ALMOST_SURE;
+      return Labels.SURE;
     }
 
     //if the sets have a single identical entry, (but some non-identical entries too) we are almost sure by isbn

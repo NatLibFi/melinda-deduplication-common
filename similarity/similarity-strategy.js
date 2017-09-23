@@ -54,4 +54,5 @@ module.exports = [
   { 'name': 'subjectAccessTerms' },
   { 'name': 'bundleNote' },
   { 'name': 'F041' },
+  { 'name': 'stopConditions' }
 ];
