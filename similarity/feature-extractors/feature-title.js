@@ -172,7 +172,7 @@ function title(record1, record2) {
     const set1NumbersInSubfieldB = pickNumbers(normalizeFuncs.romanToArabicConversion(get(field1AB, '245', 'b').join()));
     const set2NumbersInSubfieldB = pickNumbers(normalizeFuncs.romanToArabicConversion(get(field2AB, '245', 'b').join()));
    
-    const identical = (a,b) => _.difference(a,b) === 0 && _.difference(b,a) === 0;
+    const identical = (a,b) => _.difference(a,b).length === 0 && _.difference(b,a).length === 0;
     
     const set1Numbers = _.concat(set1NumbersInSubfieldA, set1NumbersInSubfieldB);
     const set2Numbers = _.concat(set2NumbersInSubfieldA, set2NumbersInSubfieldB);
