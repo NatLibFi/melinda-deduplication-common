@@ -121,7 +121,6 @@ function title(record1, record2) {
     var set1 = clone(normalized1);
     var set2 = clone(normalized2);
 
-
     //if both are missing, we skip the step.
     if (set1.length === set2.length === 0) {
       return null;
@@ -162,6 +161,7 @@ function title(record1, record2) {
     const content1 = fieldContent(set1, 'X');
     const content2 = fieldContent(set2, 'X');
 
+  
     if (fieldContent(set1, 'X').length < 2 || fieldContent(set2, 'X').length < 2) {
       return null;
     }
@@ -172,16 +172,12 @@ function title(record1, record2) {
     const set1NumbersInSubfieldB = pickNumbers(normalizeFuncs.romanToArabicConversion(get(field1AB, '245', 'b').join()));
     const set2NumbersInSubfieldB = pickNumbers(normalizeFuncs.romanToArabicConversion(get(field2AB, '245', 'b').join()));
    
-    const identical = (a,b) => compareFuncs.setDifference(a, b).length === 0;
+    const identical = (a,b) => _.difference(a,b) === 0 && _.difference(b,a) === 0;
+    
+    const set1Numbers = _.concat(set1NumbersInSubfieldA, set1NumbersInSubfieldB);
+    const set2Numbers = _.concat(set2NumbersInSubfieldA, set2NumbersInSubfieldB);
 
-    if (!identical(
-      _.concat(set1NumbersInSubfieldA, set1NumbersInSubfieldB), 
-      _.concat(set2NumbersInSubfieldA, set2NumbersInSubfieldB))) {
-
-      return Labels.ABSOLUTELY_NOT_DOUBLE;
-    }
-
-    if (!identical(set1NumbersInSubfieldB, set2NumbersInSubfieldB)) {
+    if (!identical(set1Numbers, set2Numbers)) {
       return Labels.ABSOLUTELY_NOT_DOUBLE;
     }
 
