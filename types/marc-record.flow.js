@@ -23,5 +23,6 @@ export type MarcRecord = {
   leader: string,
   fields: Array<Field>,
   toString: () => string,
-  appendField: (Array<string>) => void
+  appendField: (Array<string>) => void,
+  get: (RegExp) => Array<Field>
 };
