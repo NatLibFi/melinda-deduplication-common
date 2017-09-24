@@ -1,0 +1,20 @@
+digraph G {
+  node [shape=record]
+  User [label="User or some application"]
+  Listener [label="<f0> |<f1> Listener |<f2> "];
+  User -> Aleph [label=" Saves record"]
+  Aleph -> Listener:f2 [label="Changed record"]
+  Listener:f2 -> Datastore [label="Changed record"]
+
+  Datastore -> Listener:f0 [label="Duplicate\n candidates"]
+  Listener:f0 -> CandidateQueue [label="Duplicate candidates"]
+  CandidateQueue -> Validate [label=" Duplicate candidates"]
+
+  Validate -> Datastore [label="Reads records"]
+
+  Validate -> DuplicateQueue [label=" Duplicate"]
+
+  DuplicateQueue -> Merge [label="Duplicate"]
+  Merge->Aleph [label=" Merge duplicate"]
+  
+}

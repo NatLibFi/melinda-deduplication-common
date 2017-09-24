@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "test": "BABEL_ENV=test mocha --compilers js:babel-core/register \"{,!(node_modules)/**/}*.spec.js\"",
-    "test:watch": "npm run test -- -w"
+    "test:watch": "npm run test -- -w",
+    "doc:graph": "dot -Tpng architecture.dot > architecture.png"
   },
   "author": "Pasi Tuominen <pasi.tuominen@gmail.com>",
   "license": "ISC",
