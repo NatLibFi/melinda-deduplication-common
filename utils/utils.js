@@ -42,6 +42,17 @@ function hrtimeToMs(hrtime) {
   return Math.round(ns/1000000);
 }
 
+function msToTime(ms) {
+  const totalSeconds = Math.round(ms / 1000);
+  const totalMins = Math.floor(totalSeconds / 60);
+
+  const hours = _.padStart(Math.floor(totalMins / 60), 2, '0');
+  const mins = _.padStart(totalMins % 60, 2, '0');
+  const secs = _.padStart(totalSeconds % 60, 2, '0');
+
+  return `${hours}:${mins}:${secs}`;
+}
+
 function waitAndRetry(fn, onRetry, wait=3000) {
   let retryCount = 0;
   const retryFn = async function retry() {
@@ -82,5 +93,6 @@ module.exports = {
   sequence,
   hrtimeToMs,
   waitAndRetry,
-  chunkWithWindow
+  chunkWithWindow,
+  msToTime
 };
