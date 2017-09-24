@@ -197,7 +197,7 @@ function uppercaseSubfield(record) {
     .flatMap(field => field.subfields.map(sub => _.set(sub, 'tag', field.tag)) )
     .filter(subfield => !irrelevantCodes.includes(subfield.code))
     .map('value')
-    .filter(value => value.length > 5)
+    .filter(value => value.length > 8)
     .filter(value => /[a-zA-Z]/.test(value))
     .some(value => value.toUpperCase() === value)
     .value();

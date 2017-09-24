@@ -390,7 +390,7 @@ describe('extractors', () => {
 
     it('should return 1 if the record has some subfield in uppercase', function() {
       
-      rec.appendField(['300','','','a','300s.', 'b', 'RANDOM']);
+      rec.appendField(['300','','','a','300s.', 'b', 'RANDOM TEXT']);
       
       expect(extractors.uppercaseSubfield(rec)).to.equal(1);
     });
@@ -423,6 +423,20 @@ describe('extractors', () => {
       expect(extractors.uppercaseSubfield(rec)).to.equal(0);
     });
 
+    it('should return 0 if the record has short uppercase subfield', function() {
+      rec.appendField(['300','','','a','UNESCO']);      
+      expect(extractors.uppercaseSubfield(rec)).to.equal(0);
+    });
+
+    it('should return 0 if the record has both uppercase and lowercase text in subfield', function() {
+      rec.appendField(['300','','','a','UNESCO kohde']);
+      expect(extractors.uppercaseSubfield(rec)).to.equal(0);
+    });
+
+    it('should return 1 if the record has uppercase subfield', function() {
+      rec.appendField(['300','','','a','KIRJAPAINO 2']);      
+      expect(extractors.uppercaseSubfield(rec)).to.equal(1);
+    });
   });
       
 });

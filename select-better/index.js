@@ -3,7 +3,7 @@ const extractors = require('./extractors');
 const normalizers = require('./normalizers');
 
 function defaultNotARobotFilter(name) {
-  return !['LOAD', 'CARE', 'CONV', 'LINK'].some(robotName => name.includes(robotName));
+  return !['LOAD', 'CARE', 'CONV', 'LINK', 'KVPBATCH'].some(robotName => name.includes(robotName));
 }
 
 const ExtractorPreset = {
@@ -38,6 +38,8 @@ const ExtractorPreset = {
     { f020q:            [ extractors.specificField('020', ['q']), normalizers.identity ] },
     { f260e_or_f:       [ extractors.specificField('260', ['e', 'f']), normalizers.identity ] },
     { f084subs:         [ extractors.subfieldCount('084'),        normalizers.lexical]},
+    { f080subs:         [ extractors.subfieldCount('080'),        normalizers.lexical]},
+    { f041subs:         [ extractors.subfieldCount('041'),        normalizers.lexical]},
     { f830x:            [ extractors.specificField('830', ['x']), normalizers.identity ] },
     { f830subs:         [ extractors.subfieldCount('830'),        normalizers.lexical]},
     { f338count:        [ extractors.fieldCount('338'),           normalizers.lexical]},
