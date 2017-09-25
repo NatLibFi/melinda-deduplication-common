@@ -459,6 +459,8 @@ const skandit = word => word.split('').map(c => _.get(characterMap, c.toLowerCas
 
 const expandAlias = sentence => _.isString(sentence) ? sentence.split(' ').map(word => _.get(ALIASES, word, word)).join(' ') : sentence;
 const normalizeText = str => _.isString(str) ? skandit(str).replace(/\W/g, ' ').replace(/\s+/g, ' ').toUpperCase().trim() : str;
+const dropNumbers = str => _.isString(str) ? str.replace(/\d/g, ' ').replace(/\s+/g, ' ') : str;
+
 
 const isValid = val => !(_.isNull(val) || _.isUndefined(val) || val.length === 0);
 
@@ -552,5 +554,6 @@ module.exports = {
   startsOrEndsComparatorWith,
   selectNumbers,
   selectPublicationYear,
-  flattenFields
+  flattenFields,
+  dropNumbers
 };

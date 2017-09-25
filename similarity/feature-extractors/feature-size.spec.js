@@ -33,7 +33,7 @@ describe('feature-size', function() {
   }
 
 
-  it('it should return SURE for identical fields', () => {
+  it('should return SURE for identical fields', () => {
     primeRecords(
       '300    ‡a328, [1] s. juttuja:‡btaulukkoja ;‡c25 cm‡etekstiliite (12 s.)‡etekstiliite',
       '300    ‡a328, [1] s. juttuja:‡btaulukkoja ;‡c25 cm‡etekstiliite (12 s.)‡etekstiliite'
@@ -41,15 +41,15 @@ describe('feature-size', function() {
     expect(runExtractor()).to.eql([SURE, SURE, SURE, SURE, SURE, SURE]);
   });
 
-  it('it should return null for missing fields', () => {
+  it('should return null for missing fields', () => {
     primeRecords(
-      '300    ‡a328, [1] s. :‡btaulukkoja ;‡c25 cm‡etekstiliite (12 s.)‡etekstiliite'
+      '300    ‡a328, [1] s. :‡btaulukkoja ;‡c25 cm'
     );
     expect(runExtractor()).to.eql([null, null, null, null, null, null]);
   });
 
   describe('for subfield a', () => {
-    it('it should return SURE if largest numbers are almost same', () => {
+    it('should return SURE if largest numbers are almost same', () => {
       primeRecords(
         '300    ‡a332 s.',
         '300    ‡a[4], 331, [1] s.'
@@ -57,7 +57,7 @@ describe('feature-size', function() {
       expect(runExtractor()).to.eql([SURE, null, null, null, null, null]);
     });
 
-    it('it should return SURE if largest numbers are same and part of larger string', () => {
+    it('should return SURE if largest numbers are same and part of larger string', () => {
       primeRecords(
         '300    ‡a1 partituuri (15s.)',
         '300    ‡a1 kuoropartituuri (15 sivua) :‡bkuvitettu ;‡c30 cm'
@@ -65,7 +65,7 @@ describe('feature-size', function() {
       expect(runExtractor()).to.eql([SURE, SURE, null, null, null, null]);
     });
 
-    it('it should return SURE if largest numbers are different', () => {
+    it('should return SURE if largest numbers are different', () => {
       primeRecords(
         '300    ‡a332 s.',
         '300    ‡a[4], 231, [1] s.'
@@ -73,7 +73,7 @@ describe('feature-size', function() {
       expect(runExtractor()).to.eql([SURELY_NOT, null, null, null, null, null]);
     });
 
-    it('it should return SURE if largest numbers are almost same', () => {
+    it('should return SURE if largest numbers are almost same', () => {
       primeRecords(
         '300    ‡a1 kirja (24 sivua), 1 CD-äänilevy :',
         '300    ‡a1 kirja (24 s.), 1 CD-äänilevy :'
@@ -81,7 +81,7 @@ describe('feature-size', function() {
       expect(runExtractor()).to.eql([SURE, SURE, null, null, null, null]);
     });
 
-    it('it should return SURE if words match', () => {
+    it('should return SURE if words match', () => {
       primeRecords(
         '300    ‡a1 kirja (127 s.), 2 CD-äänilevyä (120 min) :',
         '300    ‡a1 kirja (127 s.), 2 CD-äänilevyä :'
@@ -89,7 +89,7 @@ describe('feature-size', function() {
       expect(runExtractor()).to.eql([SURE, SURE, null, null, null, null]);
     });
 
-    it('it should return SURELY_NOT if words do not match', () => {
+    it('should return SURELY_NOT if words do not match', () => {
       primeRecords(
         '300    ‡a1 kirja (127 s.), 2 C-kasettia (120 min) :',
         '300    ‡a1 kirja (127 s.), 2 CD-äänilevyä :'
@@ -183,9 +183,9 @@ describe('feature-size', function() {
     it('should return SURE if records have matching number in beginning', () => {
       primeRecords( 
         '300    ‡e2 CD-äänilevyä.',
-        '300    ‡e2 CD-ROM.'
+        '300    ‡e2 CD-äänilevyä.'
       );
-      expect(runExtractor()).to.eql([null, null, null, null, null, SURE]);
+      expect(runExtractor()).to.eql([null, null, null, null, SURE, SURE]);
     });
 
     it('should consider missing number as 1 for matching number in beginning', () => {
@@ -194,6 +194,14 @@ describe('feature-size', function() {
         '300    ‡e1 CD-äänilevy.'
       );
       expect(runExtractor()).to.eql([null, null, null, null, SURE, SURE]);
+    });
+
+    it('should return SURELY_NOT if other is missing e', () => {
+      primeRecords( 
+        '300    ‡eCD-äänilevy.',
+        '300    ‡c16 cm'
+      );
+      expect(runExtractor()).to.eql([null, null, null, null, SURELY_NOT, null]);
     });
 
   });
