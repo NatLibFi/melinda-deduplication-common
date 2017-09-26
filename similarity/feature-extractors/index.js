@@ -33,6 +33,7 @@ const bundleNote = require('./feature-bundle-note');
 const stopConditions = require('./feature-stop-conditions');
 const F362 = require('./feature-F362');
 const F028 = require('./feature-F028');
+const TermsInFields = require('./feature-terms-in-fields');
 
 module.exports = {
   AdditionalPhysicalForm,
@@ -68,5 +69,6 @@ module.exports = {
   F041,
   stopConditions,
   F362,
-  F028
+  F028,
+  TermsInFields
 };

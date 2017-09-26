@@ -31,5 +31,6 @@ module.exports = [
   { 'name': 'F041' },
   { 'name': 'stopConditions' },
   { 'name': 'F362' },
-  { 'name': 'F028' }
+  { 'name': 'F028' },
+  { 'name': 'TermsInFields' }
 ];

@@ -8,13 +8,10 @@ const {
   normalizeText,
   expandAlias,
   isSubsetWith,
-  isValid,
   startsOrEndsComparator,
   selectNumbers,
   dropNumbers
 } = require('./utils');
-
-
 
 const compareNumbers = (allowedDiff) => (numA, numB) => {
   if (typeof allowedDiff === 'string') {
