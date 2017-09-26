@@ -510,6 +510,23 @@ const flattenFields = fields => _.flatMap(fields, field => {
   return field;
 });
 
+const selectYears = (sentence) => _.isString(sentence) ? sentence.split(/\D/).filter(isYear).join(' ') : sentence;
+
+// keeps only words that are 4 characters long and between 1000 and 2100 (exclusive)
+function isYear(param) {
+  let number;
+  if (_.isString(param)) {
+    if (param.length != 4) return false;
+    if (isNaN(param)) return false;
+    number = parseInt(param, 10);
+  } else {
+    number = param;
+  }
+
+  return number < 2100 && number > 1000;
+}
+
+
 module.exports = {
   normalize,
   singleNormalize,
@@ -555,5 +572,6 @@ module.exports = {
   selectNumbers,
   selectPublicationYear,
   flattenFields,
-  dropNumbers
+  dropNumbers,
+  isYear
 };

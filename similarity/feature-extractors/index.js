@@ -31,6 +31,7 @@ const F337_F338 = require('./feature-F337-F338');
 const subjectAccessTerms = require('./feature-subject-access-terms');
 const bundleNote = require('./feature-bundle-note');
 const stopConditions = require('./feature-stop-conditions');
+const F362 = require('./feature-F362');
 
 module.exports = {
   AdditionalPhysicalForm,
@@ -64,5 +65,6 @@ module.exports = {
   subjectAccessTerms,
   bundleNote,
   F041,
-  stopConditions
+  stopConditions,
+  F362
 };
