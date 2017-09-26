@@ -33,6 +33,17 @@ describe('feature-F362', function() {
   }
 
 
+  it('should return null if records are missing 362', () => {
+    expect(runExtractor()).to.eql([null, null]);
+  });
+
+  it('should return null if either record is missing 362', () => {
+    record1.appendField(Utils.stringToField('362 0  ‡a1999-', '362 0  ‡a1999, [1]-'));
+    expect(runExtractor()).to.eql([null, null]);
+  });
+
+
+    
   describe('for records that contain same years and numbers', () => {
 
     const tests = [
@@ -77,6 +88,7 @@ describe('feature-F362', function() {
       });
     });
   });
+
   describe('for records that contain same years but different numbers', () => {
 
     const tests = [

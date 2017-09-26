@@ -9,7 +9,7 @@ const Utils = require('./utils');
 
 const createExtractor = require('./feature-terms-in-fields');
 
-describe.only('feature-terms-in-fields', function() {
+describe('feature-terms-in-fields', function() {
 
   let record1;
   let record2;
