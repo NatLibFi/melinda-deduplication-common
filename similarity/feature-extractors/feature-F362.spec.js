@@ -9,7 +9,7 @@ const Utils = require('./utils');
 
 const createExtractor = require('./feature-F362');
 
-describe('feature-size', function() {
+describe('feature-F362', function() {
 
   let record1;
   let record2;

@@ -526,6 +526,24 @@ function isYear(param) {
   return number < 2100 && number > 1000;
 }
 
+const forMissingFeature = (labelIfEitherIsMissingFeature, comparator) => (itemA, itemB) => {
+  
+  const containsData = (item) => {
+    const isNotEmpty = (_.isString(item) || _.isArray(item)) ? item.length > 0 : true;
+    
+    return item !== null && item !== undefined && isNotEmpty;
+  };
+
+  if (containsData(itemA) && containsData(itemB)) {
+    return comparator(itemA, itemB);
+  }
+  if (containsData(itemA) || containsData(itemB)) {
+    return labelIfEitherIsMissingFeature;
+  }
+  return null;
+};
+
+
 
 module.exports = {
   normalize,
@@ -573,5 +591,6 @@ module.exports = {
   selectPublicationYear,
   flattenFields,
   dropNumbers,
-  isYear
+  isYear,
+  forMissingFeature
 };

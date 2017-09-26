@@ -1,28 +1,3 @@
-/*
-Feature frequency in one training set:
-title	6190
-charsimilarity	6190
-years	6128
-publisher	5758
-author	5427
-size	5059
-author245c	4593
-ISBN	2970
-sarjat	1427
-reprint	1009
-F015	391
-EAN	238
-ISBNExtra	230
-has880	133
-ISMN	103
-ISSN	86
-ISRN	36
-F027	36
-UPC	4
-F010	1
-
-*/
-
 module.exports = [
   { 'name': 'title' },
   { 'name': 'charsimilarity' },
@@ -55,5 +30,6 @@ module.exports = [
   { 'name': 'bundleNote' },
   { 'name': 'F041' },
   { 'name': 'stopConditions' },
-  { 'name': 'F362' }
+  { 'name': 'F362' },
+  { 'name': 'F028' }
 ];
