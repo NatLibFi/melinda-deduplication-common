@@ -3,7 +3,8 @@ import chai from 'chai';
 import sinonChai from 'sinon-chai';
 chai.use(sinonChai);
 const expect = chai.expect;
-import { commitMerge } from './melinda-merge-update';
+import { commitMerge, splitRecord } from './melinda-merge-update';
+import * as RecordUtils from './record-utils';
 
 import MarcRecord from 'marc-record-js';
 
@@ -67,12 +68,122 @@ describe('melinda merge update', function() {
 
     });
   });
+
+  describe('splitRecord', () => {
+    let clientStub;
+    let base;
+
+    const mergedHostId = '009702404';
+    const familyAHostId = '009702403';
+    const familyBHostId = '009702402';
+    let familyA, familyB, familyMerged;
+
+    beforeEach(() => {
+      base = 'FIN01';
+      clientStub = createClientStub();
+
+      [familyA, familyB, familyMerged] = [createRecordFamily(familyAHostId), createRecordFamily(familyBHostId), createRecordFamily(mergedHostId)];
+
+      familyA.subrecords.push(createRandomComponentRecord(familyAHostId));
+      familyB.subrecords.push(createRandomComponentRecord(familyBHostId));
+
+      const mergedFamilyComponentRecord = createRandomComponentRecord(mergedHostId);
+      familyMerged.subrecords.push(mergedFamilyComponentRecord);
+
+      markAsDeleted(familyA);
+      markAsDeleted(familyB);
+
+      const setupLoadRecordStub = (record) => {
+        const id = RecordUtils.selectRecordId(record);
+        clientStub.loadRecord.withArgs(base, id).resolves(record);
+      };
+     
+      const setupSaveRecordStub = (record) => {
+        const id = RecordUtils.selectRecordId(record);
+        clientStub.saveRecord.withArgs(base, id).resolves(createSuccessResponse(id));
+      };
+     
+      [familyA, familyB, familyMerged].forEach(family => {
+        setupLoadRecordStub(family.record);
+        family.subrecords.forEach(setupLoadRecordStub);
+        setupSaveRecordStub(family.record);
+        family.subrecords.forEach(setupSaveRecordStub);
+        
+        const hostId = RecordUtils.selectRecordId(family.record);
+        clientStub.loadSubrecords.withArgs(base, hostId).resolves(family.subrecords);        
+      });
+
+      
+    });
+
+    it('should not split component records', async () => {
+
+      const componentRecordId = RecordUtils.selectRecordId(familyMerged.subrecords[0]);
+   
+      let error;
+      try {
+        await splitRecord(clientStub, base, componentRecordId);
+      } catch(err) {
+        error = err;
+      }
+      expect(error).to.be.an('Error');
+      expect(error.message).to.contain(`Record (${base})${componentRecordId} is a component record.`, error.stack);
+
+    });
+
+    it('should not split deleted records', async () => {
+
+      const recordId = RecordUtils.selectRecordId(familyMerged.record);
+    
+      markAsDeleted(familyMerged);
+
+      let error;
+      try {
+        await splitRecord(clientStub, base, recordId);
+      } catch(err) {
+        error = err;
+      }
+      expect(error).to.be.an('Error');
+      expect(error.message).to.contain(`Record (${base})${recordId} is deleted.`, error.stack);
+
+    });
+
+    it('should not split records that have not been merged previously', async () => {
+      const recordId = '000000123';
+      const record = createRecord(recordId);
+      clientStub.loadRecord.withArgs(base, recordId).resolves(record);
+      let error;
+      try {
+        await splitRecord(clientStub, base, recordId);
+      } catch(err) {
+        error = err;
+      }
+      expect(error).to.be.an('Error');
+      expect(error.message).to.contain(`Record (${base})${recordId} does not have 583 field with merge metadata.`, error.stack);
+
+    });
+
+    it('should split previously merged record', async () => {
+
+      const hostAId = RecordUtils.selectRecordId(familyA.record);
+      const hostBId = RecordUtils.selectRecordId(familyB.record);
+      
+      familyMerged.record.appendField(RecordUtils.stringToField(`583    ‡aMERGED FROM (FI-MELINDA)${hostAId} + (FI-MELINDA)${hostBId}‡c2017-09-27T11:03:32+03:00‡5MELINDA`));
+      
+      const result = await splitRecord(clientStub, base, mergedHostId);
+
+      expect(result.message).to.contain(`Record (${base})${mergedHostId} has been splitted into (${base})${hostAId} + (${base})${hostBId}`);
+      
+    });
+  });
 });
 
 function createClientStub() {
   return {
     saveRecord: sinon.stub(),
-    createRecord: sinon.stub()
+    createRecord: sinon.stub(),
+    loadRecord: sinon.stub(),
+    loadSubrecords: sinon.stub()
   };
 }
 
@@ -91,16 +202,31 @@ function expectErrorMessage(msg, done) {
   };
 }
 
+function markAsDeleted(family) {
+  const addDeletedMetadata = record => {
+    record.appendField(['STA', '', '', 'a', 'DELETED']);
+    RecordUtils.updateRecordLeader(record, 5, 'd');
+  };
 
-function createRecordFamily() {
+  addDeletedMetadata(family.record);
+
+  family.subrecords.forEach(record => addDeletedMetadata(record));
+}
+
+function createRecordFamily(hostRecordId) {
   return {
-    record: createRecord(),
+    record: createRecord(hostRecordId),
     subrecords: []
   };
 }
 
-function createRecord() {
-  return new MarcRecord();
+function createRecord(recordId) {
+  const record = new MarcRecord();
+  record.leader = '00000cam^a22002294i^4500';
+  if (recordId) {
+    record.appendControlField(['001', recordId]);
+  }
+  return record;
 }
 
 function createRandomRecordFamily() {
@@ -111,11 +237,22 @@ function createRandomRecordFamily() {
 }
 
 function createRandomRecord() {
+  const randomId = Math.floor(Math.random()*1000000);
+  return createRecord(randomId);
+}
+
+function createRandomComponentRecord(parentId = Math.floor(Math.random()*1000000)) {
   const record = new MarcRecord();
+  record.leader = '00000cam^a22002294i^4500';
   
   record.appendControlField(['001', Math.floor(Math.random()*1000000)]);
+  setParentRecordId(parentId, record);
   
   return record;
+}
+
+function setParentRecordId(parentRecordId, componentRecord) {
+  componentRecord.appendField(RecordUtils.stringToField(`773    ‡w(FI-MELINDA)${parentRecordId}`));
 }
 
 function createSuccessResponse(recordId) {

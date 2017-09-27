@@ -186,6 +186,10 @@ function isComponentRecord(record: MarcRecord): boolean {
   return parentId !== undefined;
 }
 
+function updateRecordLeader(record, index, characters) {
+  record.leader = record.leader.substr(0,index) + characters + record.leader.substr(index+characters.length);
+}
+
 function getLastModificationDate(record: MarcRecord): Date {
   const timestamp005 = _.get(record.fields.find(field => field.tag === '005'), 'value');
 
@@ -207,5 +211,6 @@ module.exports = {
   isDeleted,
   parseParentId,
   isComponentRecord,
-  getLastModificationDate
+  getLastModificationDate,
+  updateRecordLeader
 };
