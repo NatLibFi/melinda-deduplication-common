@@ -16,59 +16,6 @@ H fail: record is a component record: <RECORD-ID>
 B warn: Record contains long field which has been split to multiple fields. Check that it looks ok. <TAG>
 B warn: Other record has LOW: FENNI, but preferred does not.
 
-######################
-TODO:
-Tuplat, mutta jotka pitää tulla mergeabilityCheckistä NOT_AUTOMERGEABLEna:
-
-Ei automaattisesti yhdistettävät:
-003195091 - 004805297
-003983463 - 004588790
-001881977 - 004970030
-002260488 - 003299497
-002859542 - 004592070
-002412284 - 006046623
-000074596 - 002774820
-000422252 - 003777968 (100c on eri)
-004598950 - 009162291 (110 kenttä case)
-001956374 - 004965492 (eri 100-kentät)
-000241315 - 002065000 (eri kustantaja ja isbn erilailla jaoteltu)
-
-## recordsHaveSimilarAuthors (tags must match, author names must ~match)
--> check authorized format of field 100,110,111 and if they don't match then automerge is impossible because changing the author must be reported to libraries since it might change the location of the item in the shelves.
-
-## recordsHaveSameRecordTypes
-005651255 - 005706621 (toinen on nuotti, toinen kirja, liideristä, vaikka nää on siis tuplia)
-
-## recordsHaveSimilarNumberOfPages
-002628239 - 005476178 (iso sivumääräero, eri sarjat -> käsin)
-
-## recordsHaveSimilarSizeAndYears
-003726449 - 005930466
-ehkä sidottu ja nidottu, eri vuodet ja eri sivumäärät.
-
-
-Tämä automergecheckki pitää lisätä jo siihen trainingSetin validaatiovaiheeseen. 
-Osa false-positiveistä menee tällä pois. Myös moni true positive tippuu pois.
-
-??
-Mahdollisesti ei tupla:
-003257472 - 004083611
-Puuttuu kansalliskokoelmasta -kenttä.
-015a on eri
-
-??
-005920142 - 006082079
-245 kenttä, 015 kenttä
-
-??
-## recordsHaveSimilarNumbersInField
-006907564 - 006952340
-245, toisessa 1 & 5 ja toisessa 1-7
-kuitenkin 028 on sama?
-numbers-in-field-that-differ-and-are-not-year tms.
-
--> Mitä näille tehdään? NOT-AUTOMERGEABLE?
-
 */
 
 const defaultPreset = [recordsHaveDifferentIds, preferredRecordIsNotDeleted, otherRecordIsNotDeleted, preferredRecordIsNotSuppressed, otherRecordIsNotSuppressed, recordsHaveSameType, recordsHaveDifferentLOWTags];
@@ -80,7 +27,8 @@ const autoMergeExtraChecks = [
   recordsHaveSimilarNumberOfPages,
   recordsHaveSimilarNumbersInTitle,
   recordsHaveSameCountriesAndYears,
-  recordsHaveSaneReprintHistory
+  recordsHaveSaneReprintHistory,
+  recordsHaveNotBeenSplitted
 ];
 
 
@@ -260,6 +208,25 @@ export function recordsHaveSimilarAuthors(preferredRecord, otherRecord) {
     valid: authorsMatch,
     validationFailureMessage: 'Records have different authors'
   };
+}
+
+
+export function recordsHaveNotBeenSplitted(preferredRecord, otherRecord) {
+  const get583Notes = (record) => _.chain(record.fields)
+    .filter(field => field.tag === '583')
+    .flatMap(field => field.subfields)
+    .filter(subfield => subfield.code === 'a')
+    .map('value')
+    .value();
+
+  const preferredHasBeenSplitted = get583Notes(preferredRecord).some(note => note.includes('SPLIT'));
+  const otherRecordHasBeenSplitted = get583Notes(otherRecord).some(note => note.includes('SPLIT'));
+  
+  return {
+    valid: !preferredHasBeenSplitted && !otherRecordHasBeenSplitted,
+    validationFailureMessage: 'Records have been splitted'
+  };
+
 }
 
 // Number of pages almost same
