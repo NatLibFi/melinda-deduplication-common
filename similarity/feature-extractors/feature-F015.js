@@ -50,7 +50,7 @@ function F015(record1, record2) {
       return Labels.ALMOST_SURE;
     }
 
-    return Labels.SURELY_NOT;
+    return Labels.ABSOLUTELY_NOT_DOUBLE;
   }
 
   return {
