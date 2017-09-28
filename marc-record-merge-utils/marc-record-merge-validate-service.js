@@ -2,8 +2,8 @@ import _ from 'lodash';
 const wuzzy = require('wuzzy');
 
 const RecordUtils = require('../utils/record-utils');
-/*
 
+/*
 B fail: Both records have same record id
 B fail: Record is deleted (source)
 B fail: Record is deleted (target)
@@ -196,7 +196,7 @@ export function recordsHaveSimilarAuthors(preferredRecord, otherRecord) {
   const get110A = _.partial(getFieldValue, '110', 'a');
   const get111A = _.partial(getFieldValue, '111', 'a');
   
-  const testAuthors = (a,b) => wuzzy.levenshtein(a,b) >= 0.8;
+  const testAuthors = (a,b) => wuzzy.levenshtein(a,b) >= 0.8 && a.substr(0,3) === b.substr(0,3);
 
   const fieldValuePairs = [get100A, get110A, get111A]
     .map(extractFn => ([extractFn(preferredRecord), extractFn(otherRecord)]))

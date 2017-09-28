@@ -120,3 +120,23 @@ LDR    00000_b____
 
 Expected to be valid: false
 Expected failure message: Records have different authors
+
+
+
+Candidate is invalid if the records have similar authors, but different initial characters
+Preferred record:
+LDR    00000_a____
+001    28475
+100    ‡aTst Author
+245    ‡aSome content
+700    ‡aJohn Doe
+
+Other record:
+LDR    00000_b____
+001    28475
+100    ‡aTest Author
+245    ‡aSome content
+700    ‡aJohn Doe
+
+Expected to be valid: false
+Expected failure message: Records have different authors
