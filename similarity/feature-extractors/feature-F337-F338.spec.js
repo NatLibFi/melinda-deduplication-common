@@ -2,7 +2,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 const { Labels } = require('./constants');
-const { SURE, SURELY_NOT } = Labels;
+const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
 
 const MarcRecord = require('marc-record-js');
 const Utils = require('./utils');
@@ -49,7 +49,7 @@ describe('F337_F338', function() {
   });
         
 
-  it('should return SURELY_NOT for different values', () => {
+  it('should return ABSOLUTELY_NOT_DOUBLE for different values in 338', () => {
     
     record1.appendField(Utils.stringToField('337    ‡akäytettävissä ilman laitetta‡bn‡2rdamedia'));
     record1.appendField(Utils.stringToField('338    ‡anide‡bnc‡2rdacarrier'));
@@ -57,7 +57,21 @@ describe('F337_F338', function() {
     record2.appendField(Utils.stringToField('337    ‡atietokonekäyttöinen‡bc‡2rdamedia '));
     record2.appendField(Utils.stringToField('338    ‡averkkoaineisto‡bcr‡2rdacarrier'));
     
-    expect(runExtractor()).to.eql([SURELY_NOT, SURELY_NOT]);
+    expect(runExtractor()).to.eql([SURELY_NOT, ABSOLUTELY_NOT_DOUBLE]);
+
+  });
+
+
+  it('should return ABSOLUTELY_NOT_DOUBLE for non-identical sets in 338', () => {
+    record1.appendField(Utils.stringToField('337    ‡auseita välittäviä laitteita‡bx‡2rdamedia'));
+    record1.appendField(Utils.stringToField('338    ‡aäänilevy‡bsd‡2rdacarrier'));
+
+    record2.appendField(Utils.stringToField('337    ‡auseita välittäviä laitteita‡bz‡2rdamedia'));
+    record2.appendField(Utils.stringToField('338    ‡amuu‡bnz‡2rdacarrier'));
+    record2.appendField(Utils.stringToField('338    ‡aäänikasetti‡bss‡2rdacarrier'));
+    record2.appendField(Utils.stringToField('338    ‡aäänilevy‡bsd‡2rdacarrier'));
+    
+    expect(runExtractor()).to.eql([SURE, ABSOLUTELY_NOT_DOUBLE]);
 
   });
 

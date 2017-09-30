@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { Labels } = require('./constants');
+const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
 
 const {
   fromXMLjsFormat,
@@ -77,12 +78,35 @@ const initNumber = (sentence) => {
   return _.isString(sentence) ? isNaN(sentence.charAt(0)) ? 1 : _.get(selectNumbers(sentence), '[0]', null) : null;
 };
 
+// missing count means 1. Usually single items are not explicitly stated.
+function compareCounts(a, b) {
+  if (a === null && b === null) {
+    return null;
+  }
+  const norm = val => val === null ? 1 : val;
+
+  console.log({a, b});
+  return norm(a) === norm(b);
+}
+
+function parseVolumes(text) {
+  const words = text.replace(/(\d+)/g,' $1 ').split(' ').filter(str => str.length > 0);
+  const indexOfWordForVolume = words.findIndex(word => word.includes('NID') || word.includes('VOL'));
+  
+  if (indexOfWordForVolume != -1 && indexOfWordForVolume !== 0) {
+    const volumeCount = words[indexOfWordForVolume-1];
+    return parseInt(volumeCount);
+  }
+
+  return null;
+}
+
 function size(xmlJsrecord1, xmlJsrecord2) {
 
   const record1 = fromXMLjsFormat(xmlJsrecord1);
   const record2 = fromXMLjsFormat(xmlJsrecord2);
 
-  const featureNames = ['numbers-a', 'terms-a', 'terms-b', 'numbers-c', 'terms-e', 'numbers-e'];
+  const featureNames = ['numbers-a', 'terms-a', 'terms-b', 'numbers-c', 'terms-e', 'numbers-e', 'volumes-a'];
 
 
   // Selectors
@@ -93,16 +117,21 @@ function size(xmlJsrecord1, xmlJsrecord2) {
   const termsE = _.flow(selectValue('300', 'e'), normalizeWith(normalizeText, dropNumbers, expandAlias, words));
   const numbersE = _.flow(selectValue('300', 'e'), normalizeWith(normalizeText, expandAlias, initNumber));
   
-  const selectors = [numbersA, termsA, termsB, numbersC, termsE, numbersE];
+  const volumesA = _.flow(selectValue('300', 'a'), normalizeWith(normalizeText, parseVolumes));
 
+  const selectors = [numbersA, termsA, termsB, numbersC, termsE, numbersE, volumesA];
+
+  const toLabel = (t,f) => val => val === null ? null : val ? t : f;
+  
   // Comparators
   const comparators = [
-    forMissingFeature(null, compareNumbers('2%')), 
-    forMissingFeature(null, compareStringSubsets), 
-    forMissingFeature(null, compareStringSubsets), 
-    forMissingFeature(null, compareNumberSets(1)), 
-    forMissingFeature(Labels.SURELY_NOT, compareStringSets),
-    forMissingFeature(null, compareNumbers(0))
+    _.flow(forMissingFeature(null, compareNumbers('2%')), toLabel(SURE, SURELY_NOT)),
+    _.flow(forMissingFeature(null, compareStringSubsets), toLabel(SURE, SURELY_NOT)),
+    _.flow(forMissingFeature(null, compareStringSubsets), toLabel(SURE, SURELY_NOT)),
+    _.flow(forMissingFeature(null, compareNumberSets(1)), toLabel(SURE, SURELY_NOT)),
+    _.flow(forMissingFeature(Labels.SURELY_NOT, compareStringSets), toLabel(SURE, SURELY_NOT)),
+    _.flow(forMissingFeature(null, compareNumbers(0)), toLabel(SURE, SURELY_NOT)),
+    _.flow(compareCounts, toLabel(SURE, ABSOLUTELY_NOT_DOUBLE))
   ];
 
   function check() {
@@ -111,12 +140,8 @@ function size(xmlJsrecord1, xmlJsrecord2) {
       const valueA = select(record1);
       const valueB = select(record2);
 
-      const result = compare(valueA, valueB);
-      if (result === null) {
-        return null;
-      } else {
-        return result ? Labels.SURE : Labels.SURELY_NOT;
-      }
+      return compare(valueA, valueB);
+     
     });
 
   }

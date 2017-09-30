@@ -77,4 +77,27 @@ describe('stop conditions', function() {
     expect(runExtractor()).to.eql(null);
   });
 
+  it('should return ABSOLUTELY_NOT_DOUBLE if ISBNs do not match and either is published by kirjakerho', () => {
+    record1.appendField(Utils.stringToField('020    ‡a951-23-1185-2‡qsidottu'));
+    record1.appendField(Utils.stringToField('260    ‡aHämeenlinna,‡c1977.'));
+    
+    record2.appendField(Utils.stringToField('020    ‡a951-638-135-9‡qsidottu'));
+    record2.appendField(Utils.stringToField('260    ‡aHämeenlinna :‡bUusi kirjakerho,‡c1977‡f(Gummerus)'));
+    
+    expect(runExtractor()).to.eql(ABSOLUTELY_NOT_DOUBLE);
+  });
+
+  it('should return ABSOLUTELY_NOT_DOUBLE if languages are consistent between 041 and 008 in both records, but different', () => {
+    
+    record1.appendField(Utils.stringToField('008    950123s1977^^^^fi^|||||||||||||||||fin|^'));
+    record1.appendField(Utils.stringToField('041 1  ‡afin'));
+    
+    record2.appendField(Utils.stringToField('008    950123s1977^^^^fi^|||||||||||||||||ger|^'));
+    record2.appendField(Utils.stringToField('041 1  ‡ager'));
+    
+    expect(runExtractor()).to.eql(ABSOLUTELY_NOT_DOUBLE);
+  });
+
+  
+
 });
