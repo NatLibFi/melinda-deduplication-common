@@ -85,7 +85,6 @@ function compareCounts(a, b) {
   }
   const norm = val => val === null ? 1 : val;
 
-  console.log({a, b});
   return norm(a) === norm(b);
 }
 
