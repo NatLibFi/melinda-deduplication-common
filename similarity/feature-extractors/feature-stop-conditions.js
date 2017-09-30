@@ -18,13 +18,12 @@ function isBookClub(publisherName) {
   return publisherName.includes('KIRJAKERHO');
 }
 const select008value = record => _.head(record.fields.filter(field => field.tag === '008').map(f => f.value));
-const selectLanguage = (f008) => f008.substr(35,3);
+const selectLanguage = (f008) => _.isString(f008) ? f008.substr(35,3) : f008;
 
 function stopConditions(xmlJsrecord1, xmlJsrecord2) {
   const record1 = fromXMLjsFormat(xmlJsrecord1);
   const record2 = fromXMLjsFormat(xmlJsrecord2);
   
-
   const isbnMatch = ISBN(xmlJsrecord1, xmlJsrecord2).check();
   const publisherMatch = publisher(xmlJsrecord1, xmlJsrecord2).check();
   const nameOfPublisher = _.flow(selectValue('260', 'b'), normalizeWith(normalizeText, expandAlias));
@@ -34,39 +33,33 @@ function stopConditions(xmlJsrecord1, xmlJsrecord2) {
   
   const languageConsistent = record => language041(record).includes(language008(record));
 
+  const names = ['isbn-publisher', 'isbn-bookclub', 'languages-different'];
+
   function check() {
 
-    
     const isbnMismatch = isbnMatch === Labels.SURELY_NOT;
     const publisherMismatch = publisherMatch.slice(0,3)
       .filter(val => val !== null)
       .some(label => label === Labels.SURELY_NOT);
     
+    const isbnAndPublisher = isbnMismatch && publisherMismatch;
+    
     const publisherA = nameOfPublisher(record1);
     const publisherB = nameOfPublisher(record2);
 
     const bothAreBookClubs = isBookClub(publisherA) && isBookClub(publisherB);
-    if (isBookClub(publisherA) || isBookClub(publisherB) && !bothAreBookClubs) {
-      return Labels.ABSOLUTELY_NOT_DOUBLE;  
-    }
-
+    const isbnAndBookClub = (isBookClub(publisherA) || isBookClub(publisherB) && !bothAreBookClubs);
+    
     const languagesAreSame = isSubset(language041(record1), language041(record2)) || isSubset(language041(record2), language041(record1));
 
-    if (languageConsistent(record1) && languageConsistent(record2) && !languagesAreSame) {
-      return Labels.ABSOLUTELY_NOT_DOUBLE;  
-    }
+    const languages = (languageConsistent(record1) && languageConsistent(record2) && !languagesAreSame);
 
-    if (isbnMismatch && publisherMismatch) {
-
-      return Labels.ABSOLUTELY_NOT_DOUBLE;  
-    }
-
-
-    return null;
+    return [isbnAndPublisher, isbnAndBookClub, languages].map(val => val ? Labels.ABSOLUTELY_NOT_DOUBLE : null);
   }
 
   return {
     check: check,
+    names: names
   };
 
 }

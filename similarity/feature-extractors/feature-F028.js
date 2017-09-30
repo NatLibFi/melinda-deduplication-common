@@ -16,7 +16,7 @@ function F028(xmlJsrecord1, xmlJsrecord2) {
   const record1 = fromXMLjsFormat(xmlJsrecord1);
   const record2 = fromXMLjsFormat(xmlJsrecord2);
 
-  const featureNames = ['years', 'numbers'];
+  const featureNames = ['years', 'numbers', 'terms-q'];
 
   // Selectors
   const termsA = _.flow(selectValue('028', 'a'), normalizeWith(normalizeText, expandAlias));
