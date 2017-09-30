@@ -220,7 +220,7 @@ function title(record1, record2) {
       return 0.3;
     }		
 
-    return Labels.SURELY_NOT;
+    return Labels.ABSOLUTELY_NOT_DOUBLE;
 
   }
 

@@ -39,7 +39,7 @@ describe('title', () => {
 
     const featureValue = extractor.check();
     
-    expect(featureValue).to.equal(Labels.SURELY_NOT);
+    expect(featureValue).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
   });
   
 
@@ -104,7 +104,7 @@ describe('title', () => {
     expect(featureValue).to.equal(Labels.SURE);
   });
 
-  describe('should return SURELY_NOT for different titles with somewhat common terms', () => {
+  describe('should return ABSOLUTELY_NOT_DOUBLE for different titles with somewhat common terms', () => {
 
     function primeRecords(strForRec1, strForRec2) {
       record1.appendField(Utils.stringToField(strForRec1));
@@ -124,28 +124,28 @@ describe('title', () => {
         '245 00 ‡aThe corporation and the economy.',
         '245 00 ‡aThe corporation, ethics and the environment /‡ced. by W. Michael Hoffman, Robert Frederick and Edward S. Petry.'
       );
-      expect(runExtractor()).to.equal(Labels.SURELY_NOT);
+      expect(runExtractor()).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
     });
     it('test b', () => {
       primeRecords(
         '245 10 ‡aEssentials of investments /‡cZvi Bodie, Alex Kane, Alan J. Marcus.',
         '245 10 ‡aStudent solutions manual for investments /‡cZvi Bodie, Alex Kane, Alan Marcus ; Prepared by Nicholas Racculia.'
       );
-      expect(runExtractor()).to.equal(Labels.SURELY_NOT);
+      expect(runExtractor()).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
     });
     it('test c', () => {
       primeRecords(
         '245 00 ‡aKantian theory and human rights /‡cedited by Andreas Føllesdal and Reidar Maliks.',
         '245 10 ‡aKantian thinking about military ethics /‡cJ. Carl Ficarrotta.'
       );
-      expect(runExtractor()).to.equal(Labels.SURELY_NOT);
+      expect(runExtractor()).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
     });
     it('test d', () => {
       primeRecords(
         '245 00 ‡aKantian review.',
         '245 00 ‡aKantian thinking about military ethics /‡cJ. Carl Ficarrotta.'
       );
-      expect(runExtractor()).to.equal(Labels.SURELY_NOT);
+      expect(runExtractor()).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
     });
   });
 
