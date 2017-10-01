@@ -17,7 +17,8 @@ const {
   select,
   clone,
   hasSubfield,
-  startsOrEndsComparatorWith
+  startsOrEndsComparatorWith,
+  normalizeText
 } = require('./utils');
 
 const { Labels } = require('./constants');
@@ -30,6 +31,9 @@ function title(record1, record2) {
   const field1AB = select(['245..ab'], clone(record1));
   const field2AB = select(['245..ab'], clone(record2));
 
+  const field1P = select(['245..p'], clone(record1));
+  const field2P = select(['245..p'], clone(record2));
+  
   var f246a1 = select(['246..a'], record1);
   var f246a2 = select(['246..a'], record2);
 
@@ -178,6 +182,15 @@ function title(record1, record2) {
     const set2Numbers = _.concat(set2NumbersInSubfieldA, set2NumbersInSubfieldB);
 
     if (!identical(set1Numbers, set2Numbers)) {
+      return Labels.ABSOLUTELY_NOT_DOUBLE;
+    }
+
+    const select245pValue = _.flow(_.partialRight(get, '245', 'p'), _.head,  normalizeText);
+    
+    const p1 = select245pValue(field1P);
+    const p2 = select245pValue(field2P);
+
+    if (p1 && p2 && (!p1.includes(p2) && !p2.includes(p1))) {
       return Labels.ABSOLUTELY_NOT_DOUBLE;
     }
 

@@ -2,7 +2,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 const { Labels } = require('./constants');
-const { SURE, SURELY_NOT } = Labels;
+const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
 
 const MarcRecord = require('marc-record-js');
 const Utils = require('./utils');
@@ -99,7 +99,11 @@ describe('feature-F362', function() {
     tests.forEach(test => {
       it('should return SURE for years', () => {
         primeRecords(test[0], test[1]);
-        expect(runExtractor()).to.eql([SURE, SURELY_NOT], `${test[0]} - ${test[1]}`);
+        expect(runExtractor()[0]).to.eql(SURE, `${test[0]} - ${test[1]}`);
+      });
+      it('should return ABSOLUTELY_NOT_DOUBLE for numbers', () => {
+        primeRecords(test[0], test[1]);
+        expect(runExtractor()[1]).to.eql(ABSOLUTELY_NOT_DOUBLE, `${test[0]} - ${test[1]}`);
       });
     });
   });
@@ -111,9 +115,9 @@ describe('feature-F362', function() {
       ['362 0  ‡a1 (1965)-15 (1979) ; 1980-', '362 0  ‡a1(1965)-'],
     ];
     tests.forEach(test => {
-      it('should return SURELY_NOT for both', () => {
+      it('should return SURELY_NOT for years and ABSOLUTELY_NOT_DOUBLE for numbers', () => {
         primeRecords(test[0], test[1]);
-        expect(runExtractor()).to.eql([SURELY_NOT, SURELY_NOT], `${test[0]} - ${test[1]}`);
+        expect(runExtractor()).to.eql([SURELY_NOT, ABSOLUTELY_NOT_DOUBLE], `${test[0]} - ${test[1]}`);
       });
     });
 

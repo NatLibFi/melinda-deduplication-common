@@ -92,6 +92,18 @@ describe('title', () => {
     expect(featureValue).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
   });
 
+  it('should return ABSOLUTELY_NOT_DOUBLE for strings in p-subfield', () => {
+    record1.appendField(Utils.stringToField('245 00 ‡aCountry profile.‡pArgentina /‡cEconomist Intelligence Unit.'));
+    record2.appendField(Utils.stringToField('245 00 ‡aCountry profile.‡pNamibia, Botswana, Lesotho, Swaziland /‡cThe Economist Intelligence Unit.'));
+    
+    const extractor = title(toWeirdFormat(record1), toWeirdFormat(record2));
+    expect(extractor).not.to.be.null;
+
+    const featureValue = extractor.check();
+    
+    expect(featureValue).to.equal(Labels.ABSOLUTELY_NOT_DOUBLE);
+  });
+
   it('should return SURE for titles with special characters that are normalized away', () => {
     record1.appendField(Utils.stringToField('245 00 ‡aAdobe Premiere® Elements 10 :‡bclassroom in a book® : the official training workbook from Adobe'));
     record2.appendField(Utils.stringToField('245 00 ‡aAdobe Premiere Elements 10 :‡bclassroom in a book : the official training workbook from Adobe'));

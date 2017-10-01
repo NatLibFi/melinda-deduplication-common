@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { Labels } = require('./constants');
+const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
 
 const {
   fromXMLjsFormat,
@@ -33,11 +34,13 @@ function F362(xmlJsrecord1, xmlJsrecord2) {
   const valueMissing = record => selectValues('362', 'a')(record).length === 0;
 
   const selectors = [years, numbers];
+  
+  const toLabel = (t,f) => val => val === null ? null : val ? t : f;
 
   // Comparators
   const comparators = [
-    forMissingFeature(null, isIdentical),
-    forMissingFeature(null, isIdentical)
+    _.flow(forMissingFeature(null, isIdentical), toLabel(SURE, SURELY_NOT)),
+    _.flow(forMissingFeature(null, isIdentical), toLabel(SURE, ABSOLUTELY_NOT_DOUBLE)),
   ];
 
   function check() {
@@ -51,13 +54,7 @@ function F362(xmlJsrecord1, xmlJsrecord2) {
       const valueA = select(record1);
       const valueB = select(record2);
 
-      const result = compare(valueA, valueB);
-      
-      if (result === null) {
-        return null;
-      } else {
-        return result ? Labels.SURE : Labels.SURELY_NOT;
-      }
+      return compare(valueA, valueB);
     });
     return features;
   }

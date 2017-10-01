@@ -2,7 +2,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 const { Labels } = require('./constants');
-const { SURE, SURELY_NOT } = Labels;
+const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
 
 const MarcRecord = require('marc-record-js');
 const Utils = require('./utils');
@@ -73,7 +73,7 @@ describe('feature-F028', function() {
     tests.forEach(test => {
       it('should return SURE', () => {
         primeRecords(test[0], test[1]);
-        expect(runExtractor()).to.eql([SURELY_NOT, SURE, null], `${test[0]} - ${test[1]}`);
+        expect(runExtractor()).to.eql([ABSOLUTELY_NOT_DOUBLE, SURE, null], `${test[0]} - ${test[1]}`);
       });
     });
   });

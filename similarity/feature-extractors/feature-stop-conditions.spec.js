@@ -98,6 +98,27 @@ describe('stop conditions', function() {
     expect(runExtractor()[2]).to.eql(ABSOLUTELY_NOT_DOUBLE);
   });
 
-  
+  it('should return ABSOLUTELY_NOT_DOUBLE if years and publishers are different and neither has 250 fields', () => {
+    
+    record1.appendField(Utils.stringToField('008    890915s1972^^^^xxk|||||||||||||||||eng||'));
+    record1.appendField(Utils.stringToField('260    ‡aLondon,‡c1972.'));
+    
+    record2.appendField(Utils.stringToField('008    901016s1973^^^^xx^|||||||||||||||||eng||'));
+    record2.appendField(Utils.stringToField('260    ‡aCambridge :‡bCambridge Univ. Pr.,‡c1973.'));
+    
+    expect(runExtractor()[3]).to.eql(ABSOLUTELY_NOT_DOUBLE);
+  });
 
+
+  it('should return ABSOLUTELY_NOT_DOUBLE if years are before 1972 and publication places differ', () => {
+    
+    record1.appendField(Utils.stringToField('008    890915s1962^^^^xxk|||||||||||||||||eng||'));
+    record1.appendField(Utils.stringToField('260    ‡aLondon,‡c1962.'));
+    
+    record2.appendField(Utils.stringToField('008    901016s1962^^^^xx^|||||||||||||||||eng||'));
+    record2.appendField(Utils.stringToField('260    ‡aCambridge :‡bCambridge Univ. Pr.,‡c1962.'));
+    
+    expect(runExtractor()[4]).to.eql(ABSOLUTELY_NOT_DOUBLE);
+  });
+  
 });

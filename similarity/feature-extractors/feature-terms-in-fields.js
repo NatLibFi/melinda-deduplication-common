@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { Labels } = require('./constants');
+const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
 
 const {
   fromXMLjsFormat,
@@ -41,21 +42,45 @@ viulu
 const sentenceToWords = sentence => _.isString(sentence) ? sentence.split(' ') : sentence;
 const pick = terms => list => _.isArray(list) ? list.filter(str => terms.includes(str)) : list;
 
+const bothInclude = (terms) => (valuesA=[], valuesB=[]) => {
+  
+  const listsHaveIdenticalItem = (comparator, list1, list2) => list1.some(value1 => list2.some(value2 => comparator(value1, value2)));
+  const substringComparator = (a,b) => a.includes(b) || b.includes(a);
+
+  const listContainsTerm = _.partial(listsHaveIdenticalItem, substringComparator, terms);
+
+  const aIncluded = listContainsTerm(valuesA);
+  const bIncluded = listContainsTerm(valuesB);
+
+  const both = aIncluded && bIncluded;
+  const either = aIncluded || bIncluded;
+  const neither = !either;
+
+  return both || neither;
+};
+
 function TermsInFields(xmlJsrecord1, xmlJsrecord2) {
 
   const record1 = fromXMLjsFormat(xmlJsrecord1);
   const record2 = fromXMLjsFormat(xmlJsrecord2);
 
-  const featureNames = ['instrumentation-terms-500a'];
+  const featureNames = ['instrumentation-terms-500a', 'thesis'];
 
   // Selectors
   const instrumentationTerms500A = _.flow(selectValue('500', 'a'), normalizeWith(normalizeText, expandAlias, sentenceToWords, pick(instrumentationTerms)));
   
-  const selectors = [instrumentationTerms500A];
+  const progradu = _.flow(selectValue('509', 'a'), normalizeWith(normalizeText, expandAlias));
+  const dissertation = _.flow(selectValue('502', 'a'), normalizeWith(normalizeText, expandAlias));
+  const thesis = record => _.concat(progradu(record), dissertation(record)).filter(item => item.length > 0);
+
+  const selectors = [instrumentationTerms500A, thesis];
 
   // Comparators
+  const toLabel = (t,f) => val => val === null ? null : val ? t : f;
+
   const comparators = [
-    forMissingFeature(null, isSubset)
+    _.flow(forMissingFeature(null, isSubset), toLabel(SURE, SURELY_NOT)),
+    _.flow( bothInclude(['pro gradu', 'väitöskirja'].map(normalizeText)) , toLabel(SURE, ABSOLUTELY_NOT_DOUBLE))
   ];
 
   function check() {
@@ -64,13 +89,7 @@ function TermsInFields(xmlJsrecord1, xmlJsrecord2) {
       const valueA = select(record1);
       const valueB = select(record2);
 
-      const result = compare(valueA, valueB);
-
-      if (result === null) {
-        return null;
-      } else {
-        return result ? Labels.SURE : Labels.SURELY_NOT;
-      }
+      return compare(valueA, valueB);
     });
     return features;
   }

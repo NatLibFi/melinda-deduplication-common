@@ -13,12 +13,17 @@ const {
 
 function ISSN(record1, record2) {
   
-  var fields1 = select(['022..a'], record1);
-  var fields2 = select(['022..a'], record2);
+  var fields1 = select(['022..ay'], record1);
+  var fields2 = select(['022..ay'], record2);
 
   var normalized1 = normalize( clone(fields1) , ['delChars(":-")', 'trimEnd', 'upper']);
   var normalized2 = normalize( clone(fields2) , ['delChars(":-")', 'trimEnd', 'upper']);
+  
+  const setSubcodes = code => field => field.subfield.forEach(sub => sub.$.code = code);
 
+  normalized1.forEach(setSubcodes('a'));
+  normalized2.forEach(setSubcodes('a'));
+  
   var removeISSNFromOldRecord = actOnPublicationDate(1974, removeSubfields(subCode('a')));
   removeISSNFromOldRecord(record1, fields1, normalized1);
   removeISSNFromOldRecord(record2, fields2, normalized2);
@@ -46,8 +51,6 @@ function ISSN(record1, record2) {
     if (!hasSubfield(set1, 'a') || !hasSubfield(set2, 'a')) {
       return null;
     } 
-
-  
 
     //if the sets are identical, we are sure 
     if (compareFuncs.isIdentical(set1, set2)) {

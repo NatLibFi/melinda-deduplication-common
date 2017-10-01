@@ -43,7 +43,7 @@ function sarjat(record1, record2) {
 
     //if other is missing, then we skip the step
     if (set1.length === 0 || set2.length === 0) {
-      return null;
+      return Labels.SURELY_NOT;
     }
 
     var wholeFieldComparator = function(field1, field2) {
