@@ -9,7 +9,7 @@ const Utils = require('./utils');
 
 const createExtractor = require('./feature-bundle-note');
 
-describe('feature-bundle-note', function() {
+describe.only('feature-bundle-note', function() {
 
   let record1;
   let record2;
@@ -57,6 +57,21 @@ describe('feature-bundle-note', function() {
     expect(runExtractor()).to.eql(ABSOLUTELY_NOT_DOUBLE);
   });
 
+  it('it should return ABSOLUTELY_NOT_DOUBLE for if only other record has field with substring "sido"', () => {
+    primeRecords(
+      '500    ‡aSamassa nidoksessa yhteensidottu: Reigin pappi (1926).',
+      '500    ‡aLubbadubba'
+    );
+    expect(runExtractor()).to.eql(ABSOLUTELY_NOT_DOUBLE);
+  });
+  it('it should return ABSOLUTELY_NOT_DOUBLE for if only other record has field 500 ', () => {
+    primeRecords(
+      '500    ‡aSamassa nidoksessa yhteensidottu: Reigin pappi (1926).'
+    );
+    expect(runExtractor()).to.eql(ABSOLUTELY_NOT_DOUBLE);
+  });
+
+  
 });
 
 

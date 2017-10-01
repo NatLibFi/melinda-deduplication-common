@@ -26,7 +26,7 @@ function bundleNote(xmlJsrecord1, xmlJsrecord2) {
 
   function check() {
 
-    if (!isValid(notesA) || !isValid(notesB)) {
+    if (!isValid(notesA) && !isValid(notesB)) {
       return null;
     }
 
