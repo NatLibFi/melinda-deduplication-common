@@ -39,6 +39,21 @@ vihuela
 viulu
 `.split('\n').filter(_.identity).map(normalizeText);
 
+const thesisTerms = `
+Lisensiaat
+Pro gradu
+Lic
+Ekon avh
+Opinnäyte
+Päättötyö
+Lopputyö
+Diplomityö
+thesis
+kand
+Diss
+väitösk
+`.split('\n').filter(_.identity).map(normalizeText);
+
 const sentenceToWords = sentence => _.isString(sentence) ? sentence.split(' ') : sentence;
 const pick = terms => list => _.isArray(list) ? list.filter(str => terms.includes(str)) : list;
 
@@ -80,7 +95,7 @@ function TermsInFields(xmlJsrecord1, xmlJsrecord2) {
 
   const comparators = [
     _.flow(forMissingFeature(null, isSubset), toLabel(SURE, SURELY_NOT)),
-    _.flow( bothInclude(['pro gradu', 'väitöskirja'].map(normalizeText)) , toLabel(SURE, ABSOLUTELY_NOT_DOUBLE))
+    _.flow( bothInclude(thesisTerms) , toLabel(SURE, ABSOLUTELY_NOT_DOUBLE))
   ];
 
   function check() {
