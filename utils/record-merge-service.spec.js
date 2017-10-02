@@ -10,7 +10,7 @@ import fs from 'fs';
 const mergeConfiguration = require('../default-configs/merge-config');
 const componentRecordMatcherConfiguration = require('../default-configs/component-record-similarity-definition.js');
 
-const { createRecordMergeService, MergeabilityClass } = require('./record-merge-service');
+const { createRecordMergeService } = require('./record-merge-service');
 
 const TEST_CASE_SEPARATOR = '\n\n\n\n';
 

@@ -1,4 +1,3 @@
-var _ = require('lodash');
 var sprintf = require('sprintf').sprintf;
 var unorm = require('unorm');
 var toArabic = require('roman-numerals').toArabic;
@@ -334,7 +333,7 @@ function fieldToString(field) {
 }
 
 RegExp.escape= function(s) {
-  return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  return s.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
 };
 
 module.exports = {

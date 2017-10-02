@@ -1,6 +1,5 @@
 var compareFuncs = require('./core.compare');
 const { Labels } = require('./constants');
-const _ = require('lodash');
 
 const {
   fromXMLjsFormat

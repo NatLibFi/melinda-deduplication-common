@@ -2,7 +2,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 const { Labels } = require('./constants');
-const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
+const { SURE, ABSOLUTELY_NOT_DOUBLE } = Labels;
 
 const MarcRecord = require('marc-record-js');
 const Utils = require('./utils');

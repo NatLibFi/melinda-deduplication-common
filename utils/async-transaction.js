@@ -49,17 +49,17 @@ export function executeTransaction(sequence, additionalRollbackActions) {
 
     return function() {
       return fn.action()
-      .then(function(result) {
-        if (fn.rollback) {
-          rollbacks.unshift(fn.rollback.bind(null, result));
-        }
-        return result;
-      })
-      .catch(function(error) {
+        .then(function(result) {
+          if (fn.rollback) {
+            rollbacks.unshift(fn.rollback.bind(null, result));
+          }
+          return result;
+        })
+        .catch(function(error) {
         //Add rollbackinfo to error
-        error.rollbacks = rollbacks;        
-        throw error;
-      });
+          error.rollbacks = rollbacks;        
+          throw error;
+        });
 
     };
   }

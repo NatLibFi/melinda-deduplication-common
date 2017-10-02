@@ -100,7 +100,7 @@ function TermsInFields(xmlJsrecord1, xmlJsrecord2) {
 
   function check() {
 
-    const features = _.zip(selectors, comparators).map(([select, compare], i) => {
+    const features = _.zip(selectors, comparators).map(([select, compare]) => {
       const valueA = select(record1);
       const valueB = select(record2);
 

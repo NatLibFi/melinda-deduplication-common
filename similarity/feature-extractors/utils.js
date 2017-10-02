@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const normalizeFuncs = require('./core.normalize');
 const compareFuncs = require('./core.compare');
 const filterFuncs = require('./core.filter');
 const MarcRecord = require('marc-record-js');
@@ -278,7 +277,7 @@ function getField(set, selector) {
   
   if (fields.length > 1) {
     
-    console.log('\nWarning: has multiple ' + selector + ':');
+    //    console.log('\nWarning: has multiple ' + selector + ':');
 
   }
   if (fields.length === 0) {
@@ -510,7 +509,7 @@ const flattenFields = fields => _.flatMap(fields, field => {
   return field;
 });
 
-const selectYears = (sentence) => _.isString(sentence) ? sentence.split(/\D/).filter(isYear).join(' ') : sentence;
+//const selectYears = (sentence) => _.isString(sentence) ? sentence.split(/\D/).filter(isYear).join(' ') : sentence;
 
 // keeps only words that are 4 characters long and between 1000 and 2100 (exclusive)
 function isYear(param) {

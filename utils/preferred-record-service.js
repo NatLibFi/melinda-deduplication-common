@@ -1,7 +1,6 @@
 // @flow
 
 import type { PreferredRecordService } from 'types/preferred-record-service.flow';
-import type { Logger } from 'types/logger.flow';
 
 const _ = require('lodash');
 const synaptic = require('synaptic');

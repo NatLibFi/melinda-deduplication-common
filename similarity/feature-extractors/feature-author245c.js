@@ -45,9 +45,9 @@ function author245c(record1, record2) {
     }
 
     const getValue = (set) => _.get(set, '[0].subfield', []).map(sub => sub._).join(' ');
-    const isSubset = (subset, superset) => _.difference(subset, superset).length === 0;
+    //const isSubset = (subset, superset) => _.difference(subset, superset).length === 0;
     const isSubsetWith = (subset, superset, comparator) => _.differenceWith(subset, superset, comparator).length === 0;
-    const isIdentical = (set1, set2) => isSubset(set1, set2) && isSubset(set2, set1);
+    //const isIdentical = (set1, set2) => isSubset(set1, set2) && isSubset(set2, set1);
     const startsWithComparator = (wordA, wordB) =>  wordA.startsWith(wordB) || wordB.startsWith(wordA);
     const generateAbbrevations = (str) => str.split(' ').map((word, index, arr) => {
       const abbreviation = word.substr(0,1);
