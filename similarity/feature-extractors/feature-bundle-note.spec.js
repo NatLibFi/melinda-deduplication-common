@@ -9,7 +9,7 @@ const Utils = require('./utils');
 
 const createExtractor = require('./feature-bundle-note');
 
-describe.only('feature-bundle-note', function() {
+describe('feature-bundle-note', function() {
 
   let record1;
   let record2;
