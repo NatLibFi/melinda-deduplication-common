@@ -86,6 +86,27 @@ function chunkWithWindow(list, windowSize) {
   }, []);
 }
 
+function parseTime(time) {
+  const [hour, minute] = time.split(':').map(numStr => parseInt(numStr));
+  return hour * 60 + minute;
+}
+
+function getCurrentTime() {
+  const time = new Date();
+  return `${time.getHours()}:${time.getMinutes()}`;
+}
+
+function parseTimeRanges(timeRanges) {
+  return timeRanges.split(',').map(rangeStr => {
+    const [from, to] = rangeStr.trim().split('-');
+    
+    return { 
+      from: parseTime(from),
+      to: parseTime(to)
+    };
+  });
+}
+
 module.exports = {
   decorateConnectionWithDebug,
   readEnvironmentVariable,
@@ -94,5 +115,8 @@ module.exports = {
   hrtimeToMs,
   waitAndRetry,
   chunkWithWindow,
-  msToTime
+  msToTime,
+  parseTimeRanges,
+  getCurrentTime,
+  parseTime
 };
