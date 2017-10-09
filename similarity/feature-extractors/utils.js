@@ -2,6 +2,7 @@ const _ = require('lodash');
 const compareFuncs = require('./core.compare');
 const filterFuncs = require('./core.filter');
 const MarcRecord = require('marc-record-js');
+const normalizeFuncs = require('./core.normalize'); //eslint-disable-line
 
 function normalize(param, normalizerArray, options) {
   options = options || {};
