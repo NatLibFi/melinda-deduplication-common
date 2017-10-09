@@ -93,7 +93,7 @@ function parseTime(time) {
 
 function getCurrentTime() {
   const time = new Date();
-  return `${time.getHours()}:${time.getMinutes()}`;
+  return `${time.getHours()}:${_.padStart(time.getMinutes(), 2, '0')}`;
 }
 
 function parseTimeRanges(timeRanges) {
