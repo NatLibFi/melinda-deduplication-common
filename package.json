@@ -10,7 +10,7 @@
   "author": "Pasi Tuominen <pasi.tuominen@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "@natlibfi/marc-record-merge": "3.1.0",
+    "@natlibfi/marc-record-merge": "3.3.0",
     "es6-promisify": "^5.0.0",
     "json-similarity": "^1.0.1",
     "lodash": "^4.17.4",
