@@ -12,11 +12,8 @@
   "license": "LGPL-3.0+",
   "version": "1.0.2",
   "main": "./dist/index",
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "prepublishOnly": "npm run build",
+    "prepare": "npm run build",
     "lint": "eslint --fix src",
     "clean:build": "rimraf dist",
     "build": "npm run clean:build && babel src -d dist",
