@@ -13,7 +13,7 @@
   "version": "1.0.1",
   "main": "./dist/index",
   "files": [
-    "./dist"
+    "dist"
   ],
   "scripts": {
     "prepublishOnly": "npm run build",
