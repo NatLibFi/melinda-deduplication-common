@@ -12,6 +12,7 @@
   "license": "LGPL-3.0+",
   "version": "1.0.0",
   "main": "./dist/index",
+  "files": ["./dist"],
   "scripts": {
     "prepublishOnly": "npm run build",
     "lint": "eslint --fix src",
@@ -20,7 +21,7 @@
     "test": "npm run lint && npm run test:unit && flow",
     "test:unit": "NODE_ENV=test mocha  --compilers js:babel-register src/**/*.spec.js",
     "test:watch": "NODE_ENV=test mocha  --compilers js:babel-register src/**/*.spec.js -w",
-    "publish-to-npm": "npm test && npm publish --access=public"
+    "publish-to-npm": "npm install && npm test && npm publish --access=public"
   },
   "dependencies": {
     "@natlibfi/marc-record-merge": "3.3.0",
