@@ -49,7 +49,7 @@
     "@natlibfi/melinda-deduplication-datastore": "^1.0.0",
     "@natlibfi/melinda-deduplication-listener": "^1.0.0",
     "@natlibfi/melinda-deduplication-merge": "^1.0.0",
-    "@natlibfi/melinda-deduplication-validate": "^1.0.0",
+    "@natlibfi/melinda-deduplication-validate": "^1.0.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
