@@ -45,6 +45,12 @@
     "wuzzy": "^0.1.3",
     "xml2js": "^0.4.17"
   },
+  "peerDependencies": {
+    "@natlibfi/melinda-deduplication-datastore": "^1.0.0",
+    "@natlibfi/melinda-deduplication-listener": "^1.0.0",
+    "@natlibfi/melinda-deduplication-merge": "^1.0.0",
+    "@natlibfi/melinda-deduplication-validate": "^1.0.0",
+  },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-eslint": "^7.2.3",

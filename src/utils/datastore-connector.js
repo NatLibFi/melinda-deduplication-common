@@ -38,9 +38,9 @@ function createDataStoreConnector(datastoreAPI: string, options: any): DataStore
 
   const logger = _.get(options, 'logger', DEFAULT_LOGGER);
 
-  async function saveRecord(base, recordId, record) {
+  async function saveRecord(base, recordId, record, changeType, changeTimestamp) {
     
-    const url = `${datastoreAPI}/record/${base}/${recordId}`;
+    const url = `${datastoreAPI}/record/${base}/${recordId}?changeType=${changeType}&changeTimestamp=${changeTimestamp}`;
     logger.log('info', `Saving record to url: ${url}`);
     debug(`Record:\n${record.toString()}`);
     const result = await fetch(url, { 
