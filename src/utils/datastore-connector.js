@@ -31,16 +31,18 @@ import type { DataStoreConnector } from '../types/datastore-connector.flow';
 const _ = require('lodash');
 const fetch = require('node-fetch');
 const MarcRecord = require('marc-record-js');
+const moment = require('moment');
 const DEFAULT_LOGGER = require('./logger');
 const debug = require('debug')('datastore-connector');
+const DATASTORE_CHANGE_TIMESTAMP_FORMAT = 'YYYY-MM-DDTHH:mm:ss.SS';
 
 function createDataStoreConnector(datastoreAPI: string, options: any): DataStoreConnector {
 
   const logger = _.get(options, 'logger', DEFAULT_LOGGER);
 
   async function saveRecord(base, recordId, record, changeType, changeTimestamp) {
-    
-    const url = `${datastoreAPI}/record/${base}/${recordId}?changeType=${changeType}&changeTimestamp=${changeTimestamp}`;
+    const changeTimestampString = moment(changeTimestamp).format(DATASTORE_CHANGE_TIMESTAMP_FORMAT);
+    const url = `${datastoreAPI}/record/${base}/${recordId}?changeType=${changeType}&changeTimestamp=${changeTimestampString}}`;
     logger.log('info', `Saving record to url: ${url}`);
     debug(`Record:\n${record.toString()}`);
     const result = await fetch(url, { 
@@ -126,5 +128,6 @@ function InvalidRecordError(reason) {
 
 
 module.exports = {
+  DATASTORE_CHANGE_TIMESTAMP_FORMAT,
   createDataStoreConnector
 };
