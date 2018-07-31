@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,13 +27,12 @@
  **/
 
 // @flow
-
-import type { DuplicateCandidate } from './duplicate-candidate.flow';
+import {type DuplicateCandidate} from './duplicate-candidate.flow';
 
 export type CandidateDoneCallback = () => mixed;
 export type OnCandidate = (candidate: DuplicateCandidate, done: CandidateDoneCallback) => mixed;
 
 export type CandidateQueueConnector = {
-  pushCandidates: (duplicateCandidates: Array<DuplicateCandidate>) => Promise<any>,
+  pushCandidates: (duplicateCandidates: DuplicateCandidate[]) => Promise<any>,
   listenForCandidates: (onCandidate: OnCandidate) => Promise<any>
 };

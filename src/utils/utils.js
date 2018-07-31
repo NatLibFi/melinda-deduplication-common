@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -30,16 +31,14 @@
 const _ = require('lodash');
 
 function decorateConnectionWithDebug(connection) {
-
   const actualExecute = connection.execute;
-  connection.execute = function() {
-    console.log('DEBUG-SQL', `'${arguments[0]}'`, arguments[1]); //eslint-disable-line no-console
+  connection.execute = function () {
+    console.log('DEBUG-SQL', `'${arguments[0]}'`, arguments[1]); // eslint-disable-line no-console
     return actualExecute.apply(this, arguments);
   };
 }
 
 function readEnvironmentVariable(name, defaultValue, opts) {
-
   if (process.env[name] === undefined) {
     if (defaultValue === undefined) {
       const message = `Mandatory environment variable missing: ${name}`;
@@ -59,7 +58,7 @@ function readArrayEnvironmentVariable(name, defaultValue, opts) {
 
 function sequence(funcs) {
   return funcs.reduce((promise, func) => {
-    return promise.then((all) => func().then(result => _.concat(all, result)));
+    return promise.then(all => func().then(result => _.concat(all, result)));
   }, Promise.resolve([]));
 }
 
@@ -67,7 +66,7 @@ function hrtimeToMs(hrtime) {
   const NS_PER_SEC = 1e9;
   const ns = hrtime[0] * NS_PER_SEC + hrtime[1];
 
-  return Math.round(ns/1000000);
+  return Math.round(ns / 1000000);
 }
 
 function msToTime(ms) {
@@ -81,12 +80,12 @@ function msToTime(ms) {
   return `${hours}:${mins}:${secs}`;
 }
 
-function waitAndRetry(fn, onRetry, wait=3000) {
+function waitAndRetry(fn, onRetry, wait = 3000) {
   let retryCount = 0;
   const retryFn = async function retry() {
     try {
       return await fn();
-    } catch(error) {
+    } catch (error) {
       retryCount++;
       if (retryCount === 3) {
         throw error;
@@ -109,7 +108,7 @@ function chunkWithWindow(list, windowSize) {
       listOfLists.push(_.clone(memory));
       memory.shift();
     }
-    
+
     return listOfLists;
   }, []);
 }
@@ -127,8 +126,8 @@ function getCurrentTime() {
 function parseTimeRanges(timeRanges) {
   return timeRanges.split(',').map(rangeStr => {
     const [from, to] = rangeStr.trim().split('-');
-    
-    return { 
+
+    return {
       from: parseTime(from),
       to: parseTime(to)
     };

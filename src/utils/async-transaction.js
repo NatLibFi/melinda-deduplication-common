@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,42 +27,37 @@
  *
  **/
 
-
 export function executeTransaction(sequence, additionalRollbackActions) {
+  const additionalRollbacksToRun = additionalRollbackActions || [];
 
-  var additionalRollbacksToRun = additionalRollbackActions || [];
-
-  var rollbacks = [];
+  const rollbacks = [];
 
   return new Promise((resolve, reject) => {
-
-    var chain;
+    let chain;
     const results = [];
-    sequence.forEach(function(transactionStepDefinition, i) {
-      
+    sequence.forEach((transactionStepDefinition, i) => {
       if (i === 0) {
         chain = step(transactionStepDefinition)();
       } else {
-        chain = chain.then((result) => {
+        chain = chain.then(result => {
           results.push(result);
           return step(transactionStepDefinition)();
         });
       }
     });
 
-    chain.then(function(lastResult) {
+    chain.then(lastResult => {
       results.push(lastResult);
       resolve(results);
-    }).catch(function(error) {
-      
-      var rollbacksToRun = error.rollbacks || [];
+    }).catch(error => {
+      let rollbacksToRun = error.rollbacks || [];
       rollbacksToRun = rollbacksToRun.concat(additionalRollbacksToRun);
 
       if (rollbacksToRun.length > 0) {
-        // do a rollback
-      
+        // Do a rollback
+
         executeRollbacks(rollbacksToRun)
-          .then(() => reject(error)) // error, but rollback was success
+          .then(() => reject(error)) // Error, but rollback was success
           .catch(error => {
             const rollbackError = new RollbackError(error.message);
             reject(rollbackError);
@@ -72,33 +68,30 @@ export function executeTransaction(sequence, additionalRollbackActions) {
     });
   });
 
-  // transaction step
+  // Transaction step
   function step(fn) {
-
-    return function() {
+    return function () {
       return fn.action()
-        .then(function(result) {
+        .then(result => {
           if (fn.rollback) {
             rollbacks.unshift(fn.rollback.bind(null, result));
           }
           return result;
         })
-        .catch(function(error) {
-        //Add rollbackinfo to error
-          error.rollbacks = rollbacks;        
+        .catch(error => {
+          // Add rollbackinfo to error
+          error.rollbacks = rollbacks;
           throw error;
         });
-
     };
   }
 }
 
 function executeRollbacks(rollbackSequence) {
-  
   return new Promise((resolve, reject) => {
     const inital = Promise.resolve();
 
-    rollbackSequence.reduce(function (acc, rollbackFn) {
+    rollbackSequence.reduce((acc, rollbackFn) => {
       return acc.then(() => rollbackFn()).catch(e => reject(e));
     }, inital).then(resolve);
   });

@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,9 +28,9 @@
  **/
 
 const _ = require('lodash');
+const MarcRecord = require('marc-record-js');
 const compareFuncs = require('./core.compare');
 const filterFuncs = require('./core.filter');
-const MarcRecord = require('marc-record-js');
 const normalizeFuncs = require('./core.normalize'); //eslint-disable-line
 
 function normalize(param, normalizerArray, options) {
@@ -43,8 +44,7 @@ function singleNormalize(options) {
       return normalizer.call(this, param, options);
     }
     if (_.isString(normalizer)) {
-      
-      var func = eval(`normalizeFuncs.${normalizer}`);
+      const func = eval(`normalizeFuncs.${normalizer}`);
       return func.call(this, param, options);
     }
   };
@@ -60,29 +60,25 @@ function compare(comparator, param1, param2) {
 }
 
 function select(selectors, record) {
-  var selections = _.flattenDeep( _.map(selectors, filter(record)) );
-  
+  const selections = _.flattenDeep(_.map(selectors, filter(record)));
+
   return selections;
 }
 
 function filter(record) {
-  return function(selector) {
-    
+  return function (selector) {
     if (_.isFunction(selector)) {
       return selector.call(this, record);
     }
-    
+
     if (_.isString(selector)) {
-      
       try {
-        var func = eval(selector);
-        
+        const func = eval(selector);
+
         return func.call(null, selector, record);
-      } catch(e) {
-        
+      } catch (e) {
         return filterFuncs.stringSelector(selector, record);
       }
-      
     }
   };
 }
@@ -92,11 +88,11 @@ function clone(a) {
 }
 
 function hasSubfield(set, codes) {
-  var codeList = codes.split('');
+  const codeList = codes.split('');
 
-  var has = false;
-  set.forEach(function(field) {
-    field.subfield.forEach(function (sub) {
+  let has = false;
+  set.forEach(field => {
+    field.subfield.forEach(sub => {
       if (codeList.indexOf(sub.$.code) !== -1) {
         has = true;
       }
@@ -106,16 +102,19 @@ function hasSubfield(set, codes) {
 }
 
 function getSubfield(field, code) {
-  var subfields = getSubfields(field,code);
-  if (subfields.length > 1) throw new Error('Record has multiple subfields of code: ' + code);
+  const subfields = getSubfields(field, code);
+  if (subfields.length > 1) {
+    throw new Error('Record has multiple subfields of code: ' + code);
+  }
   return subfields[0];
 }
 
 function getSubfields(field, code) {
-  var subfields = field.subfield.filter(function(subfield) { return subfield.$.code == code; });
-  return _.map(subfields,'_');
+  const subfields = field.subfield.filter(subfield => {
+    return subfield.$.code == code;
+  });
+  return _.map(subfields, '_');
 }
-
 
 function fieldToString(field) {
   if (field && field.subfields) {
@@ -123,36 +122,34 @@ function fieldToString(field) {
     const ind2 = field.ind2 || ' ';
     const subfields = field.subfields.map(subfield => `‡${subfield.code}${subfield.value}`).join('');
     return `${field.tag} ${ind1}${ind2} ${subfields}`;
-  } else {
-    return `${field.tag}    ${field.value}`;
   }
+  return `${field.tag}    ${field.value}`;
 }
 
 function stringToField(fieldStr) {
-  const tag = fieldStr.substr(0,3);
+  const tag = fieldStr.substr(0, 3);
   if (parseInt(tag) < 10) {
     const value = fieldStr.substr(7);
-    return { tag, value };
+    return {tag, value};
   }
-  const ind1 = fieldStr.substr(4,1);
-  const ind2 = fieldStr.substr(5,1);
+  const ind1 = fieldStr.substr(4, 1);
+  const ind2 = fieldStr.substr(5, 1);
   const subfieldsStr = fieldStr.substr(6);
-  
+
   const subfields = _.tail(subfieldsStr.split('‡')).map(subfieldStr => ({
-    code: subfieldStr.substr(0,1),
+    code: subfieldStr.substr(0, 1),
     value: subfieldStr.substr(1)
   }));
 
-  return { tag, ind1, ind2, subfields };
+  return {tag, ind1, ind2, subfields};
 }
 
 function generateField(tag, subcode, content) {
-
-  var field = {
-    '$': {
-      tag: tag
+  const field = {
+    $: {
+      tag
     },
-    'subfield': []
+    subfield: []
   };
 
   if (_.isArray(content)) {
@@ -165,22 +162,21 @@ function generateField(tag, subcode, content) {
 
   function addSubfield(content) {
     field.subfield.push({
-      '$': { code: subcode },
-      '_': content
+      $: {code: subcode},
+      _: content
     });
   }
 }
 
 function createField(tag, subcode) {
-  return function(fieldContent) {
+  return function (fieldContent) {
     return generateField(tag, subcode, fieldContent);
   };
 }
 
-
 function removeSubfields(func) {
-  return function(field) {
-    field.subfield = field.subfield.filter(function(subfield) {
+  return function (field) {
+    field.subfield = field.subfield.filter(subfield => {
       return !func(subfield);
     });
   };
@@ -190,28 +186,27 @@ function convertToISBN13(isbn) {
   if (isbn === undefined || isbn.length !== 10) {
     return isbn;
   }
-  return addISBN13CheckDigit('978' + isbn.substring(0,9) );
+  return addISBN13CheckDigit('978' + isbn.substring(0, 9));
 }
-
 
 function addISBN13CheckDigit(isbn) {
   if (isbn.length != 12) {
     throw new Error('ISBN13CheckDigit can only handle ISBN13 (without check digit)');
   }
 
-  var sum = isbn.split('').reduce(function(memo, val, i) {
-    var num = parseInt(val, 10);
-    
-    if (i%2 == 0) {
+  const sum = isbn.split('').reduce((memo, val, i) => {
+    const num = parseInt(val, 10);
+
+    if (i % 2 == 0) {
       memo += num;
     } else {
-      memo += num*3;
+      memo += num * 3;
     }
 
     return memo;
   }, 0);
 
-  var checkDigit = 10 - (sum%10);
+  let checkDigit = 10 - (sum % 10);
 
   if (checkDigit == 10) {
     checkDigit = 0;
@@ -219,32 +214,30 @@ function addISBN13CheckDigit(isbn) {
   isbn += checkDigit;
 
   return isbn;
-
 }
 
-
 function dateOfPublication(record) {
-
-  var fields1 = select(['260..c'], record);
+  let fields1 = select(['260..c'], record);
 
   if (fields1.length == 0) {
+    const rec1_008 = _(record.controlfield).find(f => {
+      return f.$.tag == '008';
+    });
 
-    var rec1_008 = _(record.controlfield).find(function(f) {return f.$.tag == '008'; } );
-    
     if (rec1_008 === undefined) {
       throw new Error('Field 008 missing from record.');
     }
-    
-    var fields_from_008_1 = [rec1_008._.substr(7,4), rec1_008._.substr(11,4)].map(createField('008','a'));
-    
+
+    const fields_from_008_1 = [rec1_008._.substr(7, 4), rec1_008._.substr(11, 4)].map(createField('008', 'a'));
+
     fields1 = fields1.concat(fields_from_008_1);
   }
 
-  var normalized1 = normalize( fields1 , ['onlyYearNumbers', 'removeEmpty']);
-  
-  var set1 = normalized1;
+  const normalized1 = normalize(fields1, ['onlyYearNumbers', 'removeEmpty']);
 
-  set1 = set1.map(function(field) {
+  let set1 = normalized1;
+
+  set1 = set1.map(field => {
     return _.map(field.subfield, '_');
   });
   set1 = _.chain(set1).flattenDeep().uniq().value();
@@ -254,18 +247,16 @@ function dateOfPublication(record) {
   }
 
   return _.max(set1);
-
 }
 
-
 function subCode(subcode) {
-  return function(subfield) {
+  return function (subfield) {
     return (subfield.$.code == subcode);
   };
 }
 
 function actOnPublicationDate(year, action) {
-  return function(record, fields, normalized) {
+  return function (record, fields, normalized) {
     if (dateOfPublication(record) < year) {
       normalized.forEach(action);
       fields.push(generateField(999, 'a', dateOfPublication(record)));
@@ -273,48 +264,44 @@ function actOnPublicationDate(year, action) {
   };
 }
 
-
 function getFields(set, selector) {
+  const tag = selector.substr(0, 3);
+  const subcode = selector.substr(3, 1);
 
-  var tag = selector.substr(0,3);
-  var subcode = selector.substr(3,1);
-
-  var fields = set.filter(function(field) {
+  const fields = set.filter(field => {
     return field.$.tag == tag;
   });
-  
-  var retFields = clone(fields);
-  retFields.forEach(function(field) {
-    var subfields = field.subfield.filter(function(subfield) {
+
+  const retFields = clone(fields);
+  retFields.forEach(field => {
+    const subfields = field.subfield.filter(subfield => {
       return subfield.$.code == subcode;
     });
 
     field.subfield = subfields;
-
   });
   return retFields;
-
 }
 
 function getField(set, selector) {
-  var tag = selector.substr(0,3);
-  var subcode = selector.substr(3,1);
+  const tag = selector.substr(0, 3);
+  const subcode = selector.substr(3, 1);
 
-  var fields = set.filter(function(field) {
+  const fields = set.filter(field => {
     return field.$.tag == tag;
   });
-  
+
   if (fields.length > 1) {
-    
-    //    console.log('\nWarning: has multiple ' + selector + ':');
+
+    //    Console.log('\nWarning: has multiple ' + selector + ':');
 
   }
   if (fields.length === 0) {
     return undefined;
   }
-  var ret = clone(fields[0]);
-  
-  ret.subfield = ret.subfield.filter(function(subfield) {
+  const ret = clone(fields[0]);
+
+  ret.subfield = ret.subfield.filter(subfield => {
     return subfield.$.code == subcode;
   });
 
@@ -324,18 +311,17 @@ function getField(set, selector) {
   if (ret.subfield.length === 0) {
     return undefined;
   }
-  return ret.subfield[0]._; 
+  return ret.subfield[0]._;
 }
 
 function parseISBN(fields) {
-  fields.forEach(function(field) {
-  
-    var subfields = [];
+  fields.forEach(field => {
+    const subfields = [];
 
-    field.subfield.forEach(function(subfield) {
-      var matches;
+    field.subfield.forEach(subfield => {
+      let matches;
 
-      matches = /([0-9]{13})/.exec(subfield._);
+      matches = /(\d{13})/.exec(subfield._);
       if (matches !== null) {
         subfield._ = matches[1];
         subfields.push(subfield);
@@ -344,12 +330,9 @@ function parseISBN(fields) {
 
       matches = /([0-9X]{10})/.exec(subfield._);
       if (matches !== null) {
-
         subfield._ = convertToISBN13(matches[1]);
         subfields.push(subfield);
-        return;
       }
-      
     });
     field.subfield = subfields;
   });
@@ -358,8 +341,7 @@ function parseISBN(fields) {
 }
 
 function toxmljsFormat(marcRecord) {
-
-  var xmljsFormat = {
+  const xmljsFormat = {
     leader: marcRecord.leader,
     controlfield: marcRecord.getControlfields().map(controlfieldFormatter),
     datafield: marcRecord.getDatafields().map(datafieldFormatter)
@@ -368,7 +350,6 @@ function toxmljsFormat(marcRecord) {
   return xmljsFormat;
 
   function controlfieldFormatter(field) {
-
     return {
       $: {
         tag: field.tag
@@ -377,7 +358,6 @@ function toxmljsFormat(marcRecord) {
     };
   }
   function datafieldFormatter(field) {
-  
     return {
       $: {
         tag: field.tag,
@@ -391,7 +371,7 @@ function toxmljsFormat(marcRecord) {
   function subfieldFormatter(subfield) {
     return {
       $: {
-        code: subfield.code,
+        code: subfield.code
       },
       _: subfield.value
     };
@@ -399,7 +379,6 @@ function toxmljsFormat(marcRecord) {
 }
 
 function fromXMLjsFormat(xmljsRecord) {
-  
   const controlFields = xmljsRecord.controlfield.map(f => ({tag: f.$.tag, value: f._}));
   const dataFields = xmljsRecord.datafield.map(f => {
     const tag = f.$.tag;
@@ -408,28 +387,27 @@ function fromXMLjsFormat(xmljsRecord) {
     const subfields = f.subfield.map(subfield => ({code: subfield.$.code, value: subfield._}));
     return {tag, ind1, ind2, subfields};
   });
-  
-  const data = { 
+
+  const data = {
     leader: xmljsRecord.leader,
-    fields: _.concat(controlFields, dataFields) 
+    fields: _.concat(controlFields, dataFields)
   };
   return MarcRecord.clone(data);
 }
 
 function extractFormat(record) {
-  
-  const l6 = record.leader.substr(6,1);
-  const l7 = record.leader.substr(7,1);
+  const l6 = record.leader.substr(6, 1);
+  const l7 = record.leader.substr(7, 1);
 
   const isBK = (l6, l7) => ['a', 't'].includes(l6) && !['b', 'i', 's'].includes(l7);
   const isCR = (l6, l7) => ['a', 't'].includes(l6) && ['b', 'i', 's'].includes(l7);
-  const isMP = (l6) => ['e', 'f'].includes(l6);
-  const isMU = (l6) => ['c', 'd', 'i', 'j'].includes(l6);
-  const isCF = (l6) => 'm' === l6;
-  const isMX = (l6) => 'p' === l6;
-  const isVM = (l6) => ['g', 'k', 'o', 'r'].includes(l6);
-  
-  switch(true) {
+  const isMP = l6 => ['e', 'f'].includes(l6);
+  const isMU = l6 => ['c', 'd', 'i', 'j'].includes(l6);
+  const isCF = l6 => l6 === 'm';
+  const isMX = l6 => l6 === 'p';
+  const isVM = l6 => ['g', 'k', 'o', 'r'].includes(l6);
+
+  switch (true) {
     case isBK(l6, l7): return 'BK';
     case isCR(l6, l7): return 'CR';
     case isMP(l6): return 'MP';
@@ -440,14 +418,13 @@ function extractFormat(record) {
   }
 }
 
-
-const getValue = (set) => _.get(set, '[0].subfield', []).map(sub => sub._).join(' ');
+const getValue = set => _.get(set, '[0].subfield', []).map(sub => sub._).join(' ');
 const isSubset = (subset, superset) => _.difference(subset, superset).length === 0;
 const isSubsetWith = (subset, superset, comparator) => _.differenceWith(subset, superset, comparator).length === 0;
 const isIdentical = (set1, set2) => isSubset(set1, set2) && isSubset(set2, set1);
-const generateAbbrevations = (str) => str.split(' ').map((word, index, arr) => {
-  const abbreviation = word.substr(0,1);
-  return _.concat(arr.slice(0,index), abbreviation, arr.slice(index+1) ).join(' ');
+const generateAbbrevations = str => str.split(' ').map((word, index, arr) => {
+  const abbreviation = word.substr(0, 1);
+  return _.concat(arr.slice(0, index), abbreviation, arr.slice(index + 1)).join(' ');
 });
 
 const selectValues = (tag, code) => record => {
@@ -468,19 +445,18 @@ const normalizeWith = (...normalizers) => value => {
 const isDefined = (...vals) => vals.every(val => val !== null && val !== undefined);
 const empty = (...vals) => vals.some(val => val.length === 0);
 
-
 // NOTE: these are normalized forms:
 const ALIASES = {
-  'HKI': 'HELSINKI',
-  'HELSINGISS': 'HELSINKI',
-  'HELSINGFORS': 'HELSINKI',
-  'HFORS': 'HELSINKI'
+  HKI: 'HELSINKI',
+  HELSINGISS: 'HELSINKI',
+  HELSINGFORS: 'HELSINKI',
+  HFORS: 'HELSINKI'
 };
 
 const characterMap = {
-  'ä': 'a',
-  'ö': 'o',
-  'å': 'a'
+  ä: 'a',
+  ö: 'o',
+  å: 'a'
 };
 
 const skandit = word => word.split('').map(c => _.get(characterMap, c.toLowerCase(), c)).join('');
@@ -489,30 +465,27 @@ const expandAlias = sentence => _.isString(sentence) ? sentence.split(' ').map(w
 const normalizeText = str => _.isString(str) ? skandit(str).replace(/\W/g, ' ').replace(/\s+/g, ' ').toUpperCase().trim() : str;
 const dropNumbers = str => _.isString(str) ? str.replace(/\d/g, ' ').replace(/\s+/g, ' ') : str;
 
-
 const isValid = val => !(_.isNull(val) || _.isUndefined(val) || val.length === 0);
 
 const startsWithComparator = (a, b) => a.startsWith(b) || b.startsWith(a);
 const endsWithComparator = (a, b) => a.endsWith(b) || b.endsWith(a);
-const startsOrEndsComparator = (a, b) => startsWithComparator(a,b) || endsWithComparator(a, b);
+const startsOrEndsComparator = (a, b) => startsWithComparator(a, b) || endsWithComparator(a, b);
 
 const startsOrEndsComparatorWith = (a, b, equalityFunction = _.isEqual) => {
-  const [shorter, longer] = [a,b].sort((a,b) => a.length - b.length);
+  const [shorter, longer] = [a, b].sort((a, b) => a.length - b.length);
   const longerStart = longer.substring(0, shorter.length);
   const longerEnd = longer.substring(-shorter.length);
 
   return equalityFunction(shorter, longerStart) || equalityFunction(shorter, longerEnd);
 };
 
-
-const selectNumbers = (sentence) => {
+const selectNumbers = sentence => {
   return _.chain(sentence).split(' ')
     .flatMap(word => word.replace(/\D/g, ' ').split(' '))
     .filter(word => !isNaN(word) && word.length > 0)
     .map(num => parseInt(num))
     .value();
 };
-
 
 function selectPublicationYear(record) {
   const from260c = selectValue('260', 'c');
@@ -530,22 +503,26 @@ function selectPublicationYear(record) {
   return _.max(normalizedYears);
 }
 
-// fields -> subfields (with tag)
+// Fields -> subfields (with tag)
 const flattenFields = fields => _.flatMap(fields, field => {
   if (field.subfields) {
-    return field.subfields.map(sub => Object.assign({}, sub, { tag: field.tag }));
+    return field.subfields.map(sub => Object.assign({}, sub, {tag: field.tag}));
   }
   return field;
 });
 
-//const selectYears = (sentence) => _.isString(sentence) ? sentence.split(/\D/).filter(isYear).join(' ') : sentence;
+// Const selectYears = (sentence) => _.isString(sentence) ? sentence.split(/\D/).filter(isYear).join(' ') : sentence;
 
 // keeps only words that are 4 characters long and between 1000 and 2100 (exclusive)
 function isYear(param) {
   let number;
   if (_.isString(param)) {
-    if (param.length != 4) return false;
-    if (isNaN(param)) return false;
+    if (param.length != 4) {
+      return false;
+    }
+    if (isNaN(param)) {
+      return false;
+    }
     number = parseInt(param, 10);
   } else {
     number = param;
@@ -555,10 +532,9 @@ function isYear(param) {
 }
 
 const forMissingFeature = (labelIfEitherIsMissingFeature, comparator) => (itemA, itemB) => {
-  
-  const containsData = (item) => {
+  const containsData = item => {
     const isNotEmpty = (_.isString(item) || _.isArray(item)) ? item.length > 0 : true;
-    
+
     return item !== null && item !== undefined && isNotEmpty;
   };
 
@@ -570,8 +546,6 @@ const forMissingFeature = (labelIfEitherIsMissingFeature, comparator) => (itemA,
   }
   return null;
 };
-
-
 
 module.exports = {
   normalize,

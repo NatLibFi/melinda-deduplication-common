@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,8 +27,8 @@
  *
  **/
 
-var compareFuncs = require('./core.compare');
-const { Labels } = require('./constants');
+const compareFuncs = require('./core.compare');
+const {Labels} = require('./constants');
 
 const {
   normalize,
@@ -37,15 +38,14 @@ const {
 } = require('./utils');
 
 function F027(record1, record2) {
-  
-  var fields1 = select(['027'], record1);
-  var fields2 = select(['027'], record2);
+  const fields1 = select(['027'], record1);
+  const fields2 = select(['027'], record2);
 
-  var normalized1 = normalize( clone(fields1) , ['delChars(":-")', 'trimEnd', 'upper']);
-  var normalized2 = normalize( clone(fields2) , ['delChars(":-")', 'trimEnd', 'upper']);
+  const normalized1 = normalize(clone(fields1), ['delChars(":-")', 'trimEnd', 'upper']);
+  const normalized2 = normalize(clone(fields2), ['delChars(":-")', 'trimEnd', 'upper']);
 
-  var set1 = normalized1;
-  var set2 = normalized2;
+  const set1 = normalized1;
+  const set2 = normalized2;
 
   function getData() {
     return {
@@ -55,14 +55,13 @@ function F027(record1, record2) {
   }
 
   function check() {
-
     if (set1.length === 0 || set2.length === 0) {
       return null;
     }
 
     if (!hasSubfield(set1, 'a') || !hasSubfield(set2, 'a')) {
       return null;
-    } 
+    }
 
     if (compareFuncs.isIdentical(set1, set2)) {
       return Labels.SURE;
@@ -80,10 +79,9 @@ function F027(record1, record2) {
   }
 
   return {
-    check: check,
-    getData: getData
+    check,
+    getData
   };
-
 }
 
 module.exports = F027;

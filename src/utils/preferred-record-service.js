@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,25 +27,23 @@
  **/
 
 // @flow
-
-import type { PreferredRecordService } from '../types/preferred-record-service.flow';
+import {type PreferredRecordService} from '../types/preferred-record-service.flow';
 
 const _ = require('lodash');
 const synaptic = require('synaptic');
+
 const Network = synaptic.Network;
 const SelectBetter = require('../select-better');
 
 function createPreferredRecordService(model: Object): PreferredRecordService {
-
   const network = Network.fromJSON(model);
 
   function selectPreferredRecord(firstRecord, secondRecord) {
-
     const FeatureExtractorSet = SelectBetter.ExtractorPreset.Default;
 
     const features1 = SelectBetter.generateFeatures(firstRecord, FeatureExtractorSet);
     const features2 = SelectBetter.generateFeatures(secondRecord, FeatureExtractorSet);
-    
+
     const vector1 = SelectBetter.generateFeatureVector(features1);
     const vector2 = SelectBetter.generateFeatureVector(features2);
 
@@ -55,10 +53,10 @@ function createPreferredRecordService(model: Object): PreferredRecordService {
 
     // 0 means first is better, 1 means second is better
     const label = network.activate(inputVector)[0];
-    
+
     const preferredRecord = label < 0.5 ? firstRecord : secondRecord;
     const otherRecord = label < 0.5 ? secondRecord : firstRecord;
-    
+
     return {
       preferredRecord, otherRecord
     };

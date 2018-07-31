@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,32 +28,31 @@
  **/
 
 const chai = require('chai');
+
 const expect = chai.expect;
 
-const { Labels } = require('./constants');
-const { SURE, SURELY_NOT, ALMOST_SURE } = Labels;
+const {Labels} = require('./constants');
+
+const {SURE, SURELY_NOT, ALMOST_SURE} = Labels;
 
 const MarcRecord = require('marc-record-js');
 const Utils = require('./utils');
 
 const F008 = require('./feature-F008');
 
-describe('F008', function() {
-
+describe('F008', () => {
   let record1;
   let record2;
 
-  beforeEach(() => {  
+  beforeEach(() => {
     record1 = new MarcRecord();
     record2 = new MarcRecord();
 
     record1.leader = '^^^^^ccm^a22004934i^4500';
     record2.leader = '^^^^^ccm^a22004934i^4500';
-
   });
 
   it('should return null if field is missing 008', () => {
-    
     const extractor = F008(Utils.toxmljsFormat(record1), Utils.toxmljsFormat(record2));
     const label = extractor.check();
 
@@ -131,5 +131,4 @@ describe('F008', function() {
 
     expect(labels).to.eql([SURELY_NOT, SURE, SURE, null, ALMOST_SURE, SURE, null, null, null]);
   });
-
 });

@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -96,15 +97,15 @@ const f = format.trim().split('\n\n').map(formatString => {
   const code = _.head(lines);
   const extractors = _.tail(lines).map(extractorLine => {
     const [position, name] = extractorLine.split('-');
-    const [start, count=1] = position.split(',');
-    const extractor = (str) => str.substr(start, count);
+    const [start, count = 1] = position.split(',');
+    const extractor = str => str.substr(start, count);
 
     const normalizedName = `${code}-${name.trim()}`;
 
-    return { extractor, name: normalizedName };
+    return {extractor, name: normalizedName};
   });
 
-  return { code, extractors };
+  return {code, extractors};
 });
 
 module.exports = f;

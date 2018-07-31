@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,22 +28,23 @@
  **/
 
 const chai = require('chai');
+
 const expect = chai.expect;
 
-const { Labels } = require('./constants');
-const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
+const {Labels} = require('./constants');
+
+const {SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE} = Labels;
 
 const MarcRecord = require('marc-record-js');
 const Utils = require('./utils');
 
 const createExtractor = require('./feature-F362');
 
-describe('feature-F362', function() {
-
+describe('feature-F362', () => {
   let record1;
   let record2;
 
-  beforeEach(() => {  
+  beforeEach(() => {
     record1 = new MarcRecord();
     record2 = new MarcRecord();
   });
@@ -53,13 +55,11 @@ describe('feature-F362', function() {
   }
 
   function runExtractor() {
-
     const extractor = createExtractor(toWeirdFormat(record1), toWeirdFormat(record2));
     expect(extractor).not.to.be.null;
 
     return extractor.check();
   }
-
 
   it('should return null if records are missing 362', () => {
     expect(runExtractor()).to.eql([null, null]);
@@ -70,10 +70,7 @@ describe('feature-F362', function() {
     expect(runExtractor()).to.eql([null, null]);
   });
 
-
-    
   describe('for records that contain same years and numbers', () => {
-
     const tests = [
       ['362 0  ‡a1999-', '362 0  ‡a1999, [1]-'],
 
@@ -108,7 +105,6 @@ describe('feature-F362', function() {
       ['362 0  ‡a2000, 1-', '362 0  ‡a2000-']
     ];
 
-
     tests.forEach(test => {
       it('should return SURE', () => {
         primeRecords(test[0], test[1]);
@@ -118,10 +114,9 @@ describe('feature-F362', function() {
   });
 
   describe('for records that contain same years but different numbers', () => {
-
     const tests = [
       ['362 0  ‡a1907, näyten:o ; 1907, n:o 1-1931, n:o 6.', '362 0  ‡a1907, näyten:o-1931, 6'],
-      ['362 0  ‡a1. vsk (1925), n:o 1- 15. vsk (1939), n:o 6.', '362 0  ‡a1925, 1-1939, 6.'],
+      ['362 0  ‡a1. vsk (1925), n:o 1- 15. vsk (1939), n:o 6.', '362 0  ‡a1925, 1-1939, 6.']
     ];
 
     tests.forEach(test => {
@@ -136,11 +131,9 @@ describe('feature-F362', function() {
     });
   });
 
-
   describe('for records that contain different years and numbers', () => {
-    
     const tests = [
-      ['362 0  ‡a1 (1965)-15 (1979) ; 1980-', '362 0  ‡a1(1965)-'],
+      ['362 0  ‡a1 (1965)-15 (1979) ; 1980-', '362 0  ‡a1(1965)-']
     ];
     tests.forEach(test => {
       it('should return SURELY_NOT for years and ABSOLUTELY_NOT_DOUBLE for numbers', () => {
@@ -148,18 +141,13 @@ describe('feature-F362', function() {
         expect(runExtractor()).to.eql([SURELY_NOT, ABSOLUTELY_NOT_DOUBLE], `${test[0]} - ${test[1]}`);
       });
     });
-
   });
-
 });
 
-
-
 function toWeirdFormat(record) {
-
   return {
     controlfield: record.getControlfields().map(convertControlField),
-    datafield: record.getDatafields().map(convertDataField),
+    datafield: record.getDatafields().map(convertDataField)
   };
 
   function convertControlField(field) {
@@ -175,7 +163,7 @@ function toWeirdFormat(record) {
       $: {
         tag: field.tag,
         ind1: field.ind1,
-        ind2: field.ind2,
+        ind2: field.ind2
       },
       subfield: field.subfields.map(convertSubfield)
     };

@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -25,7 +26,6 @@
  * for the JavaScript code in this page.
  *
  **/
-
 
 const AdditionalPhysicalForm = require('./feature-AdditionalPhysicalForm');
 const EAN = require('./feature-EAN');

@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -31,7 +32,7 @@ import * as MarcRecordMergeUtils from './marc-record-merge-utils';
 import * as SelectBetter from './select-better';
 import * as Similarity from './similarity';
 import * as Types from './types';
-import * as Utils from './similarity';
+import * as Utils from './utils';
 
 export {
   DefaultConfigs,

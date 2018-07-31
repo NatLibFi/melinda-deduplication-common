@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,27 +27,26 @@
  *
  **/
 
+import path from 'path';
+import fs from 'fs';
+
 const chai = require('chai');
+
 const expect = chai.expect;
 const MarcRecord = require('marc-record-js');
 const _ = require('lodash');
 const PostMerge = require('../marc-record-merge-utils/marc-record-merge-postmerge-service');
 
-import path from 'path';
-import fs from 'fs';
-
 const mergeConfiguration = require('../default-configs/merge-config');
 const componentRecordMatcherConfiguration = require('../default-configs/component-record-similarity-definition.js');
 
-const { createRecordMergeService } = require('./record-merge-service');
+const {createRecordMergeService} = require('./record-merge-service');
 
 const TEST_CASE_SEPARATOR = '\n\n\n\n';
 
 const storiesPath = path.resolve(__dirname, './record-merge-service-stories/');
 
-
-describe('record-merge-service', function() {
-
+describe('record-merge-service', () => {
   let recordMergeService;
 
   beforeEach(() => {
@@ -55,41 +55,33 @@ describe('record-merge-service', function() {
 
   const files = fs.readdirSync(storiesPath);
   const storyFiles = files.filter(filename => filename.substr(-6) === '.story').sort();
-  
+
   storyFiles.map(loadStoriesFromFile).forEach(testSuite => {
-    
     describe(testSuite.suiteName, () => {
-
       testSuite.testCases.forEach(testCase => {
-
         const itFn = testCase.testName.startsWith('!') ? it.only : it;
 
         itFn(testCase.testName, async () => {
-
           const postMergeFixes = _.without(PostMerge.preset.defaults, PostMerge.add583NoteAboutMerge);
 
           const mergedRecordFamily = await recordMergeService.mergeRecords(testCase.preferredRecordFamily, testCase.otherRecordFamily, postMergeFixes);
           const mergedHost = mergedRecordFamily.record;
 
           expect(mergedHost.toString()).to.eql(testCase.expectedMergedRecordFamily.record.toString());
-                    
         });
       });
     });
   });
 });
 
-
 function loadStoriesFromFile(filename) {
-  
   const storyText = fs.readFileSync(path.resolve(storiesPath, filename), 'utf8');
 
   const suiteName = filename.slice(0, -6);
-  
-  const testCases = parseStories(storyText);
-  
-  return {suiteName, testCases};
 
+  const testCases = parseStories(storyText);
+
+  return {suiteName, testCases};
 }
 
 function parseStories(storyText) {
@@ -104,11 +96,11 @@ function parseStories(storyText) {
       const preferredRecordFamily = {
         record: preferredRecord
       };
-      
+
       const otherRecordStartIndex = lines.indexOf('Other record:') + 1;
       const otherRecordRaw = lines.slice(otherRecordStartIndex, lines.indexOf('', otherRecordStartIndex)).join('\n');
       const otherRecord = MarcRecord.fromString(otherRecordRaw);
-      
+
       const otherRecordFamily = {
         record: otherRecord
       };
@@ -122,7 +114,6 @@ function parseStories(storyText) {
         record: expectedMergedRecord
       };
 
-      return { testName, preferredRecordFamily, otherRecordFamily, expectedMergedRecordFamily };
+      return {testName, preferredRecordFamily, otherRecordFamily, expectedMergedRecordFamily};
     });
-
 }

@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,7 +27,7 @@
  *
  **/
 
-var _ = require('lodash');
+const _ = require('lodash');
 
 function clone(a) {
   return JSON.parse(JSON.stringify(a));
@@ -34,34 +35,32 @@ function clone(a) {
 
 function stringSelector(selector, record) {
   record = clone(record);
-  
+
   if (selector.length >= 3) {
     while (selector.length < 5) {
       selector += '.';
     }
-    //tag selector
-    var res = [];
-    
+    // Tag selector
+    let res = [];
+
     res = res.concat(record.controlfield.map(hTag(selector)));
     res = res.concat(record.datafield.map(hTag(selector)));
-    
+
     return res;
   }
 }
 
 function hTag(selector) {
-  return function(field) {
-    
-    var res = [];
-    var sel = selector.substr(0,3);
-    var ind1 = selector.substr(3,1);
-    var ind2 = selector.substr(4,1);
-    var subfields = selector.substr(5);
+  return function (field) {
+    const res = [];
+    const sel = selector.substr(0, 3);
+    const ind1 = selector.substr(3, 1);
+    const ind2 = selector.substr(4, 1);
+    const subfields = selector.substr(5);
 
     if (field.$.tag == sel) {
-      if (new RegExp('^'+ind1+'?$').test(field.$.ind1) && 
-        new RegExp('^'+ind2+'?$').test(field.$.ind2)) {
-        
+      if (new RegExp('^' + ind1 + '?$').test(field.$.ind1) &&
+        new RegExp('^' + ind2 + '?$').test(field.$.ind2)) {
         filterSubfields(field, subfields);
 
         res.push(field);
@@ -78,13 +77,12 @@ function filterSubfields(field, subfields) {
 
   subfields = subfields.split('');
 
-  var unSelectedSubfields = field.subfield.filter(function(subfield) {
+  const unSelectedSubfields = field.subfield.filter(subfield => {
     return (subfields.indexOf(subfield.$.code) == -1);
   });
   field.subfield = _.difference(field.subfield, unSelectedSubfields);
-
 }
 
 module.exports = {
-  stringSelector: stringSelector
+  stringSelector
 };

@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -31,17 +32,15 @@ import uuid from 'uuid';
 
 const FUTURE_HOST_ID_PLACEHOLDER = '(FI-MELINDA)[future-host-id]';
 
-
 export function fieldHasSubfield(code, value) {
-  const querySubfield = { code, value };
+  const querySubfield = {code, value};
 
-  return function(field) {
+  return function (field) {
     return field.subfields.some(subfield => _.isEqual(subfield, querySubfield));
   };
 }
 
 export function selectFieldsByValue(record, tag, subcode, value) {
-
   return record.fields
     .filter(field => field.tag === 'SID')
     .filter(field => {
@@ -60,7 +59,6 @@ export function selectValues(record, tag, subcode) {
 }
 
 export function selectRecordId(record) {
-
   const field001List = record.fields.filter(field => field.tag === '001');
 
   if (field001List.length === 0) {
@@ -77,9 +75,8 @@ export function selectFirstValue(field, subcode) {
       .map(subfield => subfield.value)
       .head()
       .value();
-  } else {
-    return field.value;
   }
+  return field.value;
 }
 
 export function decorateFieldsWithUuid(record) {
@@ -89,8 +86,7 @@ export function decorateFieldsWithUuid(record) {
 }
 
 export function resetRecordId(record) {
-
-  record.fields = record.fields.filter(function(field) {
+  record.fields = record.fields.filter(field => {
     return field.tag !== '001';
   });
 
@@ -99,12 +95,10 @@ export function resetRecordId(record) {
     tag: '001',
     value: '000000000'
   });
-
 }
 
 export function resetComponentHostLinkSubfield(field) {
   if (field.subfields) {
-
     const updatedSubfields = field.subfields.map(sub => {
       if (sub.code === 'w') {
         sub.value = FUTURE_HOST_ID_PLACEHOLDER;
@@ -115,10 +109,8 @@ export function resetComponentHostLinkSubfield(field) {
     field.subfields = updatedSubfields;
 
     return field;
-
-  } else {
-    return field;
   }
+  return field;
 }
 
 export function getLink(field) {
@@ -142,8 +134,7 @@ function normalizeSub_6(subfield) {
 export function isLinkedFieldOf(queryField) {
   const [queryTag, queryLinkNumber] = getLink(queryField);
 
-  return function(field) {
-
+  return function (field) {
     const linkInLinkedField = getLink(field);
     const [linkTag, linkNumber] = linkInLinkedField;
 
@@ -155,14 +146,12 @@ export function isLinkedFieldOf(queryField) {
   };
 }
 
-
 export function fieldToString(field) {
   if (field && field.subfields) {
     const ind1 = field.ind1 || ' ';
     const ind2 = field.ind2 || ' ';
     const subfields = field.subfields.map(subfield => `‡${subfield.code}${subfield.value}`).join('');
     return `${field.tag} ${ind1}${ind2} ${subfields}`;
-  } else {
-    return `${field.tag}    ${field.value}`;
   }
+  return `${field.tag}    ${field.value}`;
 }

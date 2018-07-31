@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,17 +27,18 @@
  **/
 
 // @flow
-import type { DataStoreConnector } from '../types/datastore-connector.flow';
+import {type DataStoreConnector} from '../types/datastore-connector.flow';
+
 const _ = require('lodash');
 const fetch = require('node-fetch');
 const MarcRecord = require('marc-record-js');
 const moment = require('moment');
 const DEFAULT_LOGGER = require('./logger');
 const debug = require('debug')('datastore-connector');
+
 const DATASTORE_CHANGE_TIMESTAMP_FORMAT = 'YYYY-MM-DDTHH:mm:ss.SS';
 
 function createDataStoreConnector(datastoreAPI: string, options: any): DataStoreConnector {
-
   const logger = _.get(options, 'logger', DEFAULT_LOGGER);
 
   async function saveRecord(base, recordId, record, changeType, changeTimestamp) {
@@ -45,36 +46,35 @@ function createDataStoreConnector(datastoreAPI: string, options: any): DataStore
     const url = `${datastoreAPI}/record/${base}/${recordId}?changeType=${changeType}&changeTimestamp=${changeTimestampString}}`;
     logger.log('info', `Saving record to url: ${url}`);
     debug(`Record:\n${record.toString()}`);
-    const result = await fetch(url, { 
-      method: 'PUT', 
+    const result = await fetch(url, {
+      method: 'PUT',
       body: JSON.stringify(record),
-      headers: { 'Content-Type': 'application/json' }
+      headers: {'Content-Type': 'application/json'}
     });
     if (result.status === 400) {
       const reason = await result.text();
-      throw InvalidRecordError(reason);
+      throw new InvalidRecordError(reason);
     }
     if (result.status !== 200) {
       throw new Error(result.statusText);
     }
   }
 
-  async function loadRecord(base, recordId) { 
+  async function loadRecord(base, recordId) {
     const url = `${datastoreAPI}/record/${base}/${recordId}`;
     logger.log('info', `Loading record from url: ${url}`);
     const result = await fetch(url);
     if (result.status === 200) {
       const json = await result.json();
       const record = new MarcRecord(json);
-      return record;    
-    } else {
-      const error = new Error(result.statusText);
-      error.name = 'NOT_FOUND';
-      throw error;
+      return record;
     }
+    const error = new Error(result.statusText);
+    error.name = 'NOT_FOUND';
+    throw error;
   }
 
-  async function loadRecordByTimestamp(base, recordId, timestamp) { 
+  async function loadRecordByTimestamp(base, recordId, timestamp) {
     const url = `${datastoreAPI}/record/${base}/${recordId}/version/${timestamp}`;
     logger.log('info', `Loading record from url: ${url}`);
     const result = await fetch(url);
@@ -82,25 +82,23 @@ function createDataStoreConnector(datastoreAPI: string, options: any): DataStore
       const json = await result.json();
       const record = new MarcRecord(json);
       return record;
-    } else {
-      const error = new Error(result.statusText);
-      error.name = 'NOT_FOUND';
-      throw error;
     }
+    const error = new Error(result.statusText);
+    error.name = 'NOT_FOUND';
+    throw error;
   }
 
-  async function loadRecordHistory(base, recordId) { 
+  async function loadRecordHistory(base, recordId) {
     const url = `${datastoreAPI}/record/${base}/${recordId}/history`;
     logger.log('info', `Loading record from url: ${url}`);
     const result = await fetch(url);
     if (result.status === 200) {
       const history = await result.json();
-      return history;   
-    } else {
-      const error = new Error(result.statusText);
-      error.name = 'NOT_FOUND';
-      throw error;
+      return history;
     }
+    const error = new Error(result.statusText);
+    error.name = 'NOT_FOUND';
+    throw error;
   }
 
   async function getDuplicateCandidates(base, recordId) {
@@ -125,7 +123,6 @@ function InvalidRecordError(reason) {
   error.name = 'INVALID_RECORD';
   throw error;
 }
-
 
 module.exports = {
   DATASTORE_CHANGE_TIMESTAMP_FORMAT,

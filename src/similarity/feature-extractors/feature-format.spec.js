@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,28 +28,28 @@
  **/
 
 const chai = require('chai');
+
 const expect = chai.expect;
 
-const { Labels } = require('./constants');
-const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
+const {Labels} = require('./constants');
+
+const {SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE} = Labels;
 
 const MarcRecord = require('marc-record-js');
 const Utils = require('./utils');
 
 const format = require('./feature-format');
 
-describe('format', function() {
-
+describe('format', () => {
   let record1;
   let record2;
 
-  beforeEach(() => {  
+  beforeEach(() => {
     record1 = new MarcRecord();
     record2 = new MarcRecord();
 
     record1.leader = '^^^^^ccm^a22004934i^4500';
     record2.leader = '^^^^^ccm^a22004934i^4500';
-
   });
 
   function runExtractor() {
@@ -57,16 +58,13 @@ describe('format', function() {
   }
 
   it('should return null if either record has unknown format', () => {
-
     record1.leader = '^^^^^cXm^a22004934i^4500';
     record2.leader = '^^^^^ccm^a22004934i^4500';
 
     expect(runExtractor()).to.eql([null, null, null, null, null, null, null]);
   });
 
-
   it('should return SURE for given format any SURELY_NOT for others', () => {
-    
     record1.leader = '^^^^^cam^a22004934i^4500';
     record2.leader = '^^^^^cam^a22004934i^4500';
 
@@ -74,12 +72,9 @@ describe('format', function() {
   });
 
   it('should return ABSOLUTELY_NOT if records are in different formats', () => {
-    
     record1.leader = '^^^^^cas^a22004934i^4500';
     record2.leader = '^^^^^cam^a22004934i^4500';
 
     expect(runExtractor()).to.eql([ABSOLUTELY_NOT_DOUBLE, ABSOLUTELY_NOT_DOUBLE, ABSOLUTELY_NOT_DOUBLE, ABSOLUTELY_NOT_DOUBLE, ABSOLUTELY_NOT_DOUBLE, ABSOLUTELY_NOT_DOUBLE, ABSOLUTELY_NOT_DOUBLE]);
   });
-  
-
 });

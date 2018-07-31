@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -35,23 +36,21 @@ const {
   subCode
 } = require('./utils');
 
-const { f024checkFunc, f024Normalizations } = require('./field024-utils.js');
-
+const {f024checkFunc, f024Normalizations} = require('./field024-utils.js');
 
 function ISMN(record1, record2) {
-  
-  var fields1 = select(['0242.a'], record1);
-  var fields2 = select(['0242.a'], record2);
+  const fields1 = select(['0242.a'], record1);
+  const fields2 = select(['0242.a'], record2);
 
-  var normalized1 = normalize( clone(fields1) , f024Normalizations);
-  var normalized2 = normalize( clone(fields2) , f024Normalizations);
+  const normalized1 = normalize(clone(fields1), f024Normalizations);
+  const normalized2 = normalize(clone(fields2), f024Normalizations);
 
-  var removeISMNFromOldRecord = actOnPublicationDate(1992, removeSubfields(subCode('a')));
+  const removeISMNFromOldRecord = actOnPublicationDate(1992, removeSubfields(subCode('a')));
   removeISMNFromOldRecord(record1, fields1, normalized1);
   removeISMNFromOldRecord(record2, fields2, normalized2);
 
-  var set1 = normalized1;
-  var set2 = normalized2;
+  const set1 = normalized1;
+  const set2 = normalized2;
 
   function getData() {
     return {
@@ -62,7 +61,7 @@ function ISMN(record1, record2) {
 
   return {
     check: f024checkFunc(set1, set2),
-    getData: getData
+    getData
   };
 }
 

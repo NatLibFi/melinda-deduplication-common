@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -28,7 +29,7 @@
 
 const _ = require('lodash');
 
-const { Labels } = require('./constants');
+const {Labels} = require('./constants');
 
 const {
   fromXMLjsFormat,
@@ -40,20 +41,17 @@ const {
 } = require('./utils');
 
 function bundleNote(xmlJsrecord1, xmlJsrecord2) {
-  
   const record1 = fromXMLjsFormat(xmlJsrecord1);
   const record2 = fromXMLjsFormat(xmlJsrecord2);
 
   const selectNotes = record => _.concat(selectValue('500', 'a')(record), selectValue('505', 'a')(record)).join(' ');
 
   const notes = _.flow(selectNotes, normalizeWith(normalizeText, expandAlias));
-  
+
   const notesA = notes(record1);
   const notesB = notes(record2);
-  
 
   function check() {
-
     if (!isValid(notesA) && !isValid(notesB)) {
       return null;
     }
@@ -68,9 +66,9 @@ function bundleNote(xmlJsrecord1, xmlJsrecord2) {
 
     return null;
   }
-    
+
   return {
-    check: check
+    check
   };
 }
 

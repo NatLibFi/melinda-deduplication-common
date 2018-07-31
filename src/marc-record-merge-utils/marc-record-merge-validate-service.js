@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,6 +28,7 @@
  **/
 
 import _ from 'lodash';
+
 const wuzzy = require('wuzzy');
 
 const RecordUtils = require('../utils/record-utils');
@@ -59,28 +61,25 @@ const autoMergeExtraChecks = [
   recordsHaveNotBeenSplitted
 ];
 
-
 export const preset = {
   defaults: defaultPreset,
   melinda_host: _.concat(defaultPreset, [preferredRecordIsNotComponentRecord, otherRecordIsNotComponentRecord]),
   melinda_component: _.concat(defaultPreset),
   melinda_warnings: [preferredRecordFromFENNI, preferredRecordHasAlephSplitFields, otherRecordHasAlephSplitFields],
-  melinda_host_automerge: _.concat(defaultPreset, autoMergeExtraChecks, [preferredRecordIsNotComponentRecord, otherRecordIsNotComponentRecord]),
+  melinda_host_automerge: _.concat(defaultPreset, autoMergeExtraChecks, [preferredRecordIsNotComponentRecord, otherRecordIsNotComponentRecord])
 };
 
 export function validateMergeCandidates(validationFunctions, preferredRecord, otherRecord) {
-
   const validationResults = validationFunctions.map(fn => fn(preferredRecord, otherRecord));
 
   return Promise.all(validationResults).then(results => {
-    
     const failures = results.filter(result => result.valid === false);
-    
+
     if (failures.length > 0) {
       const failureMessages = failures.map(failure => failure.validationFailureMessage);
       throw new MergeValidationError('Merge validation failed', failureMessages);
     }
-    
+
     return {
       valid: true
     };
@@ -95,10 +94,9 @@ export function recordsHaveDifferentIds(preferredRecord, otherRecord) {
 }
 
 export function recordsHaveDifferentLOWTags(preferredRecord, otherRecord) {
-  
   const preferredRecordLibraryTagList = getLibraryTagList(preferredRecord);
   const otherRecordLibraryTagList = getLibraryTagList(otherRecord);
-  
+
   const libraryTagsInBoth = _.intersection(preferredRecordLibraryTagList, otherRecordLibraryTagList);
 
   return {
@@ -108,10 +106,9 @@ export function recordsHaveDifferentLOWTags(preferredRecord, otherRecord) {
 }
 
 export function recordsHaveSameType(preferredRecord, otherRecord) {
-  
-  var preferredRecordType = preferredRecord.leader.substr(6,1);
-  var otherRecordType = otherRecord.leader.substr(6,1);
-  
+  const preferredRecordType = preferredRecord.leader.substr(6, 1);
+  const otherRecordType = otherRecord.leader.substr(6, 1);
+
   return {
     valid: preferredRecordType === otherRecordType,
     validationFailureMessage: `Records are of different type (leader/6): ${preferredRecordType} - ${otherRecordType}`
@@ -132,7 +129,6 @@ export function otherRecordIsNotDeleted(preferredRecord, otherRecord) {
   };
 }
 
-
 export function preferredRecordIsNotSuppressed(preferredRecord) {
   return {
     valid: isSuppressed(preferredRecord) === false,
@@ -149,7 +145,7 @@ export function otherRecordIsNotSuppressed(preferredRecord, otherRecord) {
 
 export function preferredRecordIsNotComponentRecord(preferredRecord) {
   const recordType = preferredRecord.leader.charAt(7);
-  const isComponentRecord = ['a','b','d'].some(componentRecordType => componentRecordType === recordType);
+  const isComponentRecord = ['a', 'b', 'd'].some(componentRecordType => componentRecordType === recordType);
   return {
     valid: isComponentRecord === false,
     validationFailureMessage: 'Preferred record is a component record'
@@ -158,7 +154,7 @@ export function preferredRecordIsNotComponentRecord(preferredRecord) {
 
 export function otherRecordIsNotComponentRecord(preferredRecord, otherRecord) {
   const recordType = otherRecord.leader.charAt(7);
-  const isComponentRecord = ['a','b','d'].some(componentRecordType => componentRecordType === recordType);
+  const isComponentRecord = ['a', 'b', 'd'].some(componentRecordType => componentRecordType === recordType);
   return {
     valid: isComponentRecord === false,
     validationFailureMessage: 'Other record is a component record'
@@ -199,7 +195,6 @@ export function otherRecordHasAlephSplitFields(preferredRecord, otherRecord) {
   };
 }
 
-
 /*
 ## recordsHaveSimilarNumberOfPages
 002628239 - 005476178 (iso sivumääräero,
@@ -212,26 +207,25 @@ export function otherRecordHasAlephSplitFields(preferredRecord, otherRecord) {
 ehkä sidottu ja nidottu, eri vuodet ja eri sivumäärät.
 */
 
-
-/* 
+/*
   Tags must match, author names must ~match
-  Check authorized format of field 100,110,111 and if they don't match then automerge is impossible 
-  because changing the author must be reported to libraries since it might change the  location of 
+  Check authorized format of field 100,110,111 and if they don't match then automerge is impossible
+  because changing the author must be reported to libraries since it might change the  location of
   the item in the shelves.
 */
 export function recordsHaveSimilarAuthors(preferredRecord, otherRecord) {
   const get100A = _.partial(getFieldValue, '100', 'a');
   const get110A = _.partial(getFieldValue, '110', 'a');
   const get111A = _.partial(getFieldValue, '111', 'a');
-  
-  const normalize = (str) => _.isString(str) ? str.replace(/\W/g, ' ').replace(/\s+/g, ' ').toUpperCase().trim() : str;
-  const testAuthors = (a,b) => wuzzy.levenshtein(a,b) >= 0.8 && a.substr(0,3) === b.substr(0,3);
+
+  const normalize = str => _.isString(str) ? str.replace(/\W/g, ' ').replace(/\s+/g, ' ').toUpperCase().trim() : str;
+  const testAuthors = (a, b) => wuzzy.levenshtein(a, b) >= 0.8 && a.substr(0, 3) === b.substr(0, 3);
 
   const fieldValuePairs = [get100A, get110A, get111A]
     .map(extractFn => ([extractFn(preferredRecord), extractFn(otherRecord)]))
     .filter(pair => (pair[0] || pair[1]))
     .map(pair => pair.map(normalize));
-  
+
   const authorsMatch = fieldValuePairs.every(pair => (pair[0] && pair[1]) && testAuthors(pair[0], pair[1]));
 
   return {
@@ -240,9 +234,8 @@ export function recordsHaveSimilarAuthors(preferredRecord, otherRecord) {
   };
 }
 
-
 export function recordsHaveNotBeenSplitted(preferredRecord, otherRecord) {
-  const get583Notes = (record) => _.chain(record.fields)
+  const get583Notes = record => _.chain(record.fields)
     .filter(field => field.tag === '583')
     .flatMap(field => field.subfields)
     .filter(subfield => subfield.code === 'a')
@@ -251,28 +244,27 @@ export function recordsHaveNotBeenSplitted(preferredRecord, otherRecord) {
 
   const preferredHasBeenSplitted = get583Notes(preferredRecord).some(note => note.includes('SPLIT'));
   const otherRecordHasBeenSplitted = get583Notes(otherRecord).some(note => note.includes('SPLIT'));
-  
+
   return {
     valid: !preferredHasBeenSplitted && !otherRecordHasBeenSplitted,
     validationFailureMessage: 'Records have been splitted'
   };
-
 }
 
 // Number of pages almost same
 export function recordsHaveSimilarNumberOfPages(preferredRecord, otherRecord) {
   const get300A = _.partial(getFieldValue, '300', 'a');
-  const lessThan10PercentDifference = (a, b) => Math.abs(1-(a/b)) < 0.10;
+  const lessThan10PercentDifference = (a, b) => Math.abs(1 - (a / b)) < 0.10;
   const lessThan5Difference = (a, b) => Math.abs(a - b) <= 5;
-  
+
   const recordA300a = get300A(preferredRecord);
   const recordB300a = get300A(otherRecord);
-  
+
   const pagesInA = RecordUtils.parsePageInfo(recordA300a);
   const pagesInB = RecordUtils.parsePageInfo(recordB300a);
 
   if (pagesInA === null || pagesInB === null) {
-    return { valid: true };
+    return {valid: true};
   }
 
   const valid = lessThan10PercentDifference(pagesInA.total, pagesInB.total) && lessThan5Difference((pagesInA.total), pagesInB.total);
@@ -283,11 +275,10 @@ export function recordsHaveSimilarNumberOfPages(preferredRecord, otherRecord) {
   };
 }
 
-
 function extractYearsFromRecord(record) {
   const get260C = _.partial(getFieldValue, '260', 'c');
-  const extractYearFrom008 = (str) => str ? str.substr(7,4) : '';
-  
+  const extractYearFrom008 = str => str ? str.substr(7, 4) : '';
+
   const record260c = get260C(record);
   const record008year = extractYearFrom008(getFieldValue('008', record));
 
@@ -298,43 +289,40 @@ function extractYearsFromRecord(record) {
     .value();
 
   return years;
-
 }
 
 // Same years
 export function recordsHaveSimilarYears(preferredRecord, otherRecord) {
-
   const yearsInA = extractYearsFromRecord(preferredRecord);
   const yearsInB = extractYearsFromRecord(otherRecord);
-  
+
   return {
     valid: _.isEqual(yearsInA, yearsInB),
     validationFailureMessage: `Records have differing years: ${yearsInA} vs ${yearsInB}`
   };
 }
 
-// esim. 245, toisessa voi olla teokset 1 & 5 ja toisessa 1-7
+// Esim. 245, toisessa voi olla teokset 1 & 5 ja toisessa 1-7
 export function recordsHaveSimilarNumbersInTitle(preferredRecord, otherRecord) {
-  
   const get245A = _.partial(getFieldValue, '245', 'a');
-  
+
   const recordA245a = get245A(preferredRecord);
   const recordB245a = get245A(otherRecord);
-  
+
   const numbersInA = extractNumbers(recordA245a);
   const numbersInB = extractNumbers(recordB245a);
-  
+
   return {
     valid: _.isEqual(numbersInA, numbersInB),
     validationFailureMessage: `Records have different numbers in title: ${numbersInA} vs ${numbersInB}`
   };
 }
 
-// eri maat eri vuodet
+// Eri maat eri vuodet
 export function recordsHaveSameCountriesAndYears(preferredRecord, otherRecord) {
   const get008 = _.partial(getFieldValue, '008');
-  const country = (f008) => f008 ? f008.substr(15,3) : 'xx^';
-  
+  const country = f008 => f008 ? f008.substr(15, 3) : 'xx^';
+
   const yearA = _.head(extractYearsFromRecord(preferredRecord));
   const yearB = _.head(extractYearsFromRecord(otherRecord));
   const countryA = country(get008(preferredRecord));
@@ -348,7 +336,7 @@ export function recordsHaveSameCountriesAndYears(preferredRecord, otherRecord) {
 
   const yearCountryA = `${yearA}-${countryA}`;
   const yearCountryB = `${yearB}-${countryB}`;
-  
+
   return {
     valid: _.isEqual(yearCountryA, yearCountryB),
     validationFailureMessage: `Records have different years+countries: ${yearCountryA} vs ${yearCountryB}`
@@ -356,7 +344,7 @@ export function recordsHaveSameCountriesAndYears(preferredRecord, otherRecord) {
 }
 
 // Tietue A on vanhempi kuin B
-// Tietueessa A painostieto 250, 
+// Tietueessa A painostieto 250,
 // Tietueessa B ei painostietoa
 
 export function recordsHaveSaneReprintHistory(preferredRecord, otherRecord) {
@@ -388,20 +376,20 @@ export function recordsHaveSaneReprintHistory(preferredRecord, otherRecord) {
 }
 
 function extractNumbers(str) {
-  if (!str) { return []; }
+  if (!str) {
+    return [];
+  }
   return str.replace(/\D/g, ' ').split(' ').filter(i => i.length > 0).sort();
 }
 
 function getFieldValue(tag, ...rest) {
-  
   if (rest.length == 2) {
     const [code, record] = rest;
     return getDataFieldValue(tag, code, record);
-  } else {
-    const [record] = rest;
-    return getControlFieldValue(tag, record);
   }
-  
+  const [record] = rest;
+  return getControlFieldValue(tag, record);
+
   function getControlFieldValue(tag, record) {
     const field = record.fields.find(field => field.tag === tag);
     return _.get(field, 'value', null);
@@ -419,7 +407,7 @@ function getFieldValue(tag, ...rest) {
 
 function isSplitField(field) {
   if (field.subfields !== undefined && field.subfields.length > 0) {
-    return field.subfields[0].value.substr(0,2) === '^^';
+    return field.subfields[0].value.substr(0, 2) === '^^';
   }
 }
 
@@ -432,26 +420,28 @@ function getLibraryTagList(record) {
 }
 
 function isSuppressed(record) {
-
   return _.chain(record.fields)
     .filter(field => field.tag === 'STA')
     .flatMap(field => field.subfields.filter(subfield => subfield.code === 'a'))
     .some(subfield => subfield.value.toLowerCase() === 'suppressed')
     .value();
-
 }
 
 function isDeleted(record) {
+  if (checkLeader()) {
+    return true;
+  }
+  if (checkDELFields()) {
+    return true;
+  }
+  if (checkSTAFields()) {
+    return true;
+  }
 
-  if (checkLeader()) return true;
-  if (checkDELFields()) return true;
-  if (checkSTAFields()) return true;
-  
   return false;
 
-
   function checkLeader() {
-    return record.leader.substr(5,1) === 'd';
+    return record.leader.substr(5, 1) === 'd';
   }
 
   function checkDELFields() {
@@ -472,12 +462,12 @@ function isDeleted(record) {
 }
 
 function getRecordId(record) {
-  var field001ValuesList = record.fields.filter(field => field.tag === '001').map(field => field.value);
+  const field001ValuesList = record.fields.filter(field => field.tag === '001').map(field => field.value);
   return _.head(field001ValuesList) || 'unknown';
 }
 
 export function MergeValidationError(message, failureMessages) {
-  var temp = Error.call(this, message);
+  const temp = Error.call(this, message);
   temp.name = this.name = 'MergeValidationError';
   this.stack = temp.stack;
   this.message = temp.message;

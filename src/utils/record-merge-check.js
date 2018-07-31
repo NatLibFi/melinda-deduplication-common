@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -50,7 +51,7 @@ async function validatePair(validationSet, preferredRecord, otherRecord) {
   try {
     const result = await MergeValidation.validateMergeCandidates(validationSet, preferredRecord, otherRecord);
     return result.valid === true;
-  } catch(error) {
+  } catch (error) {
     return handleValidationError(error);
   }
 }
@@ -59,30 +60,27 @@ const isMergeable = _.curry(validatePair)(MergeValidation.preset.melinda_host);
 const isMergeableAutomatically = _.curry(validatePair)(MergeValidation.preset.melinda_host_automerge);
 
 async function checkMergeability(preferredRecord, otherRecord) {
-
   if (await isMergeable(preferredRecord, otherRecord)) {
     if (await isMergeableAutomatically(preferredRecord, otherRecord)) {
       return MergeabilityClass.AUTOMATICALLY_MERGEABLE;
-    } else {
-      return MergeabilityClass.MANUALLY_MERGEABLE;
     }
+    return MergeabilityClass.MANUALLY_MERGEABLE;
   }
 
   return MergeabilityClass.NOT_MERGEABLE;
 }
 
-async function checkSubrecordMergeability({ preferredSubrecords, otherSubrecords }) {
-
-  // neither or either has subrecords
+async function checkSubrecordMergeability({preferredSubrecords, otherSubrecords}) {
+  // Neither or either has subrecords
   if (preferredSubrecords.length === 0 || otherSubrecords.length === 0) {
     return true;
   }
 
-  // both have subrecords
+  // Both have subrecords
   if (preferredSubrecords.length === otherSubrecords.length) {
     return true;
   }
-  
+
   return false;
 }
 

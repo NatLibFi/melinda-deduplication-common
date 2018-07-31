@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,26 +27,24 @@
  *
  **/
 
-const { Labels } = require('./constants');
+const {Labels} = require('./constants');
 const compareFuncs = require('./core.compare');
 
 const {
   hasSubfield
 } = require('./utils');
 
-// field 024 has multiple different standard numbers which share same check function.
+// Field 024 has multiple different standard numbers which share same check function.
 
 function f024checkFunc(set1, set2) {
-
-  return function() {
-
+  return function () {
     if (set1.length === 0 || set2.length === 0) {
       return null;
     }
 
     if (!hasSubfield(set1, 'a') || !hasSubfield(set2, 'a')) {
       return null;
-    } 
+    }
 
     if (compareFuncs.isIdentical(set1, set2)) {
       return Labels.SURE;
@@ -60,12 +59,10 @@ function f024checkFunc(set1, set2) {
     }
 
     return Labels.SURELY_NOT;
-
   };
-
 }
 
-var f024Normalizations = ['delChars(":-")', 'trimEnd', 'upper'];
+const f024Normalizations = ['delChars(":-")', 'trimEnd', 'upper'];
 
 module.exports = {
   f024checkFunc,

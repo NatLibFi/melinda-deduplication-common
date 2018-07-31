@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,38 +28,38 @@
  **/
 
 module.exports = [
-  { 'name': 'title' },
-  { 'name': 'charsimilarity' },
-  { 'name': 'years' },
-  { 'name': 'publisher', },
-  { 'name': 'author' },
-  { 'name': 'size' },
-  { 'name': 'author245c' },
-  { 'name': 'ISBN' },
-  { 'name': 'sarjat' },
-  { 'name': 'reprint' },
-  { 'name': 'has880' },
-  { 'name': 'ISSN' },
-  { 'name': 'ISRC' },
-  { 'name': 'UPC' },
-  { 'name': 'ISMN' },
-  { 'name': 'EAN' },
-  { 'name': 'SICI' },
-  { 'name': 'MISC024' },
-  { 'name': 'ISRN' },
-  { 'name': 'F010' },
-  { 'name': 'F027' },
-  { 'name': 'F015' },
-  { 'name': 'ISBNextra' },
-  { 'name': 'F007' },
-  { 'name': 'F008' },
-  { 'name': 'format' },
-  { 'name': 'F337_F338' },
-  { 'name': 'subjectAccessTerms' },
-  { 'name': 'bundleNote' },
-  { 'name': 'F041' },
-  { 'name': 'stopConditions' },
-  { 'name': 'F362' },
-  { 'name': 'F028' },
-  { 'name': 'TermsInFields' }
+  {name: 'title'},
+  {name: 'charsimilarity'},
+  {name: 'years'},
+  {name: 'publisher'},
+  {name: 'author'},
+  {name: 'size'},
+  {name: 'author245c'},
+  {name: 'ISBN'},
+  {name: 'sarjat'},
+  {name: 'reprint'},
+  {name: 'has880'},
+  {name: 'ISSN'},
+  {name: 'ISRC'},
+  {name: 'UPC'},
+  {name: 'ISMN'},
+  {name: 'EAN'},
+  {name: 'SICI'},
+  {name: 'MISC024'},
+  {name: 'ISRN'},
+  {name: 'F010'},
+  {name: 'F027'},
+  {name: 'F015'},
+  {name: 'ISBNextra'},
+  {name: 'F007'},
+  {name: 'F008'},
+  {name: 'format'},
+  {name: 'F337_F338'},
+  {name: 'subjectAccessTerms'},
+  {name: 'bundleNote'},
+  {name: 'F041'},
+  {name: 'stopConditions'},
+  {name: 'F362'},
+  {name: 'F028'},
+  {name: 'TermsInFields'}
 ];

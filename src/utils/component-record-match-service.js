@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,19 +28,17 @@
  **/
 
 import _ from 'lodash';
-import jsonSimilarity from 'json-similarity';
+import jsonSimilarity from '@natlibfi/json-similarity';
 
 export function createComponentRecordMatchService(similarityDefinition) {
-  
   function match(recordSet1, recordSet2) {
-
     const matches = recordSet1.reduce((acc, record) => {
       const {pairs, availableRecords} = acc;
 
       const matchResult = findMatches(record, availableRecords);
 
       const sortedMatchResults = matchResult
-        .sort((a,b) => b.similarity.points - a.similarity.points)
+        .sort((a, b) => b.similarity.points - a.similarity.points)
         .filter(result => result.similarity.match === true);
 
       const bestMatch = _.head(sortedMatchResults);
@@ -57,7 +56,7 @@ export function createComponentRecordMatchService(similarityDefinition) {
     const recordSet2leftoverRecords = matches.availableRecords;
 
     matches.pairs = _.concat(matches.pairs, recordSet2leftoverRecords.map(record => [undefined, record]));
-    
+
     return matches.pairs;
   }
 

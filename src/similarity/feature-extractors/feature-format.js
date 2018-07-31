@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,7 +27,7 @@
  *
  **/
 
-const { Labels } = require('./constants');
+const {Labels} = require('./constants');
 
 const {
   fromXMLjsFormat,
@@ -34,14 +35,12 @@ const {
 } = require('./utils');
 
 function format(record1, record2) {
-  
   const formatA = extractFormat(fromXMLjsFormat(record1));
   const formatB = extractFormat(fromXMLjsFormat(record2));
-  
-  const formatNames = ['BK', 'CR', 'MP', 'MU', 'CF', 'MX', 'VM'];  
+
+  const formatNames = ['BK', 'CR', 'MP', 'MU', 'CF', 'MX', 'VM'];
 
   function check() {
-
     if (formatA === undefined || formatB === undefined) {
       return formatNames.map(() => null);
     }
@@ -53,11 +52,10 @@ function format(record1, record2) {
     return formatNames.map(format => {
       return format === formatA ? Labels.SURE : Labels.SURELY_NOT;
     });
-    
   }
 
   return {
-    check: check,
+    check,
     names: formatNames.map(name => `format-${name}`)
   };
 }

@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,8 +27,7 @@
  **/
 
 // @flow
-
-import type { MarcRecord } from './marc-record.flow.js';
+import {type MarcRecord} from './marc-record.flow.js';
 
 export type AlephRecordService = {
   loadRecord: (base: string, recordId: string) => Promise<MarcRecord>,

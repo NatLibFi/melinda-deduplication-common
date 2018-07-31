@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,9 +27,8 @@
  *
  **/
 
-
 const compareFuncs = require('./core.compare');
-const { Labels } = require('./constants');
+const {Labels} = require('./constants');
 
 const {
   normalize,
@@ -38,14 +38,18 @@ const {
 } = require('./utils');
 
 function years(record1, record2) {
-  //will generate a set of years found in the record for matching
-  //500a, 008 merkkipaikat 7-11 ja 12-16 + 260c tehdään vuosista setti ja verrataan niitä keskenään
-  
-  var fields1 = select(['260..c', '500..a'], record1);
-  var fields2 = select(['260..c', '500..a'], record2);
+  // Will generate a set of years found in the record for matching
+  // 500a, 008 merkkipaikat 7-11 ja 12-16 + 260c tehdään vuosista setti ja verrataan niitä keskenään
 
-  var rec1_008 = record1.controlfield.find(function(f) {return f.$.tag == '008'; } );
-  var rec2_008 = record2.controlfield.find(function(f) {return f.$.tag == '008'; } );
+  let fields1 = select(['260..c', '500..a'], record1);
+  let fields2 = select(['260..c', '500..a'], record2);
+
+  const rec1_008 = record1.controlfield.find(f => {
+    return f.$.tag == '008';
+  });
+  const rec2_008 = record2.controlfield.find(f => {
+    return f.$.tag == '008';
+  });
 
   if (rec1_008 === undefined) {
     throw new Error('Record is missing field 008');
@@ -54,17 +58,17 @@ function years(record1, record2) {
     throw new Error('Record is missing field 008');
   }
 
-  var fields_from_008_1 = [rec1_008._.substr(7,4), rec1_008._.substr(11,4)].map(createField('008','a'));
-  var fields_from_008_2 = [rec2_008._.substr(7,4), rec2_008._.substr(11,4)].map(createField('008','a'));
+  const fields_from_008_1 = [rec1_008._.substr(7, 4), rec1_008._.substr(11, 4)].map(createField('008', 'a'));
+  const fields_from_008_2 = [rec2_008._.substr(7, 4), rec2_008._.substr(11, 4)].map(createField('008', 'a'));
 
   fields1 = fields1.concat(fields_from_008_1);
   fields2 = fields2.concat(fields_from_008_2);
 
-  var normalized1 = normalize( clone(fields1) , ['onlyYearNumbers', 'removeEmpty']);
-  var normalized2 = normalize( clone(fields2) , ['onlyYearNumbers', 'removeEmpty']);
+  const normalized1 = normalize(clone(fields1), ['onlyYearNumbers', 'removeEmpty']);
+  const normalized2 = normalize(clone(fields2), ['onlyYearNumbers', 'removeEmpty']);
 
-  var set1 = normalized1;
-  var set2 = normalized2;
+  const set1 = normalized1;
+  const set2 = normalized2;
 
   function getData() {
     return {
@@ -74,8 +78,6 @@ function years(record1, record2) {
   }
 
   function check() {
-
-    
     if (set1.length === 0 || set2.length === 0) {
       return null;
     }
@@ -84,22 +86,21 @@ function years(record1, record2) {
       return Labels.SURE;
     }
 
-    var equalFunc = function(a,b) {
+    const equalFunc = function (a, b) {
       return a === b;
     };
-    equalFunc.options = { nosubcode: true };
+    equalFunc.options = {nosubcode: true};
 
     if (compareFuncs.isSubset(set1, set2, equalFunc) || compareFuncs.isSubset(set2, set1, equalFunc)) {
       return Labels.ALMOST_SURE;
     }
 
     return Labels.SURELY_NOT;
-
   }
 
   return {
-    check: check,
-    getData: getData
+    check,
+    getData
   };
 }
 

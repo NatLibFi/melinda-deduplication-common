@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,8 +28,9 @@
  **/
 
 const _ = require('lodash');
-const { Labels } = require('./constants');
-const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
+const {Labels} = require('./constants');
+
+const {SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE} = Labels;
 
 const {
   fromXMLjsFormat,
@@ -42,7 +44,7 @@ const {
   dropNumbers
 } = require('./utils');
 
-const compareNumbers = (allowedDiff) => (numA, numB) => {
+const compareNumbers = allowedDiff => (numA, numB) => {
   if (typeof allowedDiff === 'string') {
     const percentDiff = (parseInt(allowedDiff) + 100) / 100;
     return Math.max(numA, numB) / Math.min(numA, numB) <= percentDiff;
@@ -50,16 +52,14 @@ const compareNumbers = (allowedDiff) => (numA, numB) => {
   return Math.abs(numA - numB) <= allowedDiff;
 };
 
-const compareNumberSets = (allowedDiff) => (listA, listB) => {
-
-  return isSubsetWith(listA, listB, compareNumbers(allowedDiff)) 
-      || isSubsetWith(listB, listA, compareNumbers(allowedDiff));
+const compareNumberSets = allowedDiff => (listA, listB) => {
+  return isSubsetWith(listA, listB, compareNumbers(allowedDiff)) ||
+      isSubsetWith(listB, listA, compareNumbers(allowedDiff));
 };
 
-const removeSuffix = word => word.length > 6 ? word.substr(0, word.length-3) : word;
+const removeSuffix = word => word.length > 6 ? word.substr(0, word.length - 3) : word;
 
 const compareStringSets = (listA, listB) => {
-  
   const shortenedA = listA.map(removeSuffix);
   const shortenedB = listB.map(removeSuffix);
 
@@ -69,22 +69,20 @@ const compareStringSets = (listA, listB) => {
   );
 
   return differentElements.length === 0;
-
 };
 
 const compareStringSubsets = (listA, listB) => {
   const shortenedA = listA.map(removeSuffix);
   const shortenedB = listB.map(removeSuffix);
 
-  return isSubsetWith(shortenedA, shortenedB, startsOrEndsComparator) 
-      || isSubsetWith(shortenedB, shortenedA, startsOrEndsComparator);
+  return isSubsetWith(shortenedA, shortenedB, startsOrEndsComparator) ||
+      isSubsetWith(shortenedB, shortenedA, startsOrEndsComparator);
 };
 
 const forMissingFeature = (labelIfEitherIsMissingFeature, comparator) => (itemA, itemB) => {
-  
-  const containsData = (item) => {
+  const containsData = item => {
     const isNotEmpty = (_.isString(item) || _.isArray(item)) ? item.length > 0 : true;
-    
+
     return item !== null && item !== undefined && isNotEmpty;
   };
 
@@ -97,16 +95,15 @@ const forMissingFeature = (labelIfEitherIsMissingFeature, comparator) => (itemA,
   return null;
 };
 
+// Keep only items that are not numbers and equal or longer than 2 characters
+const words = sentence => sentence.split(' ').filter(word => isNaN(word)).filter(word => word.length >= 2);
 
-// keep only items that are not numbers and equal or longer than 2 characters
-const words = (sentence) => sentence.split(' ').filter(word => isNaN(word)).filter(word => word.length >= 2);
-
-// number if sentence starts with a number, otherwise 1
-const initNumber = (sentence) => {
+// Number if sentence starts with a number, otherwise 1
+const initNumber = sentence => {
   return _.isString(sentence) ? isNaN(sentence.charAt(0)) ? 1 : _.get(selectNumbers(sentence), '[0]', null) : null;
 };
 
-// missing count means 1. Usually single items are not explicitly stated.
+// Missing count means 1. Usually single items are not explicitly stated.
 function compareCounts(a, b) {
   if (a === null && b === null) {
     return null;
@@ -117,11 +114,11 @@ function compareCounts(a, b) {
 }
 
 function parseVolumes(text) {
-  const words = text.replace(/(\d+)/g,' $1 ').split(' ').filter(str => str.length > 0);
+  const words = text.replace(/(\d+)/g, ' $1 ').split(' ').filter(str => str.length > 0);
   const indexOfWordForVolume = words.findIndex(word => word.includes('NID') || word.includes('VOL'));
-  
+
   if (indexOfWordForVolume != -1 && indexOfWordForVolume !== 0) {
-    const volumeCount = words[indexOfWordForVolume-1];
+    const volumeCount = words[indexOfWordForVolume - 1];
     return parseInt(volumeCount);
   }
 
@@ -129,12 +126,10 @@ function parseVolumes(text) {
 }
 
 function size(xmlJsrecord1, xmlJsrecord2) {
-
   const record1 = fromXMLjsFormat(xmlJsrecord1);
   const record2 = fromXMLjsFormat(xmlJsrecord2);
 
   const featureNames = ['numbers-a', 'terms-a', 'terms-b', 'numbers-c', 'terms-e', 'numbers-e', 'volumes-a'];
-
 
   // Selectors
   const numbersA = _.flow(selectValue('300', 'a'), normalizeWith(normalizeText, expandAlias, selectNumbers, _.max));
@@ -143,13 +138,13 @@ function size(xmlJsrecord1, xmlJsrecord2) {
   const numbersC = _.flow(selectValue('300', 'c'), normalizeWith(normalizeText, expandAlias, selectNumbers));
   const termsE = _.flow(selectValue('300', 'e'), normalizeWith(normalizeText, dropNumbers, expandAlias, words));
   const numbersE = _.flow(selectValue('300', 'e'), normalizeWith(normalizeText, expandAlias, initNumber));
-  
+
   const volumesA = _.flow(selectValue('300', 'a'), normalizeWith(normalizeText, parseVolumes));
 
   const selectors = [numbersA, termsA, termsB, numbersC, termsE, numbersE, volumesA];
 
-  const toLabel = (t,f) => val => val === null ? null : val ? t : f;
-  
+  const toLabel = (t, f) => val => val === null ? null : val ? t : f;
+
   // Comparators
   const comparators = [
     _.flow(forMissingFeature(null, compareNumbers('2%')), toLabel(SURE, SURELY_NOT)),
@@ -162,19 +157,16 @@ function size(xmlJsrecord1, xmlJsrecord2) {
   ];
 
   function check() {
-
     return _.zip(selectors, comparators).map(([select, compare]) => {
       const valueA = select(record1);
       const valueB = select(record2);
 
       return compare(valueA, valueB);
-     
     });
-
   }
 
   return {
-    check: check,
+    check,
     names: featureNames.map(n => `size-${n}`)
   };
 }

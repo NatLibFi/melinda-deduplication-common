@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,20 +27,19 @@
  **/
 
 // @flow
-import type { MelindaRecordService, Credentials } from '../types/melinda-record-service.flow';
+import {type MelindaRecordService, type Credentials} from '../types/melinda-record-service.flow';
 
-const AlephRecordService = require('./aleph-record-service');
-const MelindaClient = require('melinda-api-client');
+const MelindaClient = require('@natlibfi/melinda-api-client');
 const _ = require('lodash');
+const AlephRecordService = require('./aleph-record-service');
 
 function createMelindaRecordService(melindaEndpoint: String, XServer: String, credentials?: Credentials): MelindaRecordService {
-
   const client = new MelindaClient({
     endpoint: melindaEndpoint,
     user: _.get(credentials, 'username'),
     password: _.get(credentials, 'password')
   });
-  
+
   const alephRecordServiceX = AlephRecordService.createAlephRecordService(XServer, credentials);
 
   function loadRecord(base, recordId, options) {
@@ -86,7 +85,7 @@ function wrapInAlephRecordError(error) {
   return error;
 }
 
-module.exports = { 
+module.exports = {
   createMelindaRecordService,
   AlephRecordError: AlephRecordService.AlephRecordError
 };

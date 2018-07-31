@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,8 +27,7 @@
  *
  **/
 
-
-import type { MarcRecord, Field, DataField, ControlField } from '../types/marc-record.flow';
+import {type MarcRecord, type Field, type DataField, type ControlField} from '../types/marc-record.flow';
 
 const moment = require('moment');
 const _ = require('lodash');
@@ -42,30 +42,31 @@ type PageInfo = {
 };
 
 function parsePageInfo(inputString: string): ?PageInfo {
-  if (!inputString) return null;
+  if (!inputString) {
+    return null;
+  }
 
   const charactersToRemove = '[]';
   const charactersToSpaces = ',';
-  // char -> char -> char -> boolean
+  // Char -> char -> char -> boolean
   const characterBetween = (startChar, endChar) => {
     let insideParenthesis = false;
-    return (char) => {
+    return char => {
       if (char == startChar) {
         insideParenthesis = true;
         return false;
-      } else if (char == endChar) {
+      } if (char == endChar) {
         insideParenthesis = false;
         return false;
-      } else {
-        return !insideParenthesis;
       }
+      return !insideParenthesis;
     };
   };
 
   const normalizedString = inputString.split('')
     .filter(char => !_.includes(charactersToRemove, char))
     .map(char => _.includes(charactersToSpaces, char) ? ' ' : char)
-    .filter(characterBetween('(',')'))
+    .filter(characterBetween('(', ')'))
     .join('');
 
   const unableToParse = normalizedString.split(' ').some(word => isNotAllowed(word.toLowerCase()));
@@ -76,56 +77,54 @@ function parsePageInfo(inputString: string): ?PageInfo {
 
   // Match range ex. 123-534
   const rangeMatch = /(\d+)-(\d+)/.exec(normalizedString);
-  
+
   if (rangeMatch != null) {
-    
     const start = parseInt(rangeMatch[1], 10);
     const end = parseInt(rangeMatch[2], 10);
 
     return {
-      start: start,
-      end: end,
+      start,
+      end,
       str: inputString,
-      total: end-start
+      total: end - start
     };
   }
 
   const numbers = normalizedString
-    .replace(/\D/g,' ')
-    .replace(/\s+/g,' ')
+    .replace(/\D/g, ' ')
+    .replace(/\s+/g, ' ')
     .split(' ')
     .map(n => parseInt(n, 10));
-  
+
   const max_num = _.max(numbers);
-  
-  let preambleSize = parsePreambleSize(normalizedString);
-  
+
+  const preambleSize = parsePreambleSize(normalizedString);
+
   const start = 0;
   const end = max_num;
   return {
-    start: start,
-    end: end,
+    start,
+    end,
     str: inputString,
     total: end - start + preambleSize
   };
 
-  // string -> number
+  // String -> number
   function parsePreambleSize(str: string): number {
     let preambleSize = 0;
-    str.split(' ').some(function(word) {
+    str.split(' ').some(word => {
       try {
         preambleSize = toArabic(word);
         return true;
-      } catch(e) {
+      } catch (e) {
         return false;
       }
     });
     return preambleSize;
   }
 
-  // string -> bool
+  // String -> bool
   function isNotAllowed(word: string): boolean {
-
     const charsToRemove = ':.()[],-'.split('');
 
     const normalizedWord = word.split('')
@@ -138,17 +137,23 @@ function parsePageInfo(inputString: string): ?PageInfo {
   }
 }
 
-// str -> [string]
-function parseYears(str: string): Array<string> {
-  if (!str) return [];
+// Str -> [string]
+function parseYears(str: string): string[] {
+  if (!str) {
+    return [];
+  }
 
-  // keeps only words that are 4 characters long and between 1000 and 2100 (exclusive)
+  // Keeps only words that are 4 characters long and between 1000 and 2100 (exclusive)
   return str.split(/\D/).filter(isYear).sort();
 
   function isYear(str) {
-    if (str.length != 4) return false;
-    if (isNaN(str)) return false;
-    var number = parseInt(str, 10);
+    if (str.length != 4) {
+      return false;
+    }
+    if (isNaN(str)) {
+      return false;
+    }
+    const number = parseInt(str, 10);
 
     return number < 2100 && number > 1000;
   }
@@ -157,9 +162,8 @@ function parseYears(str: string): Array<string> {
 function fieldToString(field: Field): string {
   if (field && field.subfields) {
     return dataFieldToString(field);
-  } else {
-    return controlfieldToString(field);
   }
+  return controlfieldToString(field);
 
   function dataFieldToString(field: DataField): string {
     const ind1 = field.ind1 || ' ';
@@ -174,21 +178,21 @@ function fieldToString(field: Field): string {
 }
 
 function stringToField(fieldStr: string): Field {
-  const tag = fieldStr.substr(0,3);
+  const tag = fieldStr.substr(0, 3);
   if (parseInt(tag) < 10) {
     const value = fieldStr.substr(7);
-    return { tag, value };
+    return {tag, value};
   }
-  const ind1 = fieldStr.substr(4,1);
-  const ind2 = fieldStr.substr(5,1);
+  const ind1 = fieldStr.substr(4, 1);
+  const ind2 = fieldStr.substr(5, 1);
   const subfieldsStr = fieldStr.substr(6);
-  
+
   const subfields = _.tail(subfieldsStr.split('‡')).map(subfieldStr => ({
-    code: subfieldStr.substr(0,1),
+    code: subfieldStr.substr(0, 1),
     value: subfieldStr.substr(1)
   }));
 
-  return { tag, ind1, ind2, subfields };
+  return {tag, ind1, ind2, subfields};
 }
 
 function selectRecordId(record: MarcRecord): boolean {
@@ -196,7 +200,7 @@ function selectRecordId(record: MarcRecord): boolean {
 }
 
 function isDeleted(record: MarcRecord): boolean {
-  return record.leader.substr(5,1) === 'd';
+  return record.leader.substr(5, 1) === 'd';
 }
 
 function parseParentId(record: MarcRecord): string {
@@ -215,7 +219,7 @@ function isComponentRecord(record: MarcRecord): boolean {
 }
 
 function updateRecordLeader(record, index, characters) {
-  record.leader = record.leader.substr(0,index) + characters + record.leader.substr(index+characters.length);
+  record.leader = record.leader.substr(0, index) + characters + record.leader.substr(index + characters.length);
 }
 
 function getLastModificationDate(record: MarcRecord): Date {
@@ -229,8 +233,7 @@ function getLastModificationDate(record: MarcRecord): Date {
   return new Date(0);
 }
 
-
-module.exports = { 
+module.exports = {
   parsePageInfo,
   parseYears,
   fieldToString,
