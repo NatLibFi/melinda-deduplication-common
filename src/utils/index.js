@@ -42,7 +42,7 @@ import * as DuplicateDatabaseConnector from './duplicate-database-connector';
 import * as RecordMergeService from './record-merge-service';
 import * as DataStoreConnector from './datastore-connector';
 import Logger from './logger';
-import StartStopTimer from './start-stop-timer';
+import createTimer from './start-stop-timer';
 import createComponentRecordMatchService from './component-record-match-service';
 
 export {
@@ -61,6 +61,6 @@ export {
   RecordMergeService,
   DataStoreConnector,
   Logger,
-  StartStopTimer,
+  createTimer,
   createComponentRecordMatchService
 };
