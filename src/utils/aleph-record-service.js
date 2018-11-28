@@ -30,7 +30,7 @@
 const querystring = require('querystring');
 const _ = require('lodash');
 const fetch = require('node-fetch');
-const RecordSerializers = require('marc-record-serializers');
+const RecordSerializers = require('@natlibfi/marc-record-serializers');
 const debug = require('debug')('aleph-record-service');
 const promisify = require('es6-promisify');
 const parseString = require('xml2js').parseString;
@@ -72,7 +72,7 @@ function createAlephRecordService(XServer, credentials) {
       throw new Error('Credentials are required for saving records');
     }
 
-    const recordInOAI_MARCXML = RecordSerializers.OAI_MARCXML.toOAI_MARCXML(record);
+    const recordInOAI_MARCXML = RecordSerializers.OAI_MARCXML.to(record);
 
     const declaration = '<?xml version = "1.0" encoding = "UTF-8"?>\n';
 
@@ -149,7 +149,7 @@ function createAlephRecordService(XServer, credentials) {
   }
 
   function parseXMLRecordResponse(XServerXMLResponse) {
-    return RecordSerializers.OAI_MARCXML.fromOAI_MARCXML(XServerXMLResponse);
+    return RecordSerializers.OAI_MARCXML.from(XServerXMLResponse);
   }
 
   return {
