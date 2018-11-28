@@ -10,7 +10,7 @@
     "url": "git@github.com:natlibfi/melinda-deduplication-common-melinda.git"
   },
   "license": "LGPL-3.0+",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "main": "dist/index",
   "files": [
     "dist"
