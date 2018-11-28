@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,22 +28,23 @@
  **/
 
 const chai = require('chai');
+
 const expect = chai.expect;
 
-const { Labels } = require('./constants');
-const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
+const {Labels} = require('./constants');
+
+const {SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE} = Labels;
 
 const MarcRecord = require('marc-record-js');
 const Utils = require('./utils');
 
 const createExtractor = require('./feature-terms-in-fields');
 
-describe('feature-terms-in-fields', function() {
-
+describe('feature-terms-in-fields', () => {
   let record1;
   let record2;
 
-  beforeEach(() => {  
+  beforeEach(() => {
     record1 = new MarcRecord();
     record2 = new MarcRecord();
   });
@@ -53,7 +55,6 @@ describe('feature-terms-in-fields', function() {
   }
 
   function runExtractor() {
-
     const extractor = createExtractor(toWeirdFormat(record1), toWeirdFormat(record2));
     expect(extractor).not.to.be.null;
 
@@ -114,16 +115,12 @@ describe('feature-terms-in-fields', function() {
     );
     expect(runExtractor()[1]).to.eql(SURE);
   });
-
 });
 
-
-
 function toWeirdFormat(record) {
-
   return {
     controlfield: record.getControlfields().map(convertControlField),
-    datafield: record.getDatafields().map(convertDataField),
+    datafield: record.getDatafields().map(convertDataField)
   };
 
   function convertControlField(field) {
@@ -139,7 +136,7 @@ function toWeirdFormat(record) {
       $: {
         tag: field.tag,
         ind1: field.ind1,
-        ind2: field.ind2,
+        ind2: field.ind2
       },
       subfield: field.subfields.map(convertSubfield)
     };

@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,8 +27,7 @@
  **/
 
 // @flow
-
-import type { MarcRecord } from './marc-record.flow';
+import {type MarcRecord} from './marc-record.flow';
 
 export type RecordIdentifier = {
   id: string,
@@ -41,5 +40,5 @@ export type RankedPair = {
 };
 
 export type PreferredRecordService = {
-  selectPreferredRecord: (firstRecord: MarcRecord, secondRecord: MarcRecord) => RankedPair,
+  selectPreferredRecord: (firstRecord: MarcRecord, secondRecord: MarcRecord) => RankedPair
 };

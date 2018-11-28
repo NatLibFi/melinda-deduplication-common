@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,8 +28,9 @@
  **/
 
 const _ = require('lodash');
-const { Labels } = require('./constants');
-const { SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE } = Labels;
+const {Labels} = require('./constants');
+
+const {SURE, SURELY_NOT, ABSOLUTELY_NOT_DOUBLE} = Labels;
 
 const {
   fromXMLjsFormat,
@@ -49,7 +51,6 @@ const removeSquareBrackets = str => _.isString(str) ? str.replace(/\[|]/g, '') :
 const addOneToEmptySet = set => set.length === 0 ? _.concat(set, 1) : set;
 
 function F362(xmlJsrecord1, xmlJsrecord2) {
-
   const record1 = fromXMLjsFormat(xmlJsrecord1);
   const record2 = fromXMLjsFormat(xmlJsrecord2);
 
@@ -58,25 +59,23 @@ function F362(xmlJsrecord1, xmlJsrecord2) {
   // Selectors
   const years = _.flow(selectValue('362', 'a'), normalizeWith(removeSquareBrackets, normalizeText, expandAlias, selectNumbers, filter(isYear)));
   const numbers = _.flow(selectValue('362', 'a'), normalizeWith(normalizeText, expandAlias, selectNumbers, filter(notYear), addOneToEmptySet));
-  
+
   const valueMissing = record => selectValues('362', 'a')(record).length === 0;
 
   const selectors = [years, numbers];
-  
-  const toLabel = (t,f) => val => val === null ? null : val ? t : f;
+
+  const toLabel = (t, f) => val => val === null ? null : val ? t : f;
 
   // Comparators
   const comparators = [
     _.flow(forMissingFeature(null, isIdentical), toLabel(SURE, SURELY_NOT)),
-    _.flow(forMissingFeature(null, isIdentical), toLabel(SURE, ABSOLUTELY_NOT_DOUBLE)),
+    _.flow(forMissingFeature(null, isIdentical), toLabel(SURE, ABSOLUTELY_NOT_DOUBLE))
   ];
 
   function check() {
-
     if (valueMissing(record1) || valueMissing(record2)) {
       return [null, null];
     }
-    
 
     const features = _.zip(selectors, comparators).map(([select, compare]) => {
       const valueA = select(record1);
@@ -88,7 +87,7 @@ function F362(xmlJsrecord1, xmlJsrecord2) {
   }
 
   return {
-    check: check,
+    check,
     names: featureNames.map(name => `F362-${name}`)
   };
 }

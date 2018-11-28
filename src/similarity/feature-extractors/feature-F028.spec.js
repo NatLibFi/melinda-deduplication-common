@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,22 +28,23 @@
  **/
 
 const chai = require('chai');
+
 const expect = chai.expect;
 
-const { Labels } = require('./constants');
-const { SURE, ABSOLUTELY_NOT_DOUBLE } = Labels;
+const {Labels} = require('./constants');
+
+const {SURE, ABSOLUTELY_NOT_DOUBLE} = Labels;
 
 const MarcRecord = require('marc-record-js');
 const Utils = require('./utils');
 
 const createExtractor = require('./feature-F028');
 
-describe('feature-F028', function() {
-
+describe('feature-F028', () => {
   let record1;
   let record2;
 
-  beforeEach(() => {  
+  beforeEach(() => {
     record1 = new MarcRecord();
     record2 = new MarcRecord();
   });
@@ -53,20 +55,17 @@ describe('feature-F028', function() {
   }
 
   function runExtractor() {
-
     const extractor = createExtractor(toWeirdFormat(record1), toWeirdFormat(record2));
     expect(extractor).not.to.be.null;
 
     return extractor.check();
   }
 
-
   describe('for records that contain same a,b', () => {
-
     const tests = [
       ['028 00 ‡bUusinta‡aUUCD103', '028 01 ‡bUusinta‡aUUCD103'],
       ['028 00 ‡bFazer‡aF08650', '028 30 ‡bFazer‡aF08650'],
-      ['028 00 ‡bOtava‡aP9204‡qC-kas.', '028 00 ‡bOtava‡aP9204'],
+      ['028 00 ‡bOtava‡aP9204‡qC-kas.', '028 00 ‡bOtava‡aP9204']
     ];
 
     tests.forEach(test => {
@@ -78,9 +77,8 @@ describe('feature-F028', function() {
   });
 
   describe('for records that contain same q', () => {
-
     const tests = [
-      ['028 00 ‡bOtava‡aP920‡qC-kas.', '028 00 ‡bOtava‡aP920‡qC-kas.'],
+      ['028 00 ‡bOtava‡aP920‡qC-kas.', '028 00 ‡bOtava‡aP920‡qC-kas.']
     ];
 
     tests.forEach(test => {
@@ -92,10 +90,9 @@ describe('feature-F028', function() {
   });
 
   describe('for records that contain same b, but different a', () => {
-
     const tests = [
       ['028 01 ‡bSULASOL‡aS280', '028 31 ‡bSulasol‡aS280a'],
-      ['028 31 ‡bFazer‡aF08820', '028 31 ‡bFazer‡aF08819'],
+      ['028 31 ‡bFazer‡aF08820', '028 31 ‡bFazer‡aF08819']
     ];
 
     tests.forEach(test => {
@@ -107,9 +104,8 @@ describe('feature-F028', function() {
   });
 
   describe('for records that contain same a, but missing b', () => {
-
     const tests = [
-      ['028 02 ‡a3754547', '028 01 ‡bEMI Finland‡a3754547'],
+      ['028 02 ‡a3754547', '028 01 ‡bEMI Finland‡a3754547']
     ];
 
     tests.forEach(test => {
@@ -119,19 +115,12 @@ describe('feature-F028', function() {
       });
     });
   });
-
-  
-
-
 });
 
-
-
 function toWeirdFormat(record) {
-
   return {
     controlfield: record.getControlfields().map(convertControlField),
-    datafield: record.getDatafields().map(convertDataField),
+    datafield: record.getDatafields().map(convertDataField)
   };
 
   function convertControlField(field) {
@@ -147,7 +136,7 @@ function toWeirdFormat(record) {
       $: {
         tag: field.tag,
         ind1: field.ind1,
-        ind2: field.ind2,
+        ind2: field.ind2
       },
       subfield: field.subfields.map(convertSubfield)
     };

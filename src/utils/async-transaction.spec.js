@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,36 +27,35 @@
  *
  **/
 
-/*jshint mocha:true*/
+/* jshint mocha:true */
 'use strict';
 
-var chai = require('chai');
-var sinon = require('sinon');
-var expect = chai.expect;
-var assert = chai.assert;
+const chai = require('chai');
+const sinon = require('sinon');
 
-var {executeTransaction, RollbackError} = require('./async-transaction');
+const expect = chai.expect;
+const assert = chai.assert;
 
-describe('transcation', function() {
+const {executeTransaction, RollbackError} = require('./async-transaction');
 
-  it('should run actions and result in OK if all is well', function(done) {
-
-    var sequence = [
+describe('transcation', () => {
+  it('should run actions and result in OK if all is well', done => {
+    const sequence = [
       {action: successFn('del1'), rollback: successFn('undel1')},
       {action: successFn('del2'), rollback: successFn('undel2')},
-      {action: successFn('merge'), rollback: undefined},
+      {action: successFn('merge'), rollback: undefined}
     ];
 
-    executeTransaction(sequence).then(function(res) {
+    executeTransaction(sequence).then(res => {
       try {
         assert(true, 'Success callback should be called when everyting is ok');
         expect(res).to.eql(['del1', 'del2', 'merge']);
 
         done();
-      } catch(e) {
+      } catch (e) {
         done(e);
       }
-    }, function(error) {
+    }, error => {
       if (error.name == 'AssertionError') {
         done(error);
       }
@@ -63,161 +63,158 @@ describe('transcation', function() {
     });
   });
 
-  it('should rollback on error and tell what failed', function(done) {
-
-    var sequence = [
+  it('should rollback on error and tell what failed', done => {
+    const sequence = [
       {action: successFn('del1'), rollback: successFn('undel1')},
       {action: successFn('del2'), rollback: successFn('undel2')},
-      {action: failingFn('merge'), rollback: undefined},
+      {action: failingFn('merge'), rollback: undefined}
     ];
 
     executeTransaction(sequence)
       .then(onFulfilledMustNotBeCalled(done))
-      .catch(function(error) {
+      .catch(error => {
         if (error.name == 'AssertionError') {
           done(error);
         }
         expect(error.message).to.equal('merge');
         done();
-        
       });
   });
 
-  it('should run additional rollbacks', function(done) {
-
+  it('should run additional rollbacks', done => {
     const additionalRollback = sinon.spy(successFn('extrarollbackaction'));
 
-    var sequence = [
+    const sequence = [
       {action: successFn('del1'), rollback: successFn('undel1')},
       {action: successFn('del2'), rollback: successFn('undel2')},
-      {action: failingFn('merge'), rollback: undefined},
+      {action: failingFn('merge'), rollback: undefined}
     ];
 
     executeTransaction(sequence, [additionalRollback])
       .then(onFulfilledMustNotBeCalled(done))
-      .catch(catchHandler(function(error) {
+      .catch(catchHandler(error => {
         expect(additionalRollback).to.have.been.calledOnce;
         expect(error.message).to.equal('merge');
         done();
       }, done));
   });
 
-  it('should give action response to rollback function as parameter', function(done) {
-
+  it('should give action response to rollback function as parameter', done => {
     const rollback1 = sinon.spy(successFn('undel1'));
     const rollback2 = sinon.spy(successFn('undel2'));
 
-    var sequence = [
+    const sequence = [
       {action: successFn('del1'), rollback: rollback1},
       {action: successFn('del2'), rollback: rollback2},
-      {action: failingFn('merge'), rollback: undefined},
+      {action: failingFn('merge'), rollback: undefined}
     ];
 
     executeTransaction(sequence)
       .then(onFulfilledMustNotBeCalled(done))
-      .catch(function(error) {
+      .catch(error => {
         if (error.name == 'AssertionError') {
           done(error);
         }
 
         try {
           expect(rollback1.getCall(0).args).to.eql(['del1']);
-          expect(rollback2.getCall(0).args).to.eql(['del2']);          
+          expect(rollback2.getCall(0).args).to.eql(['del2']);
           expect(error.message).to.equal('merge');
           done();
-        } catch(e) {
+        } catch (e) {
           done(e);
         }
       });
   });
 
-  it('should stop execution on first error', function(done) {
-
-    var sequence = [
+  it('should stop execution on first error', done => {
+    const sequence = [
       {action: successFn('del1'), rollback: successFn('undel1')},
       {action: failingFn('del2'), rollback: successFn('undel2')},
-      {action: successFn('merge'), rollback: undefined},
+      {action: successFn('merge'), rollback: undefined}
     ];
 
     executeTransaction(sequence)
       .then(onFulfilledMustNotBeCalled(done))
-      .catch(function(error) {
+      .catch(error => {
         if (error.name == 'AssertionError') {
           done(error);
         }
-        
+
         expect(error.message).to.equal('del2');
 
         done();
       });
   });
 
-
-  it('should throw a RollbackError if rollback fails', function(done) {
-
-    var sequence = [
+  it('should throw a RollbackError if rollback fails', done => {
+    const sequence = [
       {action: successFn('del1'), rollback: failingFn('undel1')},
       {action: successFn('del2'), rollback: successFn('undel2')},
-      {action: failingFn('merge'), rollback: undefined},
+      {action: failingFn('merge'), rollback: undefined}
     ];
-    
+
     executeTransaction(sequence)
       .then(onFulfilledMustNotBeCalled(done))
-      .catch(catchHandler(function(error) {
+      .catch(catchHandler(error => {
         expect(error).to.be.instanceof(RollbackError);
-        expect(error.message).to.equal('undel1');  
+        expect(error.message).to.equal('undel1');
         done();
       }, done));
   });
 });
 
 function catchHandler(fn, done) {
-  return function(error) {
+  return function (error) {
     if (error.name == 'AssertionError') {
       done(error);
     }
     try {
       fn(error);
-    } catch(error) {
+    } catch (error) {
       done(error);
     }
   };
 }
 
-describe('RollbackError', function() {
-  it('should be accessible', function() {
+describe('RollbackError', () => {
+  it('should be accessible', () => {
     expect(RollbackError).to.be.a('function');
   });
-  it('should have default message if message not fiven', function() {
-    var rollbackError = new RollbackError();
+  it('should have default message if message not fiven', () => {
+    const rollbackError = new RollbackError();
     expect(rollbackError.message).to.equal('Rollback failed');
   });
 });
 
 function successFn(text) {
-  return function() {
+  return function () {
     return asyncFunc(text);
   };
 }
 
 function failingFn(text) {
-  return function() {
+  return function () {
     return asyncFail(text);
   };
 }
 
 function asyncFunc(text) {
-  return new Promise((resolve) => {
-    setTimeout(function() { resolve(text); }, 5);
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(text);
+    }, 5);
   });
 }
 
 function asyncFail(text) {
   return new Promise((resolve, reject) => {
-    setTimeout(function() { reject(new Error(text)); }, 5);
+    setTimeout(() => {
+      reject(new Error(text));
+    }, 5);
   });
 }
 
 function onFulfilledMustNotBeCalled(done) {
-  return (res) => done(new Error('Success callback was run on error case. Result was: ' + res));
+  return res => done(new Error('Success callback was run on error case. Result was: ' + res));
 }

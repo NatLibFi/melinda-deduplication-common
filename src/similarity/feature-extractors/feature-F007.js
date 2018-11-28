@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,22 +27,20 @@
  *
  **/
 
-var compareFuncs = require('./core.compare');
-const { Labels } = require('./constants');
+const compareFuncs = require('./core.compare');
+const {Labels} = require('./constants');
 
 const {
   fromXMLjsFormat
 } = require('./utils');
 
 function F007(record1, record2) {
+  const fields1 = fromXMLjsFormat(record1).fields.filter(f => f.tag === '007');
+  const fields2 = fromXMLjsFormat(record2).fields.filter(f => f.tag === '007');
 
-  
-  var fields1 = fromXMLjsFormat(record1).fields.filter(f => f.tag === '007');
-  var fields2 = fromXMLjsFormat(record2).fields.filter(f => f.tag === '007');
- 
   const set1 = fields1;
   const set2 = fields2;
-  
+
   function getData() {
     return {
       fields: [fields1, fields2],
@@ -50,12 +49,11 @@ function F007(record1, record2) {
   }
 
   function check() {
-
     if (set1.length === 0 || set2.length === 0) {
       return null;
     }
 
-    const equalFunc = (a,b) => a.tag === b.tag && a.value === b.value;
+    const equalFunc = (a, b) => a.tag === b.tag && a.value === b.value;
     equalFunc.options = {
       noNormalization: true
     };
@@ -68,8 +66,8 @@ function F007(record1, record2) {
   }
 
   return {
-    check: check,
-    getData: getData
+    check,
+    getData
   };
 }
 

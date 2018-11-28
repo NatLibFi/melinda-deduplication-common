@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,7 +27,7 @@
  **/
 
 // @flow
-import type { MarcRecord } from '../types/marc-record.flow';
+import {type MarcRecord} from '../types/marc-record.flow';
 
 const moment = require('moment');
 const _ = require('lodash');

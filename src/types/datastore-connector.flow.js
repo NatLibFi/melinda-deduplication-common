@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,14 +27,13 @@
  **/
 
 // @flow
-
-import type { MarcRecord } from './marc-record.flow';
-import type { DuplicateCandidate } from './duplicate-candidate.flow';
-import type { DataStoreChangeType } from './datastore-changetype.flow';
+import {type MarcRecord} from './marc-record.flow';
+import {type DuplicateCandidate} from './duplicate-candidate.flow';
+import {type DataStoreChangeType} from './datastore-changetype.flow';
 
 export type DataStoreConnector = {
   loadRecord: (base: string, recordId: string) => Promise<MarcRecord>,
   loadRecordByTimestamp: (base: string, recordId: string, timestamp: number) => Promise<MarcRecord>,
   saveRecord: (base: string, recordId: string, record: MarcRecord, changeType: DataStoreChangeType, changeTimestamp: Date) => Promise<any>,
-  getDuplicateCandidates: (base: string, recordId: string) => Promise<Array<DuplicateCandidate>>
+  getDuplicateCandidates: (base: string, recordId: string) => Promise<DuplicateCandidate[]>
 };

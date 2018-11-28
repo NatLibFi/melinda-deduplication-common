@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,14 +27,13 @@
  **/
 
 // @flow
-
 type DuplicatePairItem = {|
   id: string,
   base: string,
-  term: string  
+  term: string
 |};
 
 export type DuplicateCandidate = {|
   first: DuplicatePairItem,
-  second: DuplicatePairItem  
+  second: DuplicatePairItem
 |};

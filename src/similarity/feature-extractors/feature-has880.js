@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,24 +27,22 @@
  *
  **/
 
-
-const { Labels } = require('./constants');
+const {Labels} = require('./constants');
 
 const {
   select,
-  clone,
+  clone
 } = require('./utils');
 
 function has880(record1, record2) {
-  
-  var fields1 = select(['880'], clone(record1));
-  var fields2 = select(['880'], clone(record2));
+  const fields1 = select(['880'], clone(record1));
+  const fields2 = select(['880'], clone(record2));
 
-  var normalized1 = fields1;
-  var normalized2 = fields2;
+  const normalized1 = fields1;
+  const normalized2 = fields2;
 
-  var set1 = normalized1;
-  var set2 = normalized2;
+  const set1 = normalized1;
+  const set2 = normalized2;
 
   function getData() {
     return {
@@ -53,8 +52,7 @@ function has880(record1, record2) {
   }
 
   function check() {
-
-    // return ABSOLUTELY_NOT_DOUBLE if fields have 880
+    // Return ABSOLUTELY_NOT_DOUBLE if fields have 880
     if (set1.length !== 0 || set2.length !== 0) {
       return Labels.ABSOLUTELY_NOT_DOUBLE;
     }
@@ -62,8 +60,8 @@ function has880(record1, record2) {
   }
 
   return {
-    check: check,
-    getData: getData
+    check,
+    getData
   };
 }
 

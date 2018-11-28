@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,30 +27,29 @@
  **/
 
 // @flow
-
 export type ControlField = {
   tag: string,
   value: string
-}
+};
 
 export type Subfield = {
   code: string,
   value: string
-}
+};
 
 export type DataField = {
   tag: string,
   ind1: string,
   ind2: string,
-  subfields: Array<Subfield>
-}
+  subfields: Subfield[]
+};
 
 export type Field = ControlField | DataField;
 
 export type MarcRecord = {
   leader: string,
-  fields: Array<Field>,
+  fields: Field[],
   toString: () => string,
-  appendField: (Array<string>) => void,
-  get: (RegExp) => Array<Field>
+  appendField: (string[]) => void,
+  get: (RegExp) => Field[]
 };

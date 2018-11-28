@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,7 +27,6 @@
  **/
 
 // @flow
-
 export type RecordIdentifier = {
   id: string,
   base: string
@@ -37,8 +36,8 @@ export type DuplicateDatabaseConfiguration = {
   endpoint: string,
   messageForDuplicateDatabase: string,
   priorityForDuplicateDatabase: number
-}
+};
 
 export type DuplicateDatabaseConnector = {
-  addDuplicatePair: (firstRecord: RecordIdentifier, secondRecord: RecordIdentifier) => Promise<any>,
+  addDuplicatePair: (firstRecord: RecordIdentifier, secondRecord: RecordIdentifier) => Promise<any>
 };

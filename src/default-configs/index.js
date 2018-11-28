@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -30,4 +31,4 @@ import similarityDefinition from './component-record-similarity-definition';
 import f245abStopWords from './f245ab-stop-words';
 import mergeConfig from './merge-config';
 
-export { similarityDefinition, f245abStopWords, mergeConfig };
+export {similarityDefinition, f245abStopWords, mergeConfig};

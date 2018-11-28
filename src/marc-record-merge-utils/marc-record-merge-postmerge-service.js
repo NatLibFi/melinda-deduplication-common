@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -50,18 +51,43 @@ import _ from 'lodash';
 import MarcRecord from 'marc-record-js';
 import uuid from 'node-uuid';
 import moment from 'moment';
-import { selectValues, selectRecordId, selectFieldsByValue, fieldHasSubfield, resetComponentHostLinkSubfield, isLinkedFieldOf } from './record-utils';
-import { fieldOrderComparator } from './marc-field-sort';
+import {selectValues, selectRecordId, selectFieldsByValue, fieldHasSubfield, resetComponentHostLinkSubfield, isLinkedFieldOf} from './record-utils';
+import {fieldOrderComparator} from './marc-field-sort';
 
 const defaultPreset = [
-  check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, 
-  removeExtra035aFromMerged, setAllZeroRecordId, add583NoteAboutMerge, removeCATHistory, add500ReprintInfo, 
-  handle880Fields, removeObsolete260Fields, removeObsolete500ReprintInfo, removeIdenticalFields, sortMergedRecordFields];
+  check041aLength,
+  addLOWSIDFieldsFromOther,
+  addLOWSIDFieldsFromPreferred,
+  add035zFromOther,
+  add035zFromPreferred,
+  removeExtra035aFromMerged,
+  setAllZeroRecordId,
+  add583NoteAboutMerge,
+  removeCATHistory,
+  add500ReprintInfo,
+  handle880Fields,
+  removeObsolete260Fields,
+  removeObsolete500ReprintInfo,
+  removeIdenticalFields,
+  sortMergedRecordFields
+];
 
 const automergePreset = [
-  check041aLength, addLOWSIDFieldsFromOther, addLOWSIDFieldsFromPreferred, add035zFromOther, add035zFromPreferred, 
-  removeExtra035aFromMerged, setAllZeroRecordId, add583NoteAboutAutoMerge, removeCATHistory, add500ReprintInfo, 
-  handle880Fields, removeObsolete260Fields, removeObsolete500ReprintInfo, removeIdenticalFields, sortMergedRecordFields
+  check041aLength,
+  addLOWSIDFieldsFromOther,
+  addLOWSIDFieldsFromPreferred,
+  add035zFromOther,
+  add035zFromPreferred,
+  removeExtra035aFromMerged,
+  setAllZeroRecordId,
+  add583NoteAboutAutoMerge,
+  removeCATHistory,
+  add500ReprintInfo,
+  handle880Fields,
+  removeObsolete260Fields,
+  removeObsolete500ReprintInfo,
+  removeIdenticalFields,
+  sortMergedRecordFields
 ];
 
 export const preset = {
@@ -69,10 +95,8 @@ export const preset = {
   automerge: automergePreset
 };
 
-
 export function applyPostMergeModifications(postMergeFunctions, preferredRecord, otherRecord, originalMergedRecord) {
-
-  let mergedRecord = new MarcRecord(originalMergedRecord);
+  const mergedRecord = new MarcRecord(originalMergedRecord);
   const initial_value = {
     mergedRecord,
     notes: []
@@ -87,7 +111,7 @@ export function applyPostMergeModifications(postMergeFunctions, preferredRecord,
     };
   }, initial_value);
 
-  return { 
+  return {
     record: result.mergedRecord,
     notes: result.notes
   };
@@ -95,15 +119,14 @@ export function applyPostMergeModifications(postMergeFunctions, preferredRecord,
 
 const substringComparator = (strA, strB) => strA.includes(strB) || strB.includes(strA);
 
-
 // NOTE: these are normalized forms:
 const ALIASES = {
-  'HKI': 'HELSINKI',
-  'HELSINGISS': 'HELSINKI'
+  HKI: 'HELSINKI',
+  HELSINGISS: 'HELSINKI'
 };
 
-const subfieldNormalizer = (subfield) => ({
-  code: subfield.code, 
+const subfieldNormalizer = subfield => ({
+  code: subfield.code,
   value: subfield.value.replace(/\W/g, '').toUpperCase().split(' ').map(word => {
     const aliased = _.get(ALIASES, word, word);
     return aliased;
@@ -120,9 +143,9 @@ const normalizedSubfieldSubstringEquals = (subA, subB) => {
   return subfieldSubstringComparator(subfieldNormalizer(subA), subfieldNormalizer(subB));
 };
 
-// true if substring matches all fields and equality all but one
+// True if substring matches all fields and equality all but one
 const isSubsetWithSingleSubstring = (set1, set2) => {
-  // skip fields with <KEEP>s
+  // Skip fields with <KEEP>s
   if (_.concat(set1, set2).some(sub => sub.code === '9' && sub.value.includes('<KEEP>'))) {
     return false;
   }
@@ -134,50 +157,45 @@ const isSubsetWithSingleSubstring = (set1, set2) => {
 };
 
 function betterFieldComparator(a, b) {
-  // field with more subfields is better
+  // Field with more subfields is better
   const subfieldCountDiff = a.subfields.length - b.subfields.length;
   if (subfieldCountDiff !== 0) {
     return subfieldCountDiff;
   }
 
-  // failing that, field with largest amount of longer-of-the-pair subfields is better
+  // Failing that, field with largest amount of longer-of-the-pair subfields is better
   const aLengths = a.subfields.map(s => s.value.length);
   const bLengths = b.subfields.map(s => s.value.length);
-  
+
   const [aLongers, bLongers] = _.chain(aLengths).zip(bLengths).map(([a, b]) => {
     if (a === b) {
-      return [0,0];
+      return [0, 0];
     }
-    return a > b ? [1,0] : [0,1];
+    return a > b ? [1, 0] : [0, 1];
   }).unzip().value();
 
   return _.sum(aLongers) - _.sum(bLongers);
-
 }
 
 export function removeIdenticalFields(preferredRecord, otherRecord, mergedRecord) {
   const SKIP_FIELDS = [/08./, /65./];
   const SKIP_INDICATOR_CHECK = ['100', '110', '111', '600', '610', '611', '700', '710', '711'];
- 
 
   const compare = (fieldA, fieldB) => {
-
     if (SKIP_FIELDS.some(pattern => pattern.test(fieldA.tag)) || SKIP_FIELDS.some(pattern => pattern.test(fieldB.tag))) {
       return false;
     }
 
     const indicatorsMatch = SKIP_INDICATOR_CHECK.includes(fieldA.tag) || (fieldA.ind1 === fieldB.ind1 && fieldA.ind2 === fieldB.ind2);
 
-    if (fieldA.tag === fieldB.tag && indicatorsMatch) {      
+    if (fieldA.tag === fieldB.tag && indicatorsMatch) {
       return isSubsetWithSingleSubstring(fieldA.subfields, fieldB.subfields) || isSubsetWithSingleSubstring(fieldB.subfields, fieldA.subfields);
-    } else {
-      return false;
     }
-
+    return false;
   };
-  
+
   const duplicateFields = mergedRecord.fields.reduce((duplicates, field, i, fields) => {
-    const matches = fields.slice(i+1).filter(candidateField => compare(field, candidateField));
+    const matches = fields.slice(i + 1).filter(candidateField => compare(field, candidateField));
 
     const similarFields = _.concat(matches, field);
 
@@ -196,9 +214,8 @@ export function removeIdenticalFields(preferredRecord, otherRecord, mergedRecord
 }
 
 export function removeObsolete260Fields(preferredRecord, otherRecord, mergedRecord) {
-
   const recordContainsField264 = mergedRecord.fields.some(field => field.tag === '264');
-  
+
   if (recordContainsField264) {
     mergedRecord.fields = mergedRecord.fields.filter(field => field.tag !== '260');
   }
@@ -206,7 +223,6 @@ export function removeObsolete260Fields(preferredRecord, otherRecord, mergedReco
   return {
     mergedRecord
   };
-
 }
 
 export function check041aLength(preferredRecord, otherRecord, mergedRecord) {
@@ -228,7 +244,7 @@ export function check041aLength(preferredRecord, otherRecord, mergedRecord) {
 export function addLOWSIDFieldsFromOther(preferredRecord, otherRecord, mergedRecordParam) {
   const mergedRecord = new MarcRecord(mergedRecordParam);
 
-  var otherRecordLOWFieldList = otherRecord.fields
+  const otherRecordLOWFieldList = otherRecord.fields
     .filter(field => field.tag === 'LOW')
     .map(markAsPostmergeField);
 
@@ -240,39 +256,32 @@ export function addLOWSIDFieldsFromOther(preferredRecord, otherRecord, mergedRec
     const otherRecordSIDFieldList = selectFieldsByValue(otherRecord, 'SID', 'b', libraryId.toLowerCase());
 
     if (otherRecordSIDFieldList.length > 0) {
-
       mergedRecord.fields = _.concat(mergedRecord.fields, otherRecordSIDFieldList.map(markAsPostmergeField));
-
     } else {
-
       const otherRecordId = selectRecordId(otherRecord);
 
       mergedRecord.fields.push(createField({
         tag: 'SID',
         subfields: [
-          { code: 'c', value: 'FCC' + otherRecordId },
-          { code: 'b', value: libraryId.toLowerCase() },
+          {code: 'c', value: 'FCC' + otherRecordId},
+          {code: 'b', value: libraryId.toLowerCase()}
         ]
       }));
     }
   });
-  
+
   otherRecordLibraryIdList.forEach(libraryId => {
-  /* TODO: Add here config -table for extra SID $b value / libraryID pairs */
-    
+    /* TODO: Add here config -table for extra SID $b value / libraryID pairs */
+
     if (libraryId == 'VOLTE') {
       const otherRecordSIDExtraFieldList = selectFieldsByValue(otherRecord, 'SID', 'b', 'volsi');
 
       if (otherRecordSIDExtraFieldList.length > 0) {
-
         mergedRecord.fields = _.concat(mergedRecord.fields, otherRecordSIDExtraFieldList.map(markAsPostmergeField));
-
-      }   
+      }
     }
   });
 
-  
-  
   return {
     mergedRecord
   };
@@ -287,19 +296,18 @@ export function addLOWSIDFieldsFromPreferred(preferredRecord, otherRecord, merge
     const preferredRecordSIDFieldList = selectFieldsByValue(preferredRecord, 'SID', 'b', libraryId.toLowerCase());
 
     if (preferredRecordSIDFieldList.length === 0) {
-
       const preferredRecordId = selectRecordId(preferredRecord);
 
       mergedRecord.fields.push(createField({
         tag: 'SID',
         subfields: [
-          { code: 'c', value: 'FCC' + preferredRecordId },
-          { code: 'b', value: libraryId.toLowerCase() },
+          {code: 'c', value: 'FCC' + preferredRecordId},
+          {code: 'b', value: libraryId.toLowerCase()}
         ]
       }));
     }
   });
-  
+
   return {
     mergedRecord
   };
@@ -308,11 +316,11 @@ export function addLOWSIDFieldsFromPreferred(preferredRecord, otherRecord, merge
 export function add035zFromOther(preferredRecord, otherRecord, mergedRecordParam) {
   const mergedRecord = new MarcRecord(mergedRecordParam);
   const otherRecordId = selectRecordId(otherRecord);
-  
+
   mergedRecord.fields.push(createField({
     tag: '035',
     subfields: [
-      { code: 'z', value: '(FI-MELINDA)' + otherRecordId },
+      {code: 'z', value: '(FI-MELINDA)' + otherRecordId}
     ]
   }));
 
@@ -324,11 +332,11 @@ export function add035zFromOther(preferredRecord, otherRecord, mergedRecordParam
 export function add035zFromPreferred(preferredRecord, otherRecord, mergedRecordParam) {
   const mergedRecord = new MarcRecord(mergedRecordParam);
   const preferredRecordId = selectRecordId(preferredRecord);
-  
+
   mergedRecord.fields.push(createField({
     tag: '035',
     subfields: [
-      { code: 'z', value: '(FI-MELINDA)' + preferredRecordId },
+      {code: 'z', value: '(FI-MELINDA)' + preferredRecordId}
     ]
   }));
 
@@ -341,15 +349,13 @@ export function removeExtra035aFromMerged(preferredRecord, otherRecord, mergedRe
   const mergedRecord = new MarcRecord(mergedRecordParam);
 
   mergedRecord.fields = mergedRecord.fields.reduce((fields, field) => {
-
     if (field.tag === '035') {
       field.subfields = field.subfields.filter(subfield => {
-        const isExtraSubfield = subfield.code === 'a' && subfield.value.substr(0,12) === '(FI-MELINDA)';
+        const isExtraSubfield = subfield.code === 'a' && subfield.value.substr(0, 12) === '(FI-MELINDA)';
         return isExtraSubfield === false;
       });
 
       if (field.subfields.length == 0) {
-
         markFieldAsUnused(otherRecord, field.uuid);
         markFieldAsUnused(preferredRecord, field.uuid);
 
@@ -365,11 +371,10 @@ export function removeExtra035aFromMerged(preferredRecord, otherRecord, mergedRe
   };
 }
 
-
 export function setAllZeroRecordId(preferredRecord, otherRecord, mergedRecordParam) {
   const mergedRecord = new MarcRecord(mergedRecordParam);
 
-  mergedRecord.fields = mergedRecord.fields.filter(function(field) {
+  mergedRecord.fields = mergedRecord.fields.filter(field => {
     return field.tag !== '001';
   });
   mergedRecord.fields.push(createField({
@@ -386,13 +391,13 @@ export function add583Note(note, preferredRecord, otherRecord, mergedRecordParam
   const mergedRecord = new MarcRecord(mergedRecordParam);
   const preferredRecordId = selectRecordId(preferredRecord);
   const otherRecordId = selectRecordId(otherRecord);
-  
+
   mergedRecord.fields.push(createField({
     tag: '583',
     subfields: [
-      { code: 'a', value: `${note} (FI-MELINDA)${otherRecordId} + (FI-MELINDA)${preferredRecordId}` },
-      { code: 'c', value: formatDate(new Date()) },
-      { code: '5', value: 'MELINDA' },
+      {code: 'a', value: `${note} (FI-MELINDA)${otherRecordId} + (FI-MELINDA)${preferredRecordId}`},
+      {code: 'c', value: formatDate(new Date())},
+      {code: '5', value: 'MELINDA'}
     ]
   }));
 
@@ -420,23 +425,22 @@ export function removeCATHistory(preferredRecord, otherRecord, mergedRecordParam
 }
 
 export function add500ReprintInfo(preferredRecord, otherRecord, mergedRecordParam) {
-
   const mergedRecord = new MarcRecord(mergedRecordParam);
 
   otherRecord.fields
     .filter(field => field.tag === '250')
     .filter(field => {
       return !mergedRecord.fields.some(fieldInMerged => _.isEqual(fieldInMerged, field));
-    }).map(function(field) {
+    }).map(field => {
       return field.subfields
         .filter(sub => sub.code === 'a')
         .map(sub => sub.value.trim());
-    }).forEach(function(reprintText) {
+    }).forEach(reprintText => {
       let text = 'Lisäpainokset: ' + reprintText;
       const f008 = _.head(otherRecord.fields.filter(field => field.tag === '008'));
 
       if (f008 !== undefined) {
-        const year = f008.value.substr(7,4);
+        const year = f008.value.substr(7, 4);
 
         if (!isNaN(year)) {
           text += ` ${year}`;
@@ -451,7 +455,7 @@ export function add500ReprintInfo(preferredRecord, otherRecord, mergedRecordPara
         mergedRecord.fields.push(createField({
           tag: '500',
           subfields: [
-            { code: 'a', value: text },
+            {code: 'a', value: text}
           ]
         }));
       }
@@ -462,13 +466,13 @@ export function add500ReprintInfo(preferredRecord, otherRecord, mergedRecordPara
   };
 }
 
-export function removeObsolete500ReprintInfo(preferredRecord, otherRecord, mergedRecordParam) {  
+export function removeObsolete500ReprintInfo(preferredRecord, otherRecord, mergedRecordParam) {
   const mergedRecord = new MarcRecord(mergedRecordParam);
-  
+
   const year = _.chain(mergedRecord.fields)
     .filter(field => field.tag === '008')
     .map('value')
-    .map(value => value.substr(7,4))
+    .map(value => value.substr(7, 4))
     .head()
     .value();
 
@@ -479,14 +483,14 @@ export function removeObsolete500ReprintInfo(preferredRecord, otherRecord, merge
     .map(reprintText => `${reprintText} ${year}`)
     .head()
     .value();
-  
+
   const reprintNotes = _.chain(mergedRecord.fields).filter(field => field.tag === '500')
     .flatMap(field => field.subfields)
     .filter(subfield => subfield.value.startsWith('Lisäpainokset'))
     .map('value')
     .value();
 
-  const normalize = (str) => str && str.replace(/\W/g, '').toUpperCase();
+  const normalize = str => str && str.replace(/\W/g, '').toUpperCase();
 
   const notesToRemove = reprintNotes.filter(note => normalize(note).includes(normalize(reprint)));
   mergedRecord.fields = mergedRecord.fields
@@ -514,15 +518,14 @@ export function handle880Fields(preferredRecord, otherRecord, mergedRecordParam)
     .filter(field => field.subfields.some(subfield => subfield.code === '6'));
 
   const relinked880Fields = _.chain(fieldsWithLinkedContent).flatMap((field, i) => {
-
     const fieldInPreferred = _.chain(preferredRecord.fields).filter(fieldInPreferred => fieldInPreferred.uuid === field.uuid).value();
     const fieldInOther = _.chain(otherRecord.fields).filter(otherRecord => otherRecord.uuid === field.uuid).value();
-    
-    const linkedFieldsFromPreferred = _.flatMap(fieldInPreferred, (fieldWithLink) => {
+
+    const linkedFieldsFromPreferred = _.flatMap(fieldInPreferred, fieldWithLink => {
       return preferredRecord.fields.filter(isLinkedFieldOf(fieldWithLink));
     });
 
-    const linkedFieldsFromOther = _.flatMap(fieldInOther, (fieldWithLink) => {
+    const linkedFieldsFromOther = _.flatMap(fieldInOther, fieldWithLink => {
       return otherRecord.fields.filter(isLinkedFieldOf(fieldWithLink));
     });
 
@@ -533,13 +536,12 @@ export function handle880Fields(preferredRecord, otherRecord, mergedRecordParam)
     linkedFieldsFromOther.forEach(field => {
       markFieldAsUsed(field, {fromOther: true});
     });
-    
+
     const linkedFields = _.concat(_.cloneDeep(linkedFieldsFromPreferred), _.cloneDeep(linkedFieldsFromOther));
 
-    updateLinks(i+1, field, linkedFields);
+    updateLinks(i + 1, field, linkedFields);
 
     return linkedFields;
-    
   }).value();
 
   mergedRecord.fields = _.concat(fieldsWithout880, relinked880Fields);
@@ -549,8 +551,8 @@ export function handle880Fields(preferredRecord, otherRecord, mergedRecordParam)
     markFieldAsUnused(preferredRecord, uuid);
     markFieldAsUnused(otherRecord, uuid);
   });
-  
-  return { mergedRecord };
+
+  return {mergedRecord};
 }
 
 function updateLinks(linkIndex, field, linkedFieldList) {
@@ -562,7 +564,7 @@ function updateLinks(linkIndex, field, linkedFieldList) {
       sub.value = `880-${linkIndexNormalized}`;
     }
   });
-  
+
   linkedFieldList.forEach(field => {
     field.subfields.forEach(sub => {
       if (sub.code === '6') {
@@ -577,12 +579,11 @@ export function sortMergedRecordFields(preferredRecord, otherRecord, mergedRecor
 
   mergedRecord.fields.sort(fieldOrderComparator);
 
-  return { mergedRecord };
+  return {mergedRecord};
 }
 
 export function select773Fields(preferredHostRecordId, othterHostRecordId) {
-  return function(preferredRecord, otherRecord, mergedRecord) {
-  
+  return function (preferredRecord, otherRecord, mergedRecord) {
     const linksToPreferredHost = mergedRecord.fields.filter(field => {
       return field.tag === '773' && field.subfields.filter(s => s.code === 'w').some(s => s.value === `(FI-MELINDA)${preferredHostRecordId}`);
     });
@@ -603,10 +604,8 @@ export function select773Fields(preferredHostRecordId, othterHostRecordId) {
     return {
       mergedRecord
     };
-
   };
 }
-
 
 function markAsPostmergeField(field) {
   field.fromPostmerge = true;
@@ -630,8 +629,8 @@ function markFieldAsUnused(record, fieldUuid) {
   record.fields
     .filter(field => field.uuid === fieldUuid)
     .forEach(field => {
-      delete(field.wasUsed);
-      delete(field.fromOther);
+      delete (field.wasUsed);
+      delete (field.fromOther);
     });
 }
 

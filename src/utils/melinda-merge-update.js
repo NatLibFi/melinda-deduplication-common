@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,36 +27,35 @@
  **/
 
 // @flow
-import type { MelindaRecordService } from '../types/melinda-record-service.flow';
-import type { RecordFamily } from '../types/record-merge-service.flow';
-
-import * as RecordUtils from './record-utils';
-import {executeTransaction, RollbackError} from './async-transaction';
 import _ from 'lodash';
 import uuid from 'uuid';
 import moment from 'moment';
+import {type MelindaRecordService} from '../types/melinda-record-service.flow';
+import {type RecordFamily} from '../types/record-merge-service.flow';
+
+import * as RecordUtils from './record-utils';
+import {executeTransaction, RollbackError} from './async-transaction';
 
 const debug = require('debug')('melinda-merge-update');
 
 const FUTURE_HOST_ID_PLACEHOLDER = '(FI-MELINDA)[future-host-id]';
-const DEFAULT_LOGGER = { log: (...args) => debug(...args)};
+const DEFAULT_LOGGER = {log: (...args) => debug(...args)};
 
 export function commitMerge(
-  client: MelindaRecordService, 
-  base: string, 
-  preferredRecord: RecordFamily, 
-  otherRecord: RecordFamily, 
-  mergedRecord: RecordFamily, 
+  client: MelindaRecordService,
+  base: string,
+  preferredRecord: RecordFamily,
+  otherRecord: RecordFamily,
+  mergedRecord: RecordFamily,
   opts: any): Promise<any> {
-
   const logger = _.get(opts, 'logger', DEFAULT_LOGGER);
 
-  const jobId = uuid.v4().slice(0,8);
+  const jobId = uuid.v4().slice(0, 8);
 
   const preferredId = getFamilyId(preferredRecord);
   const otherId = getFamilyId(otherRecord);
 
-  const idValidation = validateIds({ preferred: preferredId, other: otherId });
+  const idValidation = validateIds({preferred: preferredId, other: otherId});
   if (idValidation.error) {
     return Promise.reject(idValidation.error);
   }
@@ -74,13 +73,13 @@ export function commitMerge(
     const mergedSubrecordActions = mergedRecord.subrecords.map(rec => {
       return {
         action: () => createRecord(rec),
-        rollback: (res) => deleteRecordById(res.recordId)
+        rollback: res => deleteRecordById(res.recordId)
       };
     });
 
-    const otherMainRecordAction = { 
-      action: () => deleteRecordFromMelinda(otherRecord.record), 
-      rollback: () => undeleteRecordFromMelinda(otherId.record) 
+    const otherMainRecordAction = {
+      action: () => deleteRecordFromMelinda(otherRecord.record),
+      rollback: () => undeleteRecordFromMelinda(otherId.record)
     };
 
     const otherSubrecordActions = _.zip(otherRecord.subrecords, otherId.subrecords).map(([rec, id]) => {
@@ -90,10 +89,9 @@ export function commitMerge(
       };
     });
 
-
-    const preferredMainRecordAction = { 
-      action: () => deleteRecordFromMelinda(preferredRecord.record), 
-      rollback: () => undeleteRecordFromMelinda(preferredId.record) 
+    const preferredMainRecordAction = {
+      action: () => deleteRecordFromMelinda(preferredRecord.record),
+      rollback: () => undeleteRecordFromMelinda(preferredId.record)
     };
 
     const preferredSubrecordActions = _.zip(preferredRecord.subrecords, preferredId.subrecords).map(([rec, id]) => {
@@ -109,7 +107,7 @@ export function commitMerge(
       otherMainRecordAction,
       preferredSubrecordActions,
       preferredMainRecordAction
-    ), [mergedRecordRollbackAction]).then(function(results) {
+    ), [mergedRecordRollbackAction]).then(results => {
       results.unshift(res);
       logger.log('info', `${jobId}] Commit merge job ${jobId} completed.`);
       const mergedHostRecordId = _.chain(results)
@@ -117,13 +115,12 @@ export function commitMerge(
         .map('recordId')
         .head()
         .value();
-        
+
       return {
         recordId: mergedHostRecordId,
         results
       };
-    }).catch(function(error) {
-
+    }).catch(error => {
       if (error instanceof RollbackError) {
         logger.log('error', `${jobId}] Rollback failed`);
         logger.log('error', jobId, error);
@@ -154,19 +151,19 @@ export function commitMerge(
       logger.log('info', `${jobId}] Failed to create record`, err);
       const isAlephError = err => err.errors !== undefined;
       if (isAlephError(err)) {
-        err.message  = _.get(err, 'errors', []).map(error => `[code=${error.code}] ${error.message}`).join();        
+        err.message = _.get(err, 'errors', []).map(error => `[code=${error.code}] ${error.message}`).join();
       }
-      
+
       throw err;
     });
   }
 
   function undeleteRecordFromMelinda(recordId) {
     logger.log('info', `${jobId}] Undeleting ${recordId}`);
-    return client.loadRecord(base, recordId, {handle_deleted:1, no_rerouting: 1}).then(function(record) {
+    return client.loadRecord(base, recordId, {handle_deleted: 1, no_rerouting: 1}).then(record => {
       record.fields = record.fields.filter(field => field.tag !== 'STA');
       updateRecordLeader(record, 5, 'c');
-      return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
+      return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(res => {
         logger.log('info', `${jobId}] Undelete ok for ${recordId}`, res.messages);
         return _.assign({}, res, {operation: 'UNDELETE'});
       });
@@ -179,11 +176,11 @@ export function commitMerge(
   function deleteRecordFromMelinda(record) {
     const recordId = getRecordId(record);
     logger.log('info', `${jobId}] Deleting ${recordId}`);
-    
+
     record.appendField(['STA', '', '', 'a', 'DELETED']);
     updateRecordLeader(record, 5, 'd');
 
-    return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
+    return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(res => {
       logger.log('info', `${jobId}] Delete ok for ${recordId}`, res.messages);
       return _.assign({}, res, {operation: 'DELETE'});
     }).catch(err => {
@@ -194,10 +191,10 @@ export function commitMerge(
 
   function deleteRecordById(recordId) {
     logger.log('info', `${jobId}] Deleting ${recordId}`);
-    return client.loadRecord(base, recordId, {handle_deleted: 1, no_rerouting: 1}).then(function(record) {
+    return client.loadRecord(base, recordId, {handle_deleted: 1, no_rerouting: 1}).then(record => {
       record.appendField(['STA', '', '', 'a', 'DELETED']);
       updateRecordLeader(record, 5, 'd');
-      return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
+      return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(res => {
         logger.log('info', `${jobId}] Delete ok for ${recordId}`, res.messages);
         return _.assign({}, res, {operation: 'DELETE'});
       });
@@ -206,19 +203,17 @@ export function commitMerge(
       throw err;
     });
   }
-
 }
 
-export async function splitRecord(client: MelindaRecordService, base: string, recordId: string, opts: any): Promise<any> { 
-
+export async function splitRecord(client: MelindaRecordService, base: string, recordId: string, opts: any): Promise<any> {
   const logger = _.get(opts, 'logger', DEFAULT_LOGGER);
-  const jobId = uuid.v4().slice(0,8);
+  const jobId = uuid.v4().slice(0, 8);
 
   logger.log('info', `${jobId}] Split job ${jobId} started for record (${base})${recordId}.`);
-  
-  const loadRecordOptions = { handle_deleted: 1, no_rerouting: 1 };
+
+  const loadRecordOptions = {handle_deleted: 1, no_rerouting: 1};
   const record = await client.loadRecord(base, recordId, loadRecordOptions);
-  
+
   if (RecordUtils.isComponentRecord(record)) {
     throw new Error(`Record (${base})${recordId} is a component record. Only host records are supported. Components are handled when splitting host records.`);
   }
@@ -226,21 +221,19 @@ export async function splitRecord(client: MelindaRecordService, base: string, re
     throw new Error(`Record (${base})${recordId} is deleted.`);
   }
 
-  
   const mergeMetadata = parseMergeMetadata(record);
   const latestMerge = _.last(mergeMetadata);
-  
+
   if (latestMerge === undefined) {
     throw new Error(`Record (${base})${recordId} does not have 583 field with merge metadata.`);
   }
 
-  const { sourceIdA, sourceIdB } = latestMerge;
+  const {sourceIdA, sourceIdB} = latestMerge;
 
   const mergedFamily = await getRecordFamily(client, base, recordId);
   const recordAFamily = await getRecordFamily(client, base, sourceIdA);
   const recordBFamily = await getRecordFamily(client, base, sourceIdB);
-  
-  
+
   const timestampStr = moment().format();
   const splitData = `583    ‡aSPLIT FROM (FI-MELINDA)${recordId}‡c${timestampStr}‡5MELINDA`;
 
@@ -255,7 +248,7 @@ export async function splitRecord(client: MelindaRecordService, base: string, re
 
   try {
     logger.log('info', `${jobId}] Executing transaction with ${actions.length} actions.`);
-    
+
     const results = await executeTransaction(actions);
     logger.log('info', `${jobId}] Split job ${jobId} completed.`);
 
@@ -263,9 +256,7 @@ export async function splitRecord(client: MelindaRecordService, base: string, re
       message: `Record (${base})${recordId} has been splitted into (${base})${sourceIdA} + (${base})${sourceIdB}`,
       results
     };
-
-  } catch(error) {
-
+  } catch (error) {
     if (error instanceof RollbackError) {
       logger.log('error', `${jobId}] Rollback failed`);
       logger.log('error', jobId, error);
@@ -282,18 +273,15 @@ export async function splitRecord(client: MelindaRecordService, base: string, re
     throw error;
   }
 
-  
-
   function undeleteRecord(record) {
     const recordId = RecordUtils.selectRecordId(record);
     logger.log('info', `${jobId}] Undeleting (${base})${recordId}`);
-    
+
     record.fields = record.fields.filter(field => field.tag !== 'STA');
     updateRecordLeader(record, 5, 'c');
-    return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
+    return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(res => {
       logger.log('info', `${jobId}] Undelete ok for ${recordId}`, res.messages);
       return _.assign({}, res, {operation: 'UNDELETE'});
-  
     }).catch(err => {
       logger.log('info', `${jobId}] Failed to undelete record`, err);
       throw err;
@@ -303,27 +291,25 @@ export async function splitRecord(client: MelindaRecordService, base: string, re
   function deleteRecord(record) {
     const recordId = RecordUtils.selectRecordId(record);
     logger.log('info', `${jobId}] Deleting ${recordId}`);
-  
+
     record.appendField(['STA', '', '', 'a', 'DELETED']);
     updateRecordLeader(record, 5, 'd');
-    return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(function(res) {
+    return client.saveRecord(base, recordId, record, {bypass_low_validation: 1, handle_deleted: 1, no_rerouting: 1, bypass_index_check: 1}).then(res => {
       logger.log('info', `${jobId}] Delete ok for ${recordId}`, res.messages);
       return _.assign({}, res, {operation: 'DELETE'});
-  
     }).catch(err => {
       logger.log('info', `${jobId}] Failed to delete record`, err);
       throw err;
     });
   }
-  
+
   function createUndeleteFamilyActions(family) {
     const mainRecordAction = {
-      action: () => undeleteRecord(family.record), 
-      rollback: () => deleteRecord(family.record) 
+      action: () => undeleteRecord(family.record),
+      rollback: () => deleteRecord(family.record)
     };
 
     const componentRecordActions = family.subrecords.map(componentRecord => {
-      
       return {
         action: () => undeleteRecord(componentRecord),
         rollback: () => deleteRecord(componentRecord)
@@ -334,8 +320,8 @@ export async function splitRecord(client: MelindaRecordService, base: string, re
 
   function createDeleteFamilyActions(family) {
     const mainRecordAction = {
-      action: () => deleteRecord(family.record), 
-      rollback: () => undeleteRecord(family.record) 
+      action: () => deleteRecord(family.record),
+      rollback: () => undeleteRecord(family.record)
     };
 
     const componentRecordActions = family.subrecords.map(componentRecord => {
@@ -346,37 +332,33 @@ export async function splitRecord(client: MelindaRecordService, base: string, re
     });
     return _.concat(componentRecordActions, mainRecordAction);
   }
-  
+
   /*
   // 583    ‡aMERGED FROM (FI-MELINDA)005791366 + (FI-MELINDA)000046904‡c2015-08-18T11:03:32+03:00‡5MELINDA
-  
+
   const latest583 = ..._
   const [sourceRecordA, sourceRecordB] = parse(latest583);
 
   hostIdA =
   hostIdB =
-  
-  const mergedFamily = 
-  const recordAFamily = 
-  const recordBFamily = 
+
+  const mergedFamily =
+  const recordAFamily =
+  const recordBFamily =
 
   with rollbacks ??
   undelete(familyA)
   undelete(familyB)
   remove(mergedFamily)
 
-  
   undelete {
     add 583 :: `SPLIT FROM (${base})${recordId}`
   }
 */
 }
 
-
-
 function parseMergeMetadata(record) {
   const parseMetadataField = field => {
-    
     // MERGED FROM (FI-MELINDA)005791366 + (FI-MELINDA)000046904‡c2015-08-18T11:03:32+03:00‡5MELINDA
     // AUTOMATICaLLY MERGED FROM (FI-MELINDA)005791366 + (FI-MELINDA)000046904‡c2015-08-18T11:03:32+03:00‡5MELINDA
 
@@ -390,7 +372,7 @@ function parseMergeMetadata(record) {
     }
 
     const [, sourceIdA, sourceIdB] = matches;
-    
+
     return {
       sourceIdA, sourceIdB, timestamp, sub5
     };
@@ -398,16 +380,14 @@ function parseMergeMetadata(record) {
 
   return _.chain(record.fields)
     .filter(field => field.tag === '583')
-    .map(parseMetadataField)    
+    .map(parseMetadataField)
     .filter(meta => meta.sub5 === 'MELINDA')
-    .sortBy('timestamp')      
+    .sortBy('timestamp')
     .value();
 }
 
-
 function setParentRecordId(parentRecordId) {
-  return function(componentRecord) {
-
+  return function (componentRecord) {
     componentRecord.fields = componentRecord.fields.map((field: any) => {
       if (field.tag === '773') {
         field.subfields = field.subfields.map(sub => {
@@ -421,7 +401,6 @@ function setParentRecordId(parentRecordId) {
     });
 
     return componentRecord;
-
   };
 }
 
@@ -433,13 +412,13 @@ function validateIds({preferred, other}) {
     return notValid('Id not found for other record.');
   }
 
-  const invalidPreferredSubrecordIndex = _.findIndex(preferred.subrecords, (id) => !isValidId(id));
+  const invalidPreferredSubrecordIndex = _.findIndex(preferred.subrecords, id => !isValidId(id));
   if (invalidPreferredSubrecordIndex !== -1) {
-    return notValid(`Id not found for ${invalidPreferredSubrecordIndex+1}. subrecord from preferred record.`); 
+    return notValid(`Id not found for ${invalidPreferredSubrecordIndex + 1}. subrecord from preferred record.`);
   }
-  const invalidOtherSubrecordIndex = _.findIndex(other.subrecords, (id) => !isValidId(id));
+  const invalidOtherSubrecordIndex = _.findIndex(other.subrecords, id => !isValidId(id));
   if (invalidOtherSubrecordIndex !== -1) {
-    return notValid(`Id not found for ${invalidOtherSubrecordIndex+1}. subrecord from other record.`); 
+    return notValid(`Id not found for ${invalidOtherSubrecordIndex + 1}. subrecord from other record.`);
   }
 
   return {
@@ -447,9 +426,9 @@ function validateIds({preferred, other}) {
   };
 
   function notValid(message) {
-    return { 
-      error: new Error(message) 
-    }; 
+    return {
+      error: new Error(message)
+    };
   }
 }
 
@@ -469,11 +448,11 @@ function getRecordId(record) {
 }
 
 function updateRecordLeader(record, index, characters) {
-  record.leader = record.leader.substr(0,index) + characters + record.leader.substr(index+characters.length);
+  record.leader = record.leader.substr(0, index) + characters + record.leader.substr(index + characters.length);
 }
 
 async function getRecordFamily(client, base, recordId) {
-  const loadRecordOptions = { handle_deleted: 1, no_rerouting: 1 };
+  const loadRecordOptions = {handle_deleted: 1, no_rerouting: 1};
 
   const record = await client.loadRecord(base, recordId, loadRecordOptions);
   const subrecords = await client.loadSubrecords(base, recordId, loadRecordOptions);

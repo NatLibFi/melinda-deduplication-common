@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -29,15 +30,15 @@
 import sinon from 'sinon';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
-chai.use(sinonChai);
-const expect = chai.expect;
-import { commitMerge, splitRecord } from './melinda-merge-update';
+import MarcRecord from 'marc-record-js';
+import {commitMerge, splitRecord} from './melinda-merge-update';
 import * as RecordUtils from './record-utils';
 
-import MarcRecord from 'marc-record-js';
+chai.use(sinonChai);
+const expect = chai.expect;
 
-describe('melinda merge update', function() {
-  describe('commitMerge', function() {
+describe('melinda merge update', () => {
+  describe('commitMerge', () => {
     let clientStub;
     let base;
 
@@ -46,28 +47,23 @@ describe('melinda merge update', function() {
       clientStub = createClientStub();
     });
 
-    it('requires that preferred main record has id', function(done) {
-
+    it('requires that preferred main record has id', done => {
       const [preferred, other, merged, unmodified] = [createRecordFamily(), createRecordFamily(), createRecordFamily(), createRecordFamily()];
 
       commitMerge(clientStub, base, preferred, other, merged, unmodified)
         .then(expectFulfillmentToNotBeCalled(done))
         .catch(expectErrorMessage('Id not found for preferred record.', done));
-
     });
 
-    it('requires that other main record has id', function(done) {
-
+    it('requires that other main record has id', done => {
       const [preferred, other, merged, unmodified] = [createRandomRecordFamily(), createRecordFamily(), createRecordFamily(), createRecordFamily()];
 
       commitMerge(clientStub, base, preferred, other, merged, unmodified)
         .then(expectFulfillmentToNotBeCalled(done))
         .catch(expectErrorMessage('Id not found for other record.', done));
-
     });
 
-    it('requires that preferred subrecords have ids', function(done) {
-
+    it('requires that preferred subrecords have ids', done => {
       const [preferred, other, merged, unmodified] = [createRandomRecordFamily(), createRandomRecordFamily(), createRecordFamily(), createRecordFamily()];
 
       preferred.subrecords[1].fields = preferred.subrecords[1].fields.filter(f => f.tag !== '001');
@@ -75,17 +71,16 @@ describe('melinda merge update', function() {
       commitMerge(clientStub, base, preferred, other, merged, unmodified)
         .then(expectFulfillmentToNotBeCalled(done))
         .catch(expectErrorMessage('Id not found for 2. subrecord from preferred record.', done));
-        
     });
 
-    it('returns metadata of successful operation', function(done) {
+    it('returns metadata of successful operation', done => {
       const expectedRecordId = 15;
 
       clientStub.saveRecord.resolves('UPDATE-OK');
       clientStub.createRecord.resolves(createSuccessResponse(expectedRecordId));
 
       const [preferred, other, merged, unmodified] = [createRandomRecordFamily(), createRandomRecordFamily(), createRecordFamily(), createRecordFamily()];
-  
+
       commitMerge(clientStub, base, preferred, other, merged, unmodified)
         .then(res => {
           expect(res).not.to.be.undefined;
@@ -93,7 +88,6 @@ describe('melinda merge update', function() {
           done();
         })
         .catch(done);
-
     });
   });
 
@@ -104,7 +98,7 @@ describe('melinda merge update', function() {
     const mergedHostId = '009702404';
     const familyAHostId = '009702403';
     const familyBHostId = '009702402';
-    let familyA, familyB, familyMerged;
+    let familyA; let familyB; let familyMerged;
 
     beforeEach(() => {
       base = 'FIN01';
@@ -121,59 +115,53 @@ describe('melinda merge update', function() {
       markAsDeleted(familyA);
       markAsDeleted(familyB);
 
-      const setupLoadRecordStub = (record) => {
+      const setupLoadRecordStub = record => {
         const id = RecordUtils.selectRecordId(record);
         clientStub.loadRecord.withArgs(base, id).resolves(record);
       };
-     
-      const setupSaveRecordStub = (record) => {
+
+      const setupSaveRecordStub = record => {
         const id = RecordUtils.selectRecordId(record);
         clientStub.saveRecord.withArgs(base, id).resolves(createSuccessResponse(id));
       };
-     
+
       [familyA, familyB, familyMerged].forEach(family => {
         setupLoadRecordStub(family.record);
         family.subrecords.forEach(setupLoadRecordStub);
         setupSaveRecordStub(family.record);
         family.subrecords.forEach(setupSaveRecordStub);
-        
-        const hostId = RecordUtils.selectRecordId(family.record);
-        clientStub.loadSubrecords.withArgs(base, hostId).resolves(family.subrecords);        
-      });
 
-      
+        const hostId = RecordUtils.selectRecordId(family.record);
+        clientStub.loadSubrecords.withArgs(base, hostId).resolves(family.subrecords);
+      });
     });
 
     it('should not split component records', async () => {
-
       const componentRecordId = RecordUtils.selectRecordId(familyMerged.subrecords[0]);
-   
+
       let error;
       try {
         await splitRecord(clientStub, base, componentRecordId);
-      } catch(err) {
+      } catch (err) {
         error = err;
       }
       expect(error).to.be.an('Error');
       expect(error.message).to.contain(`Record (${base})${componentRecordId} is a component record.`, error.stack);
-
     });
 
     it('should not split deleted records', async () => {
-
       const recordId = RecordUtils.selectRecordId(familyMerged.record);
-    
+
       markAsDeleted(familyMerged);
 
       let error;
       try {
         await splitRecord(clientStub, base, recordId);
-      } catch(err) {
+      } catch (err) {
         error = err;
       }
       expect(error).to.be.an('Error');
       expect(error.message).to.contain(`Record (${base})${recordId} is deleted.`, error.stack);
-
     });
 
     it('should not split records that have not been merged previously', async () => {
@@ -183,25 +171,22 @@ describe('melinda merge update', function() {
       let error;
       try {
         await splitRecord(clientStub, base, recordId);
-      } catch(err) {
+      } catch (err) {
         error = err;
       }
       expect(error).to.be.an('Error');
       expect(error.message).to.contain(`Record (${base})${recordId} does not have 583 field with merge metadata.`, error.stack);
-
     });
 
     it('should split previously merged record', async () => {
-
       const hostAId = RecordUtils.selectRecordId(familyA.record);
       const hostBId = RecordUtils.selectRecordId(familyB.record);
-      
+
       familyMerged.record.appendField(RecordUtils.stringToField(`583    ‡aMERGED FROM (FI-MELINDA)${hostAId} + (FI-MELINDA)${hostBId}‡c2017-09-27T11:03:32+03:00‡5MELINDA`));
-      
+
       const result = await splitRecord(clientStub, base, mergedHostId);
 
       expect(result.message).to.contain(`Record (${base})${mergedHostId} has been splitted into (${base})${hostAId} + (${base})${hostBId}`);
-      
     });
   });
 });
@@ -220,11 +205,11 @@ function expectFulfillmentToNotBeCalled(done) {
 }
 
 function expectErrorMessage(msg, done) {
-  return function(err) {
+  return function (err) {
     try {
       expect(err.message).to.equal(msg);
       done();
-    } catch(e) {
+    } catch (e) {
       done(e);
     }
   };
@@ -261,21 +246,21 @@ function createRandomRecordFamily() {
   return {
     record: createRandomRecord(),
     subrecords: [createRandomRecord(), createRandomRecord(), createRandomRecord()]
-  }; 
+  };
 }
 
 function createRandomRecord() {
-  const randomId = Math.floor(Math.random()*1000000);
+  const randomId = Math.floor(Math.random() * 1000000);
   return createRecord(randomId);
 }
 
-function createRandomComponentRecord(parentId = Math.floor(Math.random()*1000000)) {
+function createRandomComponentRecord(parentId = Math.floor(Math.random() * 1000000)) {
   const record = new MarcRecord();
   record.leader = '00000cam^a22002294i^4500';
-  
-  record.appendControlField(['001', Math.floor(Math.random()*1000000)]);
+
+  record.appendControlField(['001', Math.floor(Math.random() * 1000000)]);
   setParentRecordId(parentId, record);
-  
+
   return record;
 }
 
@@ -284,17 +269,17 @@ function setParentRecordId(parentRecordId, componentRecord) {
 }
 
 function createSuccessResponse(recordId) {
-  return { 
-    messages: [ { code: '0018', message: `Document: ${recordId} was updated successfully.` } ],
+  return {
+    messages: [{code: '0018', message: `Document: ${recordId} was updated successfully.`}],
     errors: [],
-    triggers: [ 
-      { code: '0101', message: 'Field SID with text "$$c757724$$boula" is a duplicate entry in the INDEX file.' },
-      { code: '0101', message: 'Field SID with text "$$c757724$$boula" is a duplicate entry in the INDEX file.' } 
+    triggers: [
+      {code: '0101', message: 'Field SID with text "$$c757724$$boula" is a duplicate entry in the INDEX file.'},
+      {code: '0101', message: 'Field SID with text "$$c757724$$boula" is a duplicate entry in the INDEX file.'}
     ],
-    warnings: [ 
-      { code: '0121', message: 'Document is duplicate in the database (Matched against System No. 003342333 by LOCATE command).' },
-      { code: '0121', message: 'Document is duplicate in the database (Matched against System No. 000698067 by LOCATE command).' } 
+    warnings: [
+      {code: '0121', message: 'Document is duplicate in the database (Matched against System No. 003342333 by LOCATE command).'},
+      {code: '0121', message: 'Document is duplicate in the database (Matched against System No. 000698067 by LOCATE command).'}
     ],
-    recordId: recordId
+    recordId
   };
 }

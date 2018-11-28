@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,25 +27,23 @@
  *
  **/
 
-import sinon from 'sinon';
-import _ from 'lodash';
-import { expect } from 'chai';
 import path from 'path';
 import fs from 'fs';
-import * as MarcRecordMergePostmergeService from './marc-record-merge-postmerge-service';
-import {__RewireAPI__ as RewireAPI} from './marc-record-merge-postmerge-service';
-import { decorateFieldsWithUuid } from './record-utils';
+import sinon from 'sinon';
+import _ from 'lodash';
+import {expect} from 'chai';
 import uuid from 'uuid';
 import MarcRecord from 'marc-record-js';
+import * as MarcRecordMergePostmergeService from './marc-record-merge-postmerge-service';
+import {__RewireAPI__ as RewireAPI} from './marc-record-merge-postmerge-service';
+import {decorateFieldsWithUuid} from './record-utils';
 
 const TEST_CASE_SEPARATOR = '\n\n\n\n';
 
 const storiesPath = path.resolve(__dirname, './marc-record-merge-postmerge-service-test-stories/');
 
 describe('marc-record-merge-postmerge-service', () => {
-
   before(() => {
-  
     const formatDateStub = sinon.stub();
 
     formatDateStub.returns('2016-11-29T13:25:21+02:00');
@@ -53,32 +52,26 @@ describe('marc-record-merge-postmerge-service', () => {
 
     // Prepare select773 fields with host record ids. The test runner is used to test the prepared function.
     MarcRecordMergePostmergeService.preparedSelect773Fields = MarcRecordMergePostmergeService.select773Fields('00001', '00002');
-    
   });
   after(() => {
     RewireAPI.__ResetDependency__('formatDate');
-    delete(MarcRecordMergePostmergeService.preparedSelect773Fields);
+    delete (MarcRecordMergePostmergeService.preparedSelect773Fields);
   });
 
   const files = fs.readdirSync(storiesPath);
   const storyFiles = files.filter(filename => filename.substr(-6) === '.story').sort();
-  
+
   storyFiles.map(loadStoriesFromFile).forEach(testSuite => {
-    
     describe(testSuite.suiteName, () => {
-
       testSuite.testCases.forEach(testCase => {
-
         const itFn = testCase.testName.startsWith('!') ? it.only : it;
 
         itFn(testCase.testName, () => {
-          
           const functionUnderTest = prepareTestFunction(testSuite.functionUnderTest);
 
           const {mergedRecord, notes} = functionUnderTest.call(null, testCase.preferredRecord, testCase.otherRecord, testCase.mergedRecord);
           expect(mergedRecord.toString()).to.eql(testCase.expectedMergedRecord.toString());
           expect(notes || []).to.eql(testCase.notes);
-          
         });
       });
     });
@@ -89,17 +82,14 @@ describe('marc-record-merge-postmerge-service', () => {
     const validateMergeCandidatesTestCases = parseStories(validateStoriesText);
 
     validateMergeCandidatesTestCases.forEach(testCase => {
-
       const itFn = testCase.testName.startsWith('!') ? it.only : it;
-      
-      itFn(testCase.testName, () => {
 
+      itFn(testCase.testName, () => {
         const postMergeFixers = MarcRecordMergePostmergeService.preset.defaults;
         const {record, notes} = MarcRecordMergePostmergeService.applyPostMergeModifications(postMergeFixers, testCase.preferredRecord, testCase.otherRecord, testCase.mergedRecord);
 
         expect(record.toString()).to.eql(testCase.expectedMergedRecord.toString());
         expect(notes).to.eql(testCase.notes);
-
       });
     });
   });
@@ -110,7 +100,6 @@ function prepareTestFunction(testFn) {
 }
 
 function loadStoriesFromFile(filename) {
-  
   const storyText = fs.readFileSync(path.resolve(storiesPath, filename), 'utf8');
 
   const fnName = filename.slice(0, -6);
@@ -119,7 +108,6 @@ function loadStoriesFromFile(filename) {
 
   const testCases = parseStories(storyText);
   return {suiteName, functionUnderTest, testCases};
-
 }
 
 function parseStories(storyText) {
@@ -161,22 +149,24 @@ function parseStories(storyText) {
         .map(matchResult => matchResult[1])
         .value();
 
-      return { testName, preferredRecord, otherRecord, mergedRecord, expectedMergedRecord, notes };
+      return {testName, preferredRecord, otherRecord, mergedRecord, expectedMergedRecord, notes};
     });
-
 }
 
 function fieldsEqual(fieldA, fieldB) {
-  if (fieldA.tag !== fieldB.tag) return false;
-  if (fieldA.ind1 !== fieldB.ind1) return false;
-  if (fieldA.ind2 !== fieldB.ind2) return false;
+  if (fieldA.tag !== fieldB.tag) {
+    return false;
+  }
+  if (fieldA.ind1 !== fieldB.ind1) {
+    return false;
+  }
+  if (fieldA.ind2 !== fieldB.ind2) {
+    return false;
+  }
   if (fieldA.subfields && fieldB.subfields) {
     return _.zip(fieldA.subfields, fieldB.subfields).every(pair => {
       return pair[0].code === pair[1].code && pair[0].value === pair[1].value;
     });
-
-  } else {
-    return fieldA.value === fieldB.value;
   }
-
+  return fieldA.value === fieldB.value;
 }

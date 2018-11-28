@@ -1,6 +1,7 @@
+// @flow
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -26,13 +27,11 @@
  *
  **/
 
-
 const utils = require('./utils');
 
 function createTimer(ONLINE, service, logger) {
-
   const onlineTimes = utils.parseTimeRanges(ONLINE);
-  
+
   const initialAction = shouldBeRunningNow() ? 'Starting service' : 'Waiting before starting the service';
   logger.log('info', `Online times: ${ONLINE}. Current time: ${utils.getCurrentTime()}. ${initialAction}.`);
 
@@ -41,25 +40,21 @@ function createTimer(ONLINE, service, logger) {
     const now = utils.parseTime(utils.getCurrentTime());
     if (shouldBeRunning(now)) {
       if (!isRunning) {
-
         logger.log('info', `It's ${utils.getCurrentTime()}. Starting the service.`);
-        
+
         service.start().catch(error => {
           logger.log('error', error.message, error);
         });
 
         isRunning = true;
       }
-    } else {
-      if (isRunning) {
-        
-        logger.log('info', `It's ${utils.getCurrentTime()}. Stopping the service.`);
-        
-        service.stop().catch(error => { 
-          logger.log('error', error.message, error);
-        });
-        isRunning = false;
-      }
+    } else if (isRunning) {
+      logger.log('info', `It's ${utils.getCurrentTime()}. Stopping the service.`);
+
+      service.stop().catch(error => {
+        logger.log('error', error.message, error);
+      });
+      isRunning = false;
     }
   }
 
@@ -73,7 +68,7 @@ function createTimer(ONLINE, service, logger) {
 
   updateOnlineState();
   const onlinePoller = setInterval(updateOnlineState, 5000);
-  
+
   return onlinePoller;
 }
 

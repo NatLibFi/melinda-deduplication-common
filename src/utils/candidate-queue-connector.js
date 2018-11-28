@@ -1,6 +1,6 @@
 /**
  *
- * @licstart  The following is the entire license notice for the JavaScript code in this file. 
+ * @licstart  The following is the entire license notice for the JavaScript code in this file.
  *
  * Shared modules for microservices of Melinda deduplication system
  *
@@ -27,17 +27,16 @@
  **/
 
 // @flow
-import type { CandidateQueueConnector, OnCandidate } from '../types/candidate-queue-connector.flow';
-import type { DuplicateCandidate } from '../types/duplicate-candidate.flow';
-import type { Channel, Message } from '../types/amqplib.flow';
+import {type CandidateQueueConnector, type OnCandidate} from '../types/candidate-queue-connector.flow';
+import {type DuplicateCandidate} from '../types/duplicate-candidate.flow';
+import {type Channel, type Message} from '../types/amqplib.flow';
 
 const CANDIDATE_QUEUE_NAME = 'CANDIDATES';
 
 function createCandidateQueueConnector(channel: Channel): CandidateQueueConnector {
-
   async function pushCandidates(duplicateCandidates) {
     await channel.assertQueue(CANDIDATE_QUEUE_NAME, {durable: true});
-    for (let candidate of duplicateCandidates) {
+    for (const candidate of duplicateCandidates) {
       const payload = JSON.stringify(candidate);
       await channel.sendToQueue(CANDIDATE_QUEUE_NAME, Buffer.from(payload), {persistent: true});
     }
@@ -46,17 +45,14 @@ function createCandidateQueueConnector(channel: Channel): CandidateQueueConnecto
   async function listenForCandidates(onCandidate: OnCandidate) {
     await channel.assertQueue(CANDIDATE_QUEUE_NAME, {durable: true});
     channel.prefetch(1);
-    
-    channel.consume(CANDIDATE_QUEUE_NAME, (msg: Message) => {
 
+    channel.consume(CANDIDATE_QUEUE_NAME, (msg: Message) => {
       if (msg != null) {
         const candidate: DuplicateCandidate = parseMessage(msg);
         const doneCallback = () => channel.ack(msg);
         onCandidate(candidate, doneCallback);
       }
-
     }, {noAck: false});
-
   }
 
   function parseMessage(msg: Message): DuplicateCandidate {
