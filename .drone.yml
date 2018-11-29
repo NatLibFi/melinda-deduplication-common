@@ -1,0 +1,17 @@
+
+pipeline:
+  build:
+    image: node:8
+    commands:
+    - npm install
+    - npm test
+    - npm run build
+  npm:
+    image: plugins/npm
+    settings:
+      token: $NPM_TOKEN
+    secrets: [npm_token]
+    when:
+      event: tag
+      # Not working with Github, see https://github.com/drone/drone/issues/2536
+#branch: master
