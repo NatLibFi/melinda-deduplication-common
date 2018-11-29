@@ -27,7 +27,7 @@
  *
  **/
 
-const MarcRecord = require('marc-record-js');
+const {MarcRecord} = require('@natlibfi/marc-record');
 
 const RecordSimilarity = require('./similarity');
 const DEFAULT_STRATEGY = require('./similarity-strategy');

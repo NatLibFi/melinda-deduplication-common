@@ -26,13 +26,15 @@
  * for the JavaScript code in this page.
  *
  **/
-
+import {MarcRecord} from '@natlibfi/marc-record';
 import * as DefaultConfigs from './default-configs';
 import * as MarcRecordMergeUtils from './marc-record-merge-utils';
 import * as SelectBetter from './select-better';
 import * as Similarity from './similarity';
 import * as Types from './types';
 import * as Utils from './utils';
+
+MarcRecord.setValidationOptions({subfieldValues: false});
 
 export {
   DefaultConfigs,

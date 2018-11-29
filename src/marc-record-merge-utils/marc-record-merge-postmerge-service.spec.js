@@ -33,7 +33,7 @@ import sinon from 'sinon';
 import _ from 'lodash';
 import {expect} from 'chai';
 import uuid from 'uuid';
-import MarcRecord from 'marc-record-js';
+import {MarcRecord} from '@natlibfi/marc-record';
 import * as MarcRecordMergePostmergeService from './marc-record-merge-postmerge-service';
 import {__RewireAPI__ as RewireAPI} from './marc-record-merge-postmerge-service';
 import {decorateFieldsWithUuid} from './record-utils';

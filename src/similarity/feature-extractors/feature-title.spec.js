@@ -30,7 +30,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const MarcRecord = require('marc-record-js');
+const {MarcRecord} = require('@natlibfi/marc-record');
 
 const Utils = require('./utils');
 const {Labels} = require('./constants');

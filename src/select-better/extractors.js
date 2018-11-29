@@ -195,6 +195,7 @@ function fieldCount(tag, arrayOfSubfields) {
     if (arrayOfSubfields === undefined) {
       return fieldsWithTag.length;
     }
+ 
     const subfieldsWithTagAndCode = _.chain(fieldsWithTag)
       .flatMap(field => field.subfields)
       .filter(sub => arrayOfSubfields.includes(sub.code))

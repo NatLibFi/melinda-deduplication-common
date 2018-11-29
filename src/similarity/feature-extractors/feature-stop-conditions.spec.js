@@ -35,7 +35,7 @@ const {Labels} = require('./constants');
 
 const {ABSOLUTELY_NOT_DOUBLE} = Labels;
 
-const MarcRecord = require('marc-record-js');
+const {MarcRecord} = require('@natlibfi/marc-record');
 const Utils = require('./utils');
 
 const stopConditions = require('./feature-stop-conditions');

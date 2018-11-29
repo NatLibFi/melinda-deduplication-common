@@ -32,7 +32,7 @@ const chai = require('chai');
 const expect = chai.expect;
 
 const {Labels} = require('./constants');
-const MarcRecord = require('marc-record-js');
+const {MarcRecord} = require('@natlibfi/marc-record');
 const Utils = require('./utils');
 
 const ISBN = require('./feature-ISBN');

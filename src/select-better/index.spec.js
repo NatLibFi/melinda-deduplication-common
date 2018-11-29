@@ -30,11 +30,13 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const MarcRecord = require('marc-record-js');
+const {MarcRecord} = require('@natlibfi/marc-record');
+
+MarcRecord.setValidationOptions({subfieldValues: false});
 
 const defaultTestRecord = new MarcRecord({
   leader: '00000cam^a22003017i^4500',
-  fields: []
+  fields: [{tag: 'FOO', value: 'bar'}]
 });
 
 const extractors = require('./extractors');
@@ -58,12 +60,11 @@ CAT    ‡aKVP1008‡b30‡c20131219‡lFIN01
 CAT    ‡aKVP1008‡b30‡c20131215‡lFIN01
 LOW    ‡aFENNI
 SID    ‡bviola
-500    ‡aORG_X
-`);
+500    ‡aORG_X`);
 
     const otherTestRecord = new MarcRecord(defaultTestRecord);
-    otherTestRecord.appendControlField(['005', '20131219114925.0']);
-    otherTestRecord.appendControlField(['008', '870506s1983^^^^xxu|||||||||||||||||eng||']);
+    otherTestRecord.appendField(['005', '20131219114925.0']);
+    otherTestRecord.appendField(['008', '870506s1983^^^^xxu|||||||||||||||||eng||']);
 
     setEncodingLevel(otherTestRecord, 'u');
     setEncodingLevel(testRecord, '^');
@@ -131,10 +132,10 @@ SID    ‡bviola
         record1 = new MarcRecord(defaultTestRecord);
         record2 = new MarcRecord(defaultTestRecord);
 
-        record1.appendControlField(['008', '860819s1975^^^^sw^|||||||||||||||||rus||']);
+        record1.appendField(['008', '860819s1975^^^^sw^|||||||||||||||||rus||']);
         record1.appendField(['500', '', '', 'a', 'Lisäpainokset: Repr. 1982.']);
 
-        record2.appendControlField(['008', '860819s1982^^^^sw^|||||||||||||||||rus||']);
+        record2.appendField(['008', '860819s1982^^^^sw^|||||||||||||||||rus||']);
 
         reprintVector1 = [extractors.reprintInfo(record1)];
         reprintVector2 = [extractors.reprintInfo(record2)];

@@ -35,7 +35,7 @@ const {Labels} = require('./constants');
 
 const {SURE, ABSOLUTELY_NOT_DOUBLE} = Labels;
 
-const MarcRecord = require('marc-record-js');
+const {MarcRecord} = require('@natlibfi/marc-record');
 const Utils = require('./utils');
 
 const createExtractor = require('./feature-bundle-note');

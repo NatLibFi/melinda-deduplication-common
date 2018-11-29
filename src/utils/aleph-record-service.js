@@ -32,7 +32,7 @@ const _ = require('lodash');
 const fetch = require('node-fetch');
 const RecordSerializers = require('@natlibfi/marc-record-serializers');
 const debug = require('debug')('aleph-record-service');
-const promisify = require('es6-promisify');
+const {promisify} = require('es6-promisify');
 const parseString = require('xml2js').parseString;
 
 const parseXML = promisify(parseString);

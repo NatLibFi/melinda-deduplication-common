@@ -30,8 +30,10 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const MarcRecord = require('marc-record-js');
+const {MarcRecord} = require('@natlibfi/marc-record');
 const extractors = require('./extractors');
+
+MarcRecord.setValidationOptions({subfieldValues: false});
 
 describe('extractors', () => {
   let testRecord;
@@ -39,7 +41,7 @@ describe('extractors', () => {
   beforeEach(() => {
     testRecord = new MarcRecord({
       leader: '00000cam^a22003017i^4500',
-      fields: []
+      fields: [{tag: 'FOO', value: 'foobar'}]
     });
   });
 
@@ -82,7 +84,7 @@ describe('extractors', () => {
 
   describe('latestChangeByHuman extractor', () => {
     beforeEach(() => {
-      testRecord.appendControlField(['005', '20141219114925.0']);
+      testRecord.appendField(['005', '20141219114925.0']);
 
       testRecord.appendField(['CAT', '', '', 'a', 'LOAD-HELKA', 'b', '', 'c', '20140812', 'l', 'FIN01', 'h', '2333']);
       testRecord.appendField(['CAT', '', '', 'a', 'LOAD-HELKA', 'b', '', 'c', '20111215', 'l', 'FIN01', 'h', '0529']);
@@ -120,7 +122,7 @@ describe('extractors', () => {
 
   describe('recordAge extractor', () => {
     beforeEach(() => {
-      testRecord.appendControlField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
+      testRecord.appendField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
     });
 
     it('should extract record age from 008', () => {
@@ -130,7 +132,7 @@ describe('extractors', () => {
 
   describe('publicationYear extractor', () => {
     beforeEach(() => {
-      testRecord.appendControlField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
+      testRecord.appendField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
     });
 
     it('should extract publication year from 008/07-11', () => {
@@ -140,7 +142,7 @@ describe('extractors', () => {
 
   describe('catalogingSourceFrom008 extractor', () => {
     beforeEach(() => {
-      testRecord.appendControlField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
+      testRecord.appendField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
     });
 
     function setCatalogingSource(record, newLevel) {
@@ -275,7 +277,7 @@ describe('extractors', () => {
 
   describe('extractFieldCount', () => {
     beforeEach(() => {
-      testRecord.appendControlField(['005', '20141219114925.0']);
+      testRecord.appendField(['005', '20141219114925.0']);
 
       testRecord.appendField(['CAT', '', '', 'a', 'LOAD-HELKA', 'b', '', 'c', '20140812', 'l', 'FIN01', 'h', '2333']);
       testRecord.appendField(['CAT', '', '', 'a', 'LOAD-HELKA', 'b', '', 'c', '20111215', 'l', 'FIN01']);
@@ -314,14 +316,14 @@ describe('extractors', () => {
 
     beforeEach(() => {
       testRecordNotFinnishInHelka = new MarcRecord(testRecord);
-      testRecordNotFinnishInHelka.appendControlField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
+      testRecordNotFinnishInHelka.appendField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
       testRecordNotFinnishInHelka.appendField(['LOW', '', '', 'a', 'HELKA']);
 
       testRecordNotFinnishNotHelka = new MarcRecord(testRecord);
-      testRecordNotFinnishNotHelka.appendControlField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
+      testRecordNotFinnishNotHelka.appendField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
 
       testRecordInFinnishInHelka = new MarcRecord(testRecord);
-      testRecordInFinnishInHelka.appendControlField(['008', '850506s1983^^^^xxu|||||||||||||||||fin||']);
+      testRecordInFinnishInHelka.appendField(['008', '850506s1983^^^^xxu|||||||||||||||||fin||']);
       testRecordInFinnishInHelka.appendField(['LOW', '', '', 'a', 'HELKA']);
     });
 
@@ -341,7 +343,7 @@ describe('extractors', () => {
 
     beforeEach(() => {
       rec = new MarcRecord();
-      rec.appendControlField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
+      rec.appendField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
     });
 
     it('should return the number of nonEmpty (|,^) characters in the 008', () => {
@@ -357,7 +359,7 @@ describe('extractors', () => {
     let rec;
     beforeEach(() => {
       rec = new MarcRecord();
-      rec.appendControlField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
+      rec.appendField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
     });
 
     it('should return 0 if the record does not have any subfield in with value', () => {
@@ -376,7 +378,7 @@ describe('extractors', () => {
 
     beforeEach(() => {
       rec = new MarcRecord();
-      rec.appendControlField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
+      rec.appendField(['008', '850506s1983^^^^xxu|||||||||||||||||eng||']);
     });
 
     it('should return 1 if the record has some subfield in uppercase', () => {

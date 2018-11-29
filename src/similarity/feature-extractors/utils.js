@@ -28,7 +28,7 @@
  **/
 
 const _ = require('lodash');
-const MarcRecord = require('marc-record-js');
+const {MarcRecord} = require('@natlibfi/marc-record');
 const compareFuncs = require('./core.compare');
 const filterFuncs = require('./core.filter');
 const normalizeFuncs = require('./core.normalize'); //eslint-disable-line

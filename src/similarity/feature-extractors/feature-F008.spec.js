@@ -35,7 +35,7 @@ const {Labels} = require('./constants');
 
 const {SURE, SURELY_NOT, ALMOST_SURE} = Labels;
 
-const MarcRecord = require('marc-record-js');
+const {MarcRecord} = require('@natlibfi/marc-record');
 const Utils = require('./utils');
 
 const F008 = require('./feature-F008');

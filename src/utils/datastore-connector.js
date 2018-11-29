@@ -31,7 +31,7 @@ import {type DataStoreConnector} from '../types/datastore-connector.flow';
 
 const _ = require('lodash');
 const fetch = require('node-fetch');
-const MarcRecord = require('marc-record-js');
+const {MarcRecord} = require('@natlibfi/marc-record');
 const moment = require('moment');
 const DEFAULT_LOGGER = require('./logger');
 const debug = require('debug')('datastore-connector');

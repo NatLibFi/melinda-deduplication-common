@@ -30,7 +30,7 @@
 import sinon from 'sinon';
 import chai from 'chai';
 import sinonChai from 'sinon-chai';
-import MarcRecord from 'marc-record-js';
+import {MarcRecord} from '@natlibfi/marc-record';
 import {commitMerge, splitRecord} from './melinda-merge-update';
 import * as RecordUtils from './record-utils';
 
@@ -237,7 +237,7 @@ function createRecord(recordId) {
   const record = new MarcRecord();
   record.leader = '00000cam^a22002294i^4500';
   if (recordId) {
-    record.appendControlField(['001', recordId]);
+    record.appendField(['001', recordId]);
   }
   return record;
 }
@@ -250,15 +250,15 @@ function createRandomRecordFamily() {
 }
 
 function createRandomRecord() {
-  const randomId = Math.floor(Math.random() * 1000000);
+  const randomId = String(Math.floor(Math.random() * 1000000));
   return createRecord(randomId);
 }
 
-function createRandomComponentRecord(parentId = Math.floor(Math.random() * 1000000)) {
+function createRandomComponentRecord(parentId = String(Math.floor(Math.random() * 100000))) {
   const record = new MarcRecord();
   record.leader = '00000cam^a22002294i^4500';
 
-  record.appendControlField(['001', Math.floor(Math.random() * 1000000)]);
+  record.appendField(['001', String(Math.floor(Math.random() * 1000000))]);
   setParentRecordId(parentId, record);
 
   return record;
